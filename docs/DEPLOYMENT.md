@@ -6,10 +6,11 @@
 |---|---|---|
 | GitHub repo | ✅ pushed | https://github.com/wisepilot071/live-show-radar, `main` at `710291a` or later (`git ls-remote origin main`) |
 | Production build | ✅ | `next build` succeeds locally (Turbopack and webpack) |
-| Vercel project / deployment | ⛔ **blocked** | The Vercel connector used during development returned `403 forbidden` for team scope `sagar-1d03` (`team_SDoec3IIWkZ8rICKBkXv1xT6`), and the Vercel CLI was not installed or logged in. No deployment exists, so **no deployment URL exists**. |
+| Vercel production | ✅ deployed | https://live-show-radar.vercel.app (`dpl_47WBVbbMrhXMUX7ugS3z2hh4MzvG`, `bom1`). Deployed with the Vercel CLI (`vercel deploy --prod`); env vars set with `scripts/vercel-env-push.mjs` |
+| Cron | ✅ registered | `vercel crons ls` shows `/api/cron/monitor` at `30 1 * * *`. A production call with `CRON_SECRET` returned 200 and recorded a `job_runs` row. First automatic run: 2026-10-11 07:00 IST |
 | Database | ✅ live | Supabase `live-show-radar` (ap-south-1), migrations 0001–0004 applied |
 
-## Deploy steps (about 10 minutes, run by the account owner)
+## How it was deployed (repeatable)
 
 **1. Log in and link the project.**
 
@@ -61,9 +62,9 @@ Alternatively, import `wisepilot071/live-show-radar` in the Vercel dashboard (fr
 - [x] Source on GitHub, public, with no secrets (diff scanned before the push; `.env*.local` and `.claude/` are ignored)
 - [x] README covers setup, environment, migrations, commands, tests, limitations and security
 - [x] Components Map with 9 layers and 4 diagrams (`docs/ARCHITECTURE.md`)
-- [x] `npm run lint`, `npm run typecheck`, `npm test` (78 tests) and `npm run build` all pass
+- [x] `npm run lint`, `npm run typecheck`, `npm test` (86 tests) and `npm run build` all pass
 - [x] Accessibility: axe WCAG 2.1 A/AA reports 0 violations on 11 pages. Responsive at 320, 390 and 768 px
 - [x] Cron configured in `vercel.json` (daily, Hobby limit) and protected by `CRON_SECRET`
-- [ ] Vercel deployment live, with the URL verified (**blocked**: see above)
+- [x] Vercel deployment live and verified (routes, DB, cron, auth, logs)
 - [ ] Email channel configured (needs a Resend key and a verified sender domain)
 - [ ] Ticketmaster and Bandsintown keys (optional)

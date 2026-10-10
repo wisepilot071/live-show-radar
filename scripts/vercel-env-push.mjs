@@ -44,7 +44,7 @@ for (const key of KEYS) {
     console.log(`skip  ${key} (not set locally)`);
     continue;
   }
-  const res = spawnSync("npx", ["vercel", "env", "add", key, target, "--sensitive", "--force"], {
+  const res = spawnSync("npx", ["-y", "vercel@63.1.2", "env", "add", key, target, "--sensitive", "--force"], {
     input: value,
     stdio: ["pipe", "ignore", "pipe"],
     shell: process.platform === "win32",

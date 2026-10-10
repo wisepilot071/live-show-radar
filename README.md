@@ -4,7 +4,7 @@ Live Show Radar is a concert discovery and alert app for India, with Bengaluru f
 
 Its core rule is **trust**. Every date, venue and ticket detail is labelled with its source and how fresh it is. The app never invents concerts, ticket availability or urgency.
 
-**Status:** Parts 1–5 implemented, with the limitations listed below.
+**Status:** Parts 1–5 implemented and deployed at **https://live-show-radar.vercel.app**, with the limitations listed below. Verification results are in [FINAL_ACCEPTANCE_CHECKLIST.md](FINAL_ACCEPTANCE_CHECKLIST.md).
 
 ## Features
 
@@ -120,5 +120,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the Vercel setup, environment v
 
 - [Architecture and Components Map](docs/ARCHITECTURE.md)
 - [Deployment and submission checklist](docs/DEPLOYMENT.md)
+- [Final acceptance checklist](FINAL_ACCEPTANCE_CHECKLIST.md)
 - [Parts 4–5 checkpoint](docs/PART4-5-CHECKPOINT.md)
 - Earlier checkpoints: [Part 1](docs/PART1-CHECKPOINT.md), [Part 2](docs/PART2-CHECKPOINT.md), [Part 3](docs/PART3-CHECKPOINT.md)

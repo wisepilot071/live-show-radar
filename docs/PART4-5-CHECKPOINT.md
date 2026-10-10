@@ -27,7 +27,7 @@
 |---|---|
 | Lint | Clean |
 | Type check | Clean |
-| Tests | 78/78 (unit + DB integration); TEST records cleaned up and verified by query |
+| Tests | 86/86 (unit + DB integration); TEST records cleaned up and verified by query |
 | Build | Passes |
 | Accessibility | axe: 0 violations on 11 pages |
 | Responsive | No overflow at 320, 390 or 768 px |
@@ -36,6 +36,6 @@
 
 ## Open items
 
-- Vercel deployment is blocked by authorisation. See [DEPLOYMENT.md](DEPLOYMENT.md).
+- Deployed at https://live-show-radar.vercel.app. The first automatic cron run is pending (07:00 IST).
 - Email needs a Resend key and a verified sender.
 - There are very few real upcoming Indian events from MusicBrainz, and the extra sources need keys.

@@ -261,8 +261,8 @@ sequenceDiagram
 
 ## 10. Layer 9: Deployment and operations
 
-- **Deployment status:** ⛔ not yet deployed. The Vercel connector was refused access to the team scope; see `docs/DEPLOYMENT.md` for the exact steps.
-- **Hosting (configured target):** Vercel, region `bom1` (Mumbai, next to the database). `vercel.json` holds the region and the daily cron at `30 1 * * *`. On the Hobby plan, cron runs at most once a day with timing anywhere within the hour, and the function limit is 300s; `/api/cron/monitor` sets `maxDuration = 300`.
+- **Deployment status:** ✅ https://live-show-radar.vercel.app (production, verified 2026-10-11).
+- **Hosting:** Vercel, region `bom1` (Mumbai, next to the database). `vercel.json` holds the region and the daily cron at `30 1 * * *`. On the Hobby plan, cron runs at most once a day with timing anywhere within the hour, and the function limit is 300s; `/api/cron/monitor` sets `maxDuration = 300`.
 - **Database:** Supabase project `live-show-radar` (ap-south-1). Deployments use the transaction-mode pooler on `:6543`, with the app using one connection per instance.
 - **Operations:**
   - `GET /api/admin/status` (bearer) shows the last scheduled run, last success, running jobs, per-source outcomes, delivery counts by status and the change cursor.

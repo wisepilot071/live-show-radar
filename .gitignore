@@ -11,3 +11,7 @@ next-env.d.ts
 # local tooling
 .claude/
 coverage/
+
+.vercel
+.env*
+!.env.example
