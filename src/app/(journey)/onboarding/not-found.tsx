@@ -11,7 +11,7 @@ export default function OnboardingNotFound() {
         title="That setup step doesn't exist"
         action={<ButtonLink href="/onboarding">Back to setup</ButtonLink>}
       >
-        Your progress is safe — it&rsquo;s saved in this browser. Head back and pick up where you left off.
+        Your progress is safe. Head back and pick up where you left off.
       </EmptyState>
     </Container>
   );

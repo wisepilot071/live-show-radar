@@ -51,7 +51,11 @@ export function SettingsPage() {
       <PageHeader
         eyebrow="Settings"
         title="Tune your radar."
-        description="Changes save as you make them, in this browser."
+        description={
+          mode === "server"
+            ? "Changes save to your profile as you make them."
+            : "Changes save as you make them, in this browser."
+        }
       />
 
       <nav aria-label="Settings sections" className="-mt-4 flex flex-wrap gap-2">

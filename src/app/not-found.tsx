@@ -21,7 +21,7 @@ export default function NotFound() {
             </div>
           }
         >
-          This page doesn&rsquo;t exist. Your setup progress is kept in this browser, so you can pick up where you left off.
+          This page doesn&rsquo;t exist. Your setup progress is kept, so you can pick up where you left off.
         </EmptyState>
       </main>
     </Container>

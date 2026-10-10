@@ -55,7 +55,8 @@ const OPTIONS: Array<{
 
 export function MethodStep() {
   const router = useRouter();
-  const { state, dispatch } = useOnboarding();
+  const { state, dispatch, mode } = useOnboarding();
+  const where = mode === "server" ? "in your profile" : "in this browser";
   const selected = state.method;
   const hasProgress = state.selections.length > 0;
   const [confirmReset, setConfirmReset] = useState(false);
@@ -87,7 +88,7 @@ export function MethodStep() {
         {hasProgress && (
           <InlineAlert
             tone="info"
-            title={`You have ${pluralize(state.selections.length, "artist")} saved in this browser`}
+            title={`You have ${pluralize(state.selections.length, "artist")} saved ${where}`}
             action={
               <Button variant="quiet" onClick={() => setConfirmReset(true)}>
                 Start over instead
@@ -159,7 +160,7 @@ export function MethodStep() {
         open={confirmReset}
         onClose={() => setConfirmReset(false)}
         title="Start over?"
-        description={`This clears your ${pluralize(state.selections.length, "artist")}, saved shows and preferences in this browser. It can't be undone.`}
+        description={`This clears your ${pluralize(state.selections.length, "artist")}, saved shows and preferences ${where}. It can't be undone.`}
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmReset(false)}>
