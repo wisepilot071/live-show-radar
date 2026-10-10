@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+/*
+ * SIGNAL AFTER DARK — design tokens.
+ * Raw values live here only. Components use the semantic utilities generated
+ * by @theme (bg-canvas, text-fg-secondary, border-line, bg-signal …).
+ */
+:root {
+  /* Surfaces */
+  --background-primary: #0d1118;
+  --background-surface: #19232b;
+  --background-surface-2: #1d2632;
+  --background-inset: #111720;
+
+  /* Text */
+  --text-primary: #f5f4f0;
+  --text-secondary: #aab6c2;
+  --text-muted: #8391a0;
+  --text-on-accent: #0d1118;
+
+  /* Accents & status */
+  --accent-primary: #a4ff5b; /* electric lime — CTAs, selection, positive signal */
+  --accent-primary-hover: #b8ff82;
+  --status-urgent: #ff735c; /* coral — genuine urgency only */
+  --status-success: #a4ff5b;
+  --status-warning: #f4c95d; /* unconfirmed */
+  --status-info: #7cc4ff; /* pending */
+  --status-neutral: #8391a0; /* stale / unavailable */
+
+  /* Lines */
+  --border-subtle: #34404c;
+  --border-strong: #4a5867;
+
+  /* Focus */
+  --focus-ring: #a4ff5b;
+}
+
+@theme inline {
+  --color-canvas: var(--background-primary);
+  --color-surface: var(--background-surface);
+  --color-surface-2: var(--background-surface-2);
+  --color-inset: var(--background-inset);
+
+  --color-fg: var(--text-primary);
+  --color-fg-secondary: var(--text-secondary);
+  --color-fg-muted: var(--text-muted);
+  --color-on-signal: var(--text-on-accent);
+
+  --color-signal: var(--accent-primary);
+  --color-signal-hover: var(--accent-primary-hover);
+  --color-urgent: var(--status-urgent);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-info: var(--status-info);
+  --color-neutral: var(--status-neutral);
+
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+
+  --font-display: var(--font-bricolage), "Arial Narrow", system-ui, sans-serif;
+  --font-sans: var(--font-instrument), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Mono", monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-raised: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --shadow-signal: 0 0 0 1px rgb(164 255 91 / 0.35), 0 8px 28px -12px rgb(164 255 91 / 0.35);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-sweep: sweep 6s linear infinite;
+  --animate-ping-soft: ping-soft 2.4s var(--ease-out-soft) infinite;
+  --animate-rise: rise 420ms var(--ease-out-soft) both;
+  --animate-pop: pop 260ms var(--ease-out-soft) both;
+
+  @keyframes sweep {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes ping-soft {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.7;
+    }
+    80%,
+    100% {
+      transform: scale(2.2);
+      opacity: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.92);
+    }
+    60% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* Motion durations used via var() in arbitrary utilities */
+:root {
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+  }
+
+  /* One focus style for the whole product. */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+}
+
+/* Poster grain: a static noise texture for depth, not motion. */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .motion-sweep {
+    animation: none !important;
+  }
+}
