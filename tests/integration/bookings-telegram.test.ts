@@ -63,7 +63,7 @@ describe.skipIf(!HAS_DB)("bookings + Telegram + Calendar (isolated TEST records,
         artistFailures: [],
       }),
     };
-    await runDiscovery({ trigger: "admin", sources: [source] });
+    await runDiscovery({ trigger: "admin", userId: fan, sources: [source] }); // scoped to the TEST profile
     const [row] = await sql<{ event_id: string }[]>`select event_id from radar.event_artists where artist_id = ${artistId} limit 1`;
     eventId = row!.event_id;
   });

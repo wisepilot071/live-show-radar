@@ -40,7 +40,8 @@ const show = (o: Partial<SourceEventRecord> = {}) =>
 
 async function discover(source: EventSourceAdapter) {
   await getSql()`delete from radar.artist_source_checks where artist_id = ${artistId}`; // make the artist due again
-  return runDiscovery({ trigger: "admin", sources: [source] });
+  // Scoped to the TEST fan so real profiles' follows never crowd out the fixture artist.
+  return runDiscovery({ trigger: "admin", userId: fan, sources: [source] });
 }
 
 async function notificationsFor(userId: string) {
