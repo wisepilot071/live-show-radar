@@ -76,8 +76,8 @@ flowchart LR
 |---|---|---|---|
 | `/` | `(site)/layout.tsx` | `RadarHero`, `ProductPreview`, `HowItWorks`, `TrustSection` | Static; examples labelled |
 | `/explore` | site | `EventCard` × illustrative events | `data/illustrative-events.ts` (fictional, labelled) |
-| `/onboarding` → `/spotify` → `/artists` → `/review` → `/location` → `/alerts` → `/status` | `OnboardingFrame` | `MethodStep`, `SpotifyStep`, `ArtistSearchStep` (+ `ArtistSearchPanel`), `ArtistReviewStep`, `LocationStep`, `AlertsStep`, `SetupStatusStep` | Provider → `/api/me/*`; search → `/api/artists/search` |
-| `/radar` | `(app)/layout.tsx` → `AppShell` | `RadarDashboard`, `AnnouncementIntake`, `EventCard`, `SaveEventButton` | `/api/me/events`, `/api/me/discovery`, `/api/me/announcements`, `/api/integrations/status` |
+| `/onboarding/artists` (entry; `/onboarding` → `/spotify` only if Spotify is chosen). `/review`, `/location`, `/alerts`, `/status` redirect | `OnboardingFrame` (returning users → `/radar`) | `ArtistSearchStep` (+ `ArtistSearchPanel`), `MethodStep`, `SpotifyStep`; **Continue to Live Show Radar** → `features/onboarding/finish.ts` | Provider → `/api/me/*` (flush artist writes, then `PUT /api/me/preferences` with completion); search → `/api/artists/search` |
+| `/radar` (Discover) | `(app)/layout.tsx` → `AppShell` (top header: nav, artist search, home-city picker) | `RadarDashboard` (ink hero + status, `FilterBar`, sections from `features/discovery/sections.ts`), `AnnouncementIntake`, `EventCard`, `SaveEventButton` | `/api/me/events`, `/api/me/discovery`, `/api/me/announcements`, `/api/integrations/status` |
 | `/radar/events/[id]` | app | `EventDetail`, `SourcePanel` | `/api/events/[id]` → saved snapshot → illustrative |
 | `/artists` | app | `ArtistsManager`, `ArtistRow`, `ArtistSearchPanel`, `Dialog` | `/api/me/artists*`, `/api/artists/search` |
 | `/saved` | app | `SavedShows`, `EventCard` | Profile `savedEvents` |
@@ -86,6 +86,8 @@ flowchart LR
 
 ## 3. Layer 2: Frontend application
 
+- **Visual system (Part 6 redesign).** Warm editorial tokens in `globals.css` (canvas `#F7F4EC`, white cards, ink `#202820` panels, lime `#C8F169` actions, coral `#FF7058` genuine urgency, plus accessible "ink" text variants). Fraunces for display, Instrument Sans for UI. The radar animation is unchanged.
+- **Discovery sections.** `features/discovery/sections.ts` groups the real `/api/me/events` data into: needs attention, just announced, from your artists, tickets available, early bird & presale, coming soon, beyond <home city>. `applyFilters` handles city, date window, artist and genre (from followed artists' tags). Pure functions, unit-tested; empty sections show an empty state, never filler.
 - **Routing.** App Router route groups: `(site)` for marketing, `(journey)` for the state provider, `(app)` for `AppShell`. Unknown `/onboarding/*` paths go to a recoverable 404.
 - **Shared UI** (`components/ui`): `Button`, `Card`, `TextField`, `SelectField`, `Switch`, `Dialog` (native `<dialog>`), `Toast`, `StatusBadge`, `InlineAlert`, `EmptyState`, `LoadingIndicator`, `Container`, `Eyebrow`.
 - **State.** `features/onboarding/OnboardingProvider.tsx` is the single store for the user's radar profile.

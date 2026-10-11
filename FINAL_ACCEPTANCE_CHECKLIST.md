@@ -21,15 +21,15 @@
 |---|---|---|---|---|
 | Solves the concert-discovery problem (follow artists, find Indian shows, act before windows close) | Whole app; `docs/ARCHITECTURE.md` | Review + journeys | Follow, discover, verify, save, alert, deadline-reminder flow implemented end to end. **Real Indian event coverage is very thin** (see 11.2) | PASS (with limitation) |
 | Artist selection works | `ArtistSearchStep`, `/api/artists/search`, `/api/me/artists` | prod-e2e | Live MusicBrainz search returned "Prateek Kuhad" (MBID). Follow persisted; a duplicate follow was a no-op | PASS |
-| Manual setup does not need Spotify | `MethodStep`, `SpotifyStep` | local-browser + prod-e2e (`method: manual`) | Full onboarding completes without Spotify. Spotify is shown as not available (not built) | PASS |
-| Bengaluru is prioritised per saved preferences | `domain/event-signals.ts` (sort), `LocationStep` | tests ("sorts primary city first"), prod-e2e | Primary city persisted; sorting puts the primary city first | PASS |
+| Manual setup does not need Spotify | `ArtistSearchStep`, `finish.ts` | local-browser + prod-e2e (`method: manual`) | Full onboarding completes without Spotify. Spotify is shown as not available (not built) | PASS |
+| Bengaluru is prioritised per saved preferences | `domain/event-signals.ts` (sort), header city picker, Settings → Location | tests ("sorts primary city first"), prod-e2e | Primary city persisted; sorting puts the primary city first | PASS |
 | Other Indian cities stay discoverable | Location scope, `decide.ts` | tests (city scope), prod-e2e (Mumbai added) | Additional cities and India-wide scope persist and are honoured | PASS |
 | Date, venue, ticket status, source and freshness are understandable | `EventCard`, `EventDetail`, `SourcePanel`, `domain/freshness.ts` | local-browser, tests | Every field carries a source and verification state; unknown ticket status is labelled as unknown | PASS |
 | Saved shows persist | `/api/me/saved`, `saved_shows` | tests (integration "saved shows"), local-browser | Save, reload, unsave verified on the real DB. In production, saving an unknown event is refused with 404 (no false success). **Not exercised in production with a real event, because none exist** | PASS (prod: partial) |
 | Important changes can be surfaced | `notifications/*`, `/inbox` | tests (Journeys 5–7) | New show, date change and deadline alerts are each created once | PASS |
 | Usable when sources fail | `dashboard-view.ts` (9 states), adapters | tests ("outage is a failure, not empty") | Failures are shown as failures; stored events are marked outdated | PASS |
 | Notifications avoid noise | `decide.ts` | tests | Only verified, followed, in-scope, enabled triggers. URL-only edits and conflicts are ignored. Priority is not inflated | PASS |
-| Signal After Dark design is consistent | `globals.css` tokens | local-browser review | Consistent dark theme with lime and coral tokens | PASS |
+| Visual identity is consistent (warm editorial redesign) | `globals.css` tokens | local-browser + Chrome review; axe on 9 pages | Warm canvas, white cards, ink panels, lime actions, coral urgency only; 0 axe violations | PASS |
 | Mobile and desktop work | All pages | local-browser at 320, 390, 768 px and desktop | No overflow or clipped headings | PASS |
 | Core actions work | All | prod-e2e + local-browser | Follow, unfollow, preferences, complete, discovery, inbox, channels and delete profile all work | PASS |
 
@@ -143,3 +143,11 @@
 - **Onboarding crash (P0), fixed.** `/onboarding/alerts` threw "useToast must be used inside <ToastProvider>": the Part 4 channel list uses toasts, but the provider only wrapped the app pages. Toasts are now provided for the whole journey group. Verified on production in Chrome: full onboarding, then Radar, Artists, Saved, Inbox and Settings all load.
 - **Copy fixes.** Several lines said "not monitored yet" or "saved in this browser" even when monitoring was active and data was saved to the server profile.
 - **Automatic cron confirmed.** The first Vercel-triggered run happened at 07:00 IST (01:30 UTC) on 2026-10-11 and succeeded. Radar shows "Daily monitor last ran 11 Oct, 7:00 am (succeeded)".
+
+## Redesign release (2026-10-11)
+
+- **Onboarding.** Picking artists, then **Continue to Live Show Radar**, saves and opens `/radar`. There is no review step. Saving comes first: queued artist writes are flushed, then completion goes through the existing `PUT /api/me/preferences`. Navigation happens only if both succeed, otherwise the user sees an error and can retry. Covered by `tests/unit/redesign.test.ts` and verified on production in Chrome.
+- **Returning users.** Completed users opening onboarding are sent to `/radar`. Verified on production.
+- **Discovery.** Sections and filters are built from real events only. Filters were verified to change results; unit-tested.
+- **Backend.** No changes to `src/server`, `src/app/api`, `db/`, `vercel.json` or env (checked with `git diff --name-only`). Production API journey passes 19/19 after the deploy, and the cron is still registered (`30 1 * * *`, 401 without its secret).
+- **Checks.** Lint clean, types clean, **107/107 tests** (9 files, including DB integration), production build OK. axe WCAG 2.1 A/AA: 0 violations on 9 pages. No horizontal overflow at 375px on 8 pages.

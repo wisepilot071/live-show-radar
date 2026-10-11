@@ -8,8 +8,8 @@ Its core rule is **trust**. Every date, venue and ticket detail is labelled with
 
 ## Features
 
-- **Onboarding.** Pick artists through a live MusicBrainz search, then set your cities and alert triggers. Your profile lives on the server and is tied to an anonymous signed cookie. If no database is configured, the app falls back to browser storage.
-- **Radar dashboard.** Shows real events for the artists you follow, with source evidence, verification and freshness labels, possible-duplicate notes, and saved shows.
+- **Onboarding.** Pick artists through a live MusicBrainz search, then press **Continue to Live Show Radar**. Your artists are saved and the radar opens, with no review step. Cities (Bengaluru first, all of India) and alert triggers start from sensible defaults and can be changed in Settings or in the header city picker. Your profile lives on the server and is tied to an anonymous signed cookie. If no database is configured, the app falls back to browser storage.
+- **Discover (radar).** A warm editorial design. Sections cover: needs attention, just announced, from your artists, tickets available, early bird & presale, coming soon, and beyond your city. You can filter by city, dates, artist and genre. It shows real events for the artists you follow, with source evidence, verification and freshness labels, possible-duplicate notes, and saved shows.
 - **Paste an announcement.** Gemini Flash pulls structured details out of announcement text you paste in. Every field is checked against the text you pasted. Pasted events are private to you and are never shown as "verified".
 - **Scheduled monitoring.** Vercel Cron runs `/api/cron/monitor` daily. It checks sources for the artists that are due, records field-level changes, and runs the notification pipeline.
 - **Notifications.**
