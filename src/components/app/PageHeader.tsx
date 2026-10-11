@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Atmosphere } from "@/components/media/Atmosphere";
+import { CrowdLights } from "@/components/media/CrowdLights";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import type { AtmosphereKey } from "@/data/visual-assets";
 import { cn } from "@/lib/cn";
@@ -32,6 +33,7 @@ export function PageHeader({
       )}
     >
       {atmosphere && <Atmosphere asset={atmosphere} priority />}
+      {atmosphere && <CrowdLights className="h-[30%] opacity-80 [mask-image:linear-gradient(90deg,transparent_30%,black_75%)]" />}
       <div className="min-w-0 space-y-3">
         <Eyebrow className={staged ? "flex items-center gap-2 text-signal" : undefined}>
           {staged && <span aria-hidden className="inline-block h-px w-6 bg-signal" />}

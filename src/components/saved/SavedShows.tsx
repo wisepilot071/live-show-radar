@@ -81,6 +81,7 @@ export function SavedShows() {
 
       {state.savedEvents.length === 0 ? (
         <EmptyState
+          doodle="bookmark"
           icon={Bookmark}
           title="Nothing saved yet"
           action={<ButtonLink href="/radar">Go to your radar</ButtonLink>}

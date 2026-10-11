@@ -47,7 +47,7 @@ export function MyBookings() {
         </InlineAlert>
       )}
       {phase === "ready" && bookings.length === 0 && (
-        <EmptyState icon={Ticket} title="No bookings yet" action={<ButtonLink href="/radar">Find a show</ButtonLink>}>
+        <EmptyState doodle="ticket" icon={Ticket} title="No bookings yet" action={<ButtonLink href="/radar">Find a show</ButtonLink>}>
           After you buy a ticket on the seller&rsquo;s site, come back and press &ldquo;I&rsquo;ve booked my ticket&rdquo; on the show.
           It&rsquo;ll appear here and, if connected, in your Google Calendar.
         </EmptyState>

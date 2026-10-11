@@ -9,6 +9,7 @@ import { normalizeArtistName } from "@/domain/artist-identity";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
 import { Atmosphere } from "./Atmosphere";
+import { CrowdLights } from "./CrowdLights";
 import { Equalizer } from "./Equalizer";
 import { YouTubePlayer, type Playback } from "./YouTubePlayer";
 
@@ -38,14 +39,23 @@ const PLAYBACK_LABEL: Partial<Record<Playback["kind"], string>> = {
  * - The equaliser animates only while YouTube reports PLAYING.
  * Fully independent of discovery — if this fails, only this section shows an error.
  */
-export function LiveOnStage() {
+export function LiveOnStage({
+  autoplay = false,
+  onlyFollowed = false,
+}: {
+  /** Start playing (muted) as soon as the section is on screen. Off under reduced motion. */
+  autoplay?: boolean;
+  /** Show only performances by followed artists (falls back to all when there are none). */
+  onlyFollowed?: boolean;
+} = {}) {
   const { state } = useOnboarding();
+  const [autoStart, setAutoStart] = useState(false);
   const ref = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [load, setLoad] = useState<Load>({ phase: "waiting" });
   const [nonce, setNonce] = useState(0);
   const [index, setIndex] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [startedByUser, setStarted] = useState(false);
   const [playback, setPlayback] = useState<Playback>({ kind: "idle" });
   const [showAll, setShowAll] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -57,14 +67,15 @@ export function LiveOnStage() {
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           setVisible(true);
+          if (autoplay && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) setAutoStart(true);
           io.disconnect();
         }
       },
-      { rootMargin: "400px" },
+      { rootMargin: autoplay ? "0px" : "400px" },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [autoplay]);
 
   useEffect(() => {
     if (!visible) return;
@@ -87,13 +98,25 @@ export function LiveOnStage() {
   const ordered = useMemo(() => {
     if (load.phase !== "ready") return [];
     const f = (v: LiveVideo) => followed.has(normalizeArtistName(v.artist));
-    return [...load.videos].sort((a, b) => Number(f(b)) - Number(f(a)));
-  }, [load, followed]);
+    // Round-robin by artist so the queue doesn't play the same act back to back.
+    const roundRobin = (list: LiveVideo[]) => {
+      const byArtist = new Map<string, LiveVideo[]>();
+      for (const v of list) byArtist.set(v.artist, [...(byArtist.get(v.artist) ?? []), v]);
+      const out: LiveVideo[] = [];
+      for (let round = 0; out.length < list.length; round++) for (const vs of byArtist.values()) if (vs[round]) out.push(vs[round]!);
+      return out;
+    };
+    const sorted = [...roundRobin(load.videos.filter(f)), ...roundRobin(load.videos.filter((v) => !f(v)))];
+    const mine = sorted.filter(f);
+    return onlyFollowed && mine.length > 0 ? mine : sorted;
+  }, [load, followed, onlyFollowed]);
   /** The play queue: only videos the owner lets other sites embed. */
   const queue = useMemo(() => ordered.filter((v) => v.status !== "embedding_disabled"), [ordered]);
   const linkOnly = useMemo(() => ordered.filter((v) => v.status === "embedding_disabled"), [ordered]);
   const followedCount = ordered.filter(isFollowed).length;
 
+  // Autoplay starts the queue without a click (muted); a click always counts too.
+  const started = startedByUser || (autoStart && queue.length > 0);
   const current = queue[Math.min(index, Math.max(queue.length - 1, 0))];
   const hasNext = index < queue.length - 1;
   const hasPrev = index > 0;
@@ -153,6 +176,7 @@ export function LiveOnStage() {
       {load.phase === "ready" && current && (
         <div className="on-ink relative isolate overflow-hidden rounded-[1.75rem] bg-ink p-3 text-on-ink shadow-[0_30px_70px_-40px_rgb(32_40_32/0.75)] sm:p-5 lg:p-6">
           <Atmosphere asset="gold-stage" strength="soft" fade="bottom" className="opacity-60" />
+          <CrowdLights className="h-[30%] opacity-70" />
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
             {/* Featured stage */}
             <div className="min-w-0 space-y-4">
@@ -164,6 +188,7 @@ export function LiveOnStage() {
                 onEnded={() => (hasNext ? next() : setFinished(true))}
                 onSkip={next}
                 hasNext={hasNext}
+                muted={autoStart && !startedByUser}
                 startHint={
                   queue.length > 1
                     ? `Plays ${queue.length} performances in order — the next one starts when the current one ends.`

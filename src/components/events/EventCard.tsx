@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Bookmark, Clock, MapPin, Ticket } from "lucid
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { EventMedia } from "./EventMedia";
 import { deriveEventSignals } from "@/domain/event-signals";
 import type { LiveEvent, LocationPreference } from "@/domain/types";
 import { cn } from "@/lib/cn";
@@ -11,7 +12,6 @@ import { formatEventDate, formatTimestamp, hostLabel } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
 import {
   cardVariant,
-  dateTile,
   relevanceLine,
   TICKET_STATUS_LABEL,
   VARIANT_TAG,
@@ -28,7 +28,8 @@ import {
  * - early-bird deadlines appear only when the ticket status is confirmed
  * - a ticket link renders only for a real bookingUrl on non-illustrative data
  * - time-relative tags ("Just announced", "ends soon") render client-side only
- * - no artwork is invented: the date tile is typographic
+ * - imagery is the headliner's real licensed photo (credited) or clearly abstract
+ *   doodle art — never a fake event poster; the date stays visible as a chip
  */
 export function EventCard({
   event,
@@ -57,46 +58,32 @@ export function EventCard({
   const canBook = !isExample && Boolean(ticket.bookingUrl);
   const isPrimary = signals?.locality === "primary";
   const muted = signals?.cancelled || signals?.isPast;
-  const tile = dateTile(event);
   const urgent = variant === "deadline";
 
   return (
     <article
       aria-labelledby={`ev-${event.id}-title`}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
-        isExample ? "border-dashed border-line-strong" : "border-line",
-        urgent && "border-urgent/60",
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border-2 bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
+        // Border colour carries meaning: coral = confirmed deadline, lime = your city,
+        // amber = ticket info not verified, sky = everything else; examples stay dashed.
+        isExample
+          ? "border-dashed border-line-strong"
+          : urgent
+            ? "border-urgent/70"
+            : isPrimary
+              ? "border-signal-ink/45"
+              : ticket.verification.state === "confirmed"
+                ? "border-[#8ec5ff]/70"
+                : "border-warning/35",
         "hover:-translate-y-0.5 hover:shadow-card-hover motion-reduce:hover:translate-y-0",
         className,
       )}
     >
-      {/* Accent edge: lime for your city, coral for a confirmed deadline. */}
-      {(urgent || isPrimary) && (
-        <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", urgent ? "bg-urgent" : "bg-signal")} />
-      )}
+      <EventMedia event={event} urgent={urgent} />
       <div className={cn("flex flex-1 flex-col gap-4 p-4 sm:p-5", muted && "opacity-75")}>
         {/* 1. When + which artist */}
         <header className="flex min-w-0 gap-4">
-          <div
-            aria-hidden
-            className={cn(
-              "on-ink flex h-[4.75rem] w-16 shrink-0 flex-col items-center justify-center self-start rounded-lg text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.1),0_10px_20px_-12px_rgb(32_40_32/0.7)]",
-              urgent ? "bg-urgent text-ink" : "bg-ink text-on-ink",
-            )}
-          >
-            {tile ? (
-              <>
-                <span className={cn("text-[0.7rem] font-bold tracking-[0.12em] uppercase", urgent ? "text-ink" : "text-signal")}>
-                  {tile.month}
-                </span>
-                <span className="font-display text-3xl leading-none font-semibold">{tile.day}</span>
-                <span className="mt-0.5 text-[0.68rem] font-medium opacity-80">{tile.weekday}</span>
-              </>
-            ) : (
-              <span className="px-1 text-[0.7rem] leading-tight font-bold tracking-wide uppercase">Date TBA</span>
-            )}
-          </div>
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex flex-wrap items-center gap-1.5">
               {isExample && <StatusBadge tone="example" label="Example · not real" />}

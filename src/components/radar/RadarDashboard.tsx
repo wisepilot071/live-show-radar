@@ -18,6 +18,8 @@ import {
 import { useId, useState, type ReactNode } from "react";
 import { EventCard } from "@/components/events/EventCard";
 import { HeroBackdrop } from "@/components/media/HeroBackdrop";
+import { CrowdLights } from "@/components/media/CrowdLights";
+import { DoodleArt, NightSky, type Doodle } from "@/components/media/NightSky";
 import { LiveOnStage } from "@/components/media/LiveOnStage";
 import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -442,32 +444,37 @@ function DashboardState({
   detail?: string;
   action?: ReactNode;
 }) {
+  // Errors stay plain and serious; every other state gets the night-sky stage.
+  if (tone === "error") {
+    return (
+      <section aria-label={title} className="flex flex-col items-center gap-4 rounded-xl border border-urgent/40 bg-urgent/[0.04] px-6 py-12 text-center sm:py-14">
+        <span className="grid size-14 place-items-center rounded-full bg-surface text-urgent-ink shadow-card ring-1 ring-urgent/40">
+          <Icon aria-hidden className="size-6" strokeWidth={1.75} />
+        </span>
+        <h2 className="max-w-xl font-display text-2xl font-bold tracking-tight text-balance">{title}</h2>
+        <p className="max-w-xl text-fg-secondary">{body}</p>
+        {detail && <p className="max-w-xl font-mono text-xs text-fg-muted">{detail}</p>}
+        {action}
+      </section>
+    );
+  }
+  const doodle: Doodle = Icon === Users ? "guitar" : Icon === Plug ? "mic" : "calendar";
   return (
     <section
       aria-label={title}
-      className={cn(
-        "grain flex flex-col items-center gap-4 rounded-xl border px-6 py-12 text-center sm:py-14",
-        tone === "error" && "border-urgent/40 bg-urgent/[0.04]",
-        tone === "neutral" && "border-dashed border-line-strong",
-        tone === "positive" && "border-line bg-surface",
-      )}
+      className="on-ink relative isolate flex flex-col items-center gap-4 overflow-hidden rounded-[1.75rem] bg-[#16201c] px-6 pt-12 pb-24 text-center text-on-ink shadow-[0_30px_60px_-38px_rgb(32_40_32/0.75)] sm:pt-16 sm:pb-28"
     >
-      {/* Radar rings: the brand motif, static (no implied activity). */}
-      <span aria-hidden className="relative grid size-24 place-items-center">
-        <span className={cn("absolute inset-0 rounded-full border", tone === "error" ? "border-urgent/25" : "border-line")} />
-        <span className={cn("absolute inset-3.5 rounded-full border", tone === "error" ? "border-urgent/40" : "border-line-strong/70")} />
-        <span
-          className={cn(
-            "relative grid size-14 place-items-center rounded-full bg-surface shadow-card ring-1",
-            tone === "error" ? "text-urgent-ink ring-urgent/40" : tone === "positive" ? "text-signal-ink ring-signal-ink/40" : "text-fg-secondary ring-line",
-          )}
-        >
-          <Icon className="size-6" strokeWidth={1.75} />
-        </span>
-      </span>
-      <h2 className="max-w-xl font-display text-2xl font-bold tracking-tight text-balance">{title}</h2>
-      <p className="max-w-xl text-fg-secondary">{body}</p>
-      {detail && <p className="max-w-xl font-mono text-xs text-fg-muted">{detail}</p>}
+      <NightSky dense />
+      <CrowdLights className="h-20 sm:h-24" />
+      <div className="animate-float">
+        <DoodleArt doodle={doodle} className="h-28 w-28 sm:h-36 sm:w-36" />
+      </div>
+      <h2 className="flex max-w-xl items-center gap-2.5 font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+        <Icon aria-hidden className="size-6 shrink-0 text-signal" strokeWidth={1.75} />
+        {title}
+      </h2>
+      <p className="max-w-xl text-on-ink/75">{body}</p>
+      {detail && <p className="max-w-xl font-mono text-xs text-on-ink/60">{detail}</p>}
       {action}
     </section>
   );

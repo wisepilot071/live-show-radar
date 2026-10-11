@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Play, SkipForward, VideoOff } from "lucide-react";
+import { ArrowUpRight, Play, SkipForward, VideoOff, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
@@ -10,6 +10,9 @@ interface YTPlayer {
   getIframe(): HTMLIFrameElement;
   loadVideoById(id: string): void;
   playVideo(): void;
+  mute(): void;
+  unMute(): void;
+  isMuted(): boolean;
 }
 interface YTNamespace {
   Player: new (
@@ -119,6 +122,7 @@ export function YouTubePlayer({
   hasNext,
   startLabel = "Start watching",
   startHint,
+  muted = false,
 }: {
   video: PlayerVideo;
   /** True once the viewer pressed start (or picked a video). */
@@ -130,6 +134,8 @@ export function YouTubePlayer({
   hasNext?: boolean;
   startLabel?: string;
   startHint?: string;
+  /** Start muted (browsers only allow autoplay without a click when muted). */
+  muted?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const player = useRef<YTPlayer | null>(null);
@@ -141,6 +147,7 @@ export function YouTubePlayer({
   const thumbFailed = thumbFailedFor === video.id;
   /** Mirrors ready.current for rendering (skip only works once a player exists). */
   const [isReady, setIsReady] = useState(false);
+  const [soundOff, setSoundOff] = useState(muted);
   const watchUrl = `https://www.youtube.com/watch?v=${video.id}`;
 
   // Keep callbacks in refs so the player isn't rebuilt when they change.
@@ -183,7 +190,7 @@ export function YouTubePlayer({
           width: "100%",
           height: "100%",
           // autoplay only follows the viewer's own click on start / a queue item.
-          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+          playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, mute: muted ? 1 : 0 },
           events: {
             onReady: (e) => {
               ready.current = true;
@@ -199,6 +206,12 @@ export function YouTubePlayer({
             },
             onStateChange: (e) => {
               if (cancelled) return;
+              // The viewer may have unmuted with YouTube's own controls.
+              try {
+                setSoundOff(player.current?.isMuted() ?? false);
+              } catch {
+                /* player not ready */
+              }
               if (e.data === YT_STATE.PLAYING) {
                 clearTimeout(blockTimer.current);
                 setPlayback({ kind: "playing" });
@@ -305,6 +318,20 @@ export function YouTubePlayer({
             {startHint && <span className="max-w-sm text-sm text-on-ink/80">{startHint}</span>}
           </button>
         </div>
+      )}
+
+      {started && soundOff && (playback.kind === "playing" || playback.kind === "buffering") && (
+        <button
+          type="button"
+          onClick={() => {
+            player.current?.unMute();
+            setSoundOff(false);
+          }}
+          className="on-ink absolute top-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink/80 px-4 text-sm font-semibold text-on-ink shadow-raised backdrop-blur hover:bg-ink"
+        >
+          <Volume2 aria-hidden className="size-4 text-signal" />
+          Tap for sound
+        </button>
       )}
 
       {started && playback.kind === "blocked" && (

@@ -1,10 +1,10 @@
 "use client";
 
-import { Plus, Search, Trash2, Users, X } from "lucide-react";
+import { ChevronDown, Plus, Search, Trash2, Users, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Dialog } from "@/components/ui/Dialog";
@@ -19,6 +19,15 @@ import { ArtistRow } from "./ArtistRow";
 import { ArtistSearchPanel } from "./ArtistSearchPanel";
 import { CuratedArtistPicker } from "./CuratedArtistPicker";
 import { PageSkeleton } from "@/components/ui/Skeletons";
+import { LiveOnStage } from "@/components/media/LiveOnStage";
+import { cn } from "@/lib/cn";
+import { ArtistPhotoCredits } from "./ArtistPhotoCredits";
+import { ArtistTile } from "./ArtistTile";
+
+function subscribeHash(onChange: () => void) {
+  window.addEventListener("hashchange", onChange);
+  return () => window.removeEventListener("hashchange", onChange);
+}
 
 export function ArtistsManager() {
   const params = useSearchParams();
@@ -39,6 +48,11 @@ export function ArtistsManager() {
     setAddQuery((q) => ({ value: headerQuery, nonce: q.nonce + 1 }));
   }
   const addRef = useRef<HTMLElement>(null);
+  // "Add more artists" is folded once you have artists. It opens for a header search (?q=),
+  // a #add-artists link, or when the list is empty.
+  const [addToggled, setAddOpen] = useState(false);
+  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash, () => "");
+  const addOpen = addToggled || Boolean(headerQuery) || hash === "#add-artists" || (hydrated && state.selections.length === 0);
 
   const selectedKeys = useMemo(() => new Set(state.selections.map((s) => artistIdentityKey(s.artist))), [state.selections]);
   const sorted = useMemo(
@@ -110,9 +124,14 @@ export function ArtistsManager() {
     }
   }
 
+  function openAdd() {
+    setAddOpen(true);
+    requestAnimationFrame(() => addRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
   function searchCatalogueFor(q: string) {
     setAddQuery((s) => ({ value: q, nonce: s.nonce + 1 }));
-    addRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    openAdd();
   }
 
   if (!hydrated) {
@@ -127,72 +146,44 @@ export function ArtistsManager() {
         title={state.selections.length ? `${pluralize(state.selections.length, "artist")} on your radar` : "Your artists"}
         description="Add, remove and check the artists your radar is built around."
         actions={
-          <ButtonLink href="#add-artists" leadingIcon={<Plus aria-hidden className="size-4" />}>
+          <Button onClick={() => openAdd()} leadingIcon={<Plus aria-hidden className="size-4" />}>
             Add artists
-          </ButtonLink>
+          </Button>
         }
       />
 
-      {/* Curated catalogue: Choose Your Artists */}
-      <section aria-labelledby="choose-title" className="space-y-4 rounded-2xl border border-line bg-surface-2/50 p-4 sm:p-6">
+      {/* Performances from the artists you follow — plays (muted) on arrival */}
+      {state.selections.length > 0 && <LiveOnStage autoplay onlyFollowed />}
+
+      {/* Your list — one face per artist */}
+      <section aria-labelledby="list-title" className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="space-y-1">
-            <h2 id="choose-title" className="font-display text-2xl font-semibold">
-              Choose Your Artists
-            </h2>
-            <p className="max-w-2xl text-sm text-fg-secondary">
-              Select the artists you want Live Show Radar to track for upcoming concerts and festivals across India. Suggestions only — nothing is
-              followed until you add it.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <p className="text-sm font-semibold tabular-nums" aria-live="polite">
-              {pluralize(state.selections.length, "artist")} selected
-            </p>
-            <Button onClick={() => void saveAll()} loading={savingAll} disabled={mode !== "server"}>
-              Save My Artists
+          <h2 id="list-title" className="font-display text-2xl font-bold tracking-tight">
+            Your list
+          </h2>
+          {state.selections.length > 1 && (
+            <Button variant="ghost" onClick={() => setConfirmClear(true)} leadingIcon={<Trash2 aria-hidden className="size-4" />}>
+              Remove all
             </Button>
-          </div>
+          )}
         </div>
-        <CuratedArtistPicker
-          isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
-          onToggle={(a) => void toggle(a)}
-          onAddMany={async (artists) => {
-            const at = new Date().toISOString();
-            const r = await run({ type: "import_artists", selections: artists.map((artist) => ({ artist, addedVia: "manual", selectedAt: at })) });
-            if (r.ok) toast({ message: `Added ${pluralize(artists.length, "artist")} to your watchlist.` });
-          }}
-        />
-      </section>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
-        {/* Your list */}
-        <section aria-labelledby="list-title" className="space-y-4">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <h2 id="list-title" className="font-display text-2xl font-bold tracking-tight">
-              Your list
-            </h2>
-            {state.selections.length > 1 && (
-              <Button variant="ghost" onClick={() => setConfirmClear(true)} leadingIcon={<Trash2 aria-hidden className="size-4" />}>
-                Remove all
+        {state.selections.length === 0 ? (
+          <EmptyState
+            doodle="guitar"
+            icon={Users}
+            title="No artists yet"
+            action={
+              <Button onClick={() => openAdd()} leadingIcon={<Plus aria-hidden className="size-4" />}>
+                Find artists
               </Button>
-            )}
-          </div>
-
-          {state.selections.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="No artists yet"
-              action={
-                <ButtonLink href="#add-artists" leadingIcon={<Plus aria-hidden className="size-4" />}>
-                  Find artists
-                </ButtonLink>
-              }
-            >
-              Search for the artists you&rsquo;d hate to miss. Your radar uses this list to decide which shows matter.
-            </EmptyState>
-          ) : (
-            <>
+            }
+          >
+            Search for the artists you&rsquo;d hate to miss. Your radar uses this list to decide which shows matter.
+          </EmptyState>
+        ) : (
+          <>
+            {state.selections.length > 8 && (
               <TextField
                 label="Filter your list"
                 type="search"
@@ -218,45 +209,95 @@ export function ArtistsManager() {
                     : undefined
                 }
               />
-              {visible.length === 0 ? (
-                <Card tone="outline" className="space-y-3 p-5 text-center">
-                  <p className="font-semibold">No artists in your list match &ldquo;{filter.trim()}&rdquo;.</p>
-                  <Button variant="secondary" onClick={() => searchCatalogueFor(filter.trim())}>
-                    Search the catalogue for &ldquo;{filter.trim()}&rdquo;
-                  </Button>
-                </Card>
-              ) : (
-                <ul
-                  aria-label="Followed artists"
-                  className="divide-y divide-line/60 overflow-hidden rounded-xl border border-line bg-surface shadow-card"
-                >
-                  {visible.map((s) => {
-                    const key = artistIdentityKey(s.artist);
-                    return (
-                        <ArtistRow
-                          key={key}
-                          id={`artist-${key}`}
-                          selection={s}
-                          expanded={expanded === key}
-                          highlighted={focusKey === key}
-                          onToggleExpanded={() => setExpanded((k) => (k === key ? null : key))}
-                          onRemove={() => void remove(s)}
-                          onResolve={() => setResolving(s)}
-                        />
-                    );
-                  })}
-                </ul>
-              )}
-            </>
-          )}
+            )}
+            {visible.length === 0 ? (
+              <Card tone="outline" className="space-y-3 p-5 text-center">
+                <p className="font-semibold">No artists in your list match &ldquo;{filter.trim()}&rdquo;.</p>
+                <Button variant="secondary" onClick={() => searchCatalogueFor(filter.trim())}>
+                  Search the catalogue for &ldquo;{filter.trim()}&rdquo;
+                </Button>
+              </Card>
+            ) : (
+              <ul aria-label="Followed artists" className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {visible.map((s) => {
+                  const key = artistIdentityKey(s.artist);
+                  return (
+                    <ArtistTile
+                      key={key}
+                      id={`artist-${key}`}
+                      selection={s}
+                      highlighted={focusKey === key}
+                      onOpen={() => setExpanded(key)}
+                      onRemove={() => void remove(s)}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* Add more: catalogue + full search, folded away once you have artists */}
+      <section id="add-artists" ref={addRef} aria-label="Add more artists" className="scroll-mt-24 space-y-4">
+        <button
+          type="button"
+          aria-expanded={addOpen}
+          aria-controls="add-artists-panel"
+          onClick={() => {
+            if (addOpen && hash) history.replaceState(null, "", window.location.pathname + window.location.search);
+            setAddOpen(!addOpen);
+          }}
+          className="group flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-line-strong bg-surface/70 px-5 py-4 text-left backdrop-blur-sm transition-colors hover:border-signal-ink/50 hover:bg-surface"
+        >
+          <span className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-full bg-signal text-on-signal">
+              <Plus aria-hidden className={cn("size-5 transition-transform", addOpen && "rotate-45")} />
+            </span>
+            <span>
+              <span className="block font-display text-xl font-semibold">Add more artists</span>
+              <span className="block text-sm text-fg-secondary">Pick from the catalogue or search everyone on MusicBrainz.</span>
+            </span>
+          </span>
+          <ChevronDown aria-hidden className={cn("size-5 text-fg-muted transition-transform", addOpen && "rotate-180")} />
+        </button>
+        <div id="add-artists-panel" hidden={!addOpen} className="space-y-8">
+      {/* Curated catalogue: Choose Your Artists */}
+        <section aria-labelledby="choose-title" className="space-y-4 rounded-2xl border border-line bg-surface/80 p-4 shadow-card backdrop-blur-sm sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="space-y-1">
+              <h2 id="choose-title" className="font-display text-2xl font-semibold">
+                Choose Your Artists
+              </h2>
+              <p className="max-w-2xl text-sm text-fg-secondary">
+                Select the artists you want Live Show Radar to track for upcoming concerts and festivals across India. Suggestions only — nothing is
+                followed until you add it.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <p className="text-sm font-semibold tabular-nums" aria-live="polite">
+                {pluralize(state.selections.length, "artist")} selected
+              </p>
+              <Button onClick={() => void saveAll()} loading={savingAll} disabled={mode !== "server"}>
+                Save My Artists
+              </Button>
+            </div>
+          </div>
+          <CuratedArtistPicker
+            isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
+            onToggle={(a) => void toggle(a)}
+            onAddMany={async (artists) => {
+              const at = new Date().toISOString();
+              const r = await run({ type: "import_artists", selections: artists.map((artist) => ({ artist, addedVia: "manual", selectedAt: at })) });
+              if (r.ok) toast({ message: `Added ${pluralize(artists.length, "artist")} to your watchlist.` });
+            }}
+          />
         </section>
 
         {/* Add artists (shared Part 1 search) */}
         <section
-          id="add-artists"
-          ref={addRef}
           aria-labelledby="add-title"
-          className="scroll-mt-24 space-y-4 xl:sticky xl:top-6 xl:self-start"
+          className="scroll-mt-24 space-y-4"
         >
           <h2 id="add-title" className="font-display text-2xl font-bold tracking-tight">
             Add artists
@@ -272,7 +313,39 @@ export function ArtistsManager() {
             />
           </Card>
         </section>
-      </div>
+        </div>
+      </section>
+
+      <ArtistPhotoCredits artists={state.selections.map((s) => s.artist)} />
+
+      {/* Details for one artist (MusicBrainz link, coverage, remove) */}
+      <Dialog
+        open={Boolean(expanded && state.selections.find((s) => artistIdentityKey(s.artist) === expanded))}
+        onClose={() => setExpanded(null)}
+        title={state.selections.find((s) => artistIdentityKey(s.artist) === expanded)?.artist.name ?? "Artist"}
+      >
+        {(() => {
+          const sel = state.selections.find((s) => artistIdentityKey(s.artist) === expanded);
+          if (!sel) return null;
+          return (
+            <ul className="overflow-hidden rounded-xl border border-line">
+              <ArtistRow
+                selection={sel}
+                expanded
+                onToggleExpanded={() => setExpanded(null)}
+                onRemove={() => {
+                  setExpanded(null);
+                  void remove(sel);
+                }}
+                onResolve={() => {
+                  setExpanded(null);
+                  setResolving(sel);
+                }}
+              />
+            </ul>
+          );
+        })()}
+      </Dialog>
 
       <Dialog
         open={resolving !== null}

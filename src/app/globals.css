@@ -93,6 +93,11 @@
   --animate-pop: pop 260ms var(--ease-out-soft) both;
   --animate-eq: eq 0.9s ease-in-out infinite;
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-draw: draw 1.4s var(--ease-out-soft) both;
+  --animate-twinkle: twinkle 3.2s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-drift: drift 26s ease-in-out infinite alternate;
+  --animate-xyloband: xyloband 4s linear infinite;
 
   @keyframes sweep {
     to {
@@ -130,6 +135,61 @@
     }
     65% {
       transform: scaleY(0.55);
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: scale(0.75) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1) rotate(12deg);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes xyloband {
+    0%,
+    100% {
+      fill: #8ec5ff;
+      opacity: 0.55;
+    }
+    25% {
+      fill: #b48cff;
+      opacity: 1;
+    }
+    50% {
+      fill: #ff7fc8;
+      opacity: 0.7;
+    }
+    75% {
+      fill: #c8f169;
+      opacity: 0.95;
+    }
+  }
+  @keyframes drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    100% {
+      transform: translate3d(6%, 4%, 0) scale(1.15);
     }
   }
   @keyframes shimmer {
@@ -203,6 +263,16 @@
   .font-mono {
     font-variant-numeric: tabular-nums;
   }
+}
+
+/* Ghost/quiet buttons sitting on dark ink panels switch to light text. */
+.on-ink .btn-ghost,
+.on-ink .btn-quiet {
+  color: rgb(247 244 236 / 0.85);
+}
+.on-ink .btn-ghost:hover {
+  color: var(--text-on-ink);
+  background: rgb(247 244 236 / 0.1);
 }
 
 /* Poster grain: a static noise texture for depth, not motion. */

@@ -77,9 +77,12 @@ export async function syncAction(action: OnboardingAction, before: OnboardingSta
     case "clear_artists":
       return call("DELETE", "/api/me/artists?all=1");
     case "import_artists": {
-      for (const sel of action.selections) {
-        const r = await call("POST", "/api/me/artists", sel);
-        if (!r.ok) return r;
+      // Six at a time: follows are independent and idempotent, and sending 46 one by
+      // one took ~12s — long enough for someone to navigate away mid-save.
+      for (let i = 0; i < action.selections.length; i += 6) {
+        const results = await Promise.all(action.selections.slice(i, i + 6).map((sel) => call("POST", "/api/me/artists", sel)));
+        const failed = results.find((r) => !r.ok);
+        if (failed) return failed;
       }
       return { ok: true };
     }

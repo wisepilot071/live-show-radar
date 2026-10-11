@@ -13,10 +13,10 @@ const base =
 const variants: Record<Variant, string> = {
   primary: "bg-signal text-on-signal shadow-[inset_0_-1px_0_rgb(32_40_32/0.12)] hover:bg-signal-hover hover:shadow-signal",
   secondary: "border border-line-strong bg-surface text-fg hover:border-fg hover:bg-surface",
-  ghost: "text-fg-secondary hover:text-fg hover:bg-surface-2",
+  ghost: "btn-ghost text-fg-secondary hover:text-fg hover:bg-surface-2",
   /** Outline button for dark ink panels. */
   onInk: "border border-on-ink/35 text-on-ink hover:border-on-ink hover:bg-on-ink/10",
-  quiet: "text-fg-secondary underline underline-offset-4 decoration-line-strong hover:text-fg hover:decoration-signal-ink",
+  quiet: "btn-quiet text-fg-secondary underline underline-offset-4 decoration-line-strong hover:text-fg hover:decoration-signal-ink",
 };
 
 const sizes: Record<Size, string> = {

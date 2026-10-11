@@ -3,6 +3,7 @@
 import { Check, Plus, RotateCw, Search } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { CatalogueEntry } from "@/app/api/artists/catalogue/route";
+import { ArtistAvatar } from "@/components/onboarding/ArtistAvatar";
 import { Button } from "@/components/ui/Button";
 import { normalizeArtistName } from "@/domain/artist-identity";
 import type { Artist } from "@/domain/types";
@@ -148,21 +149,7 @@ export function CuratedArtistPicker({
                     selected ? "border-signal-ink/50 bg-signal/30" : "border-line bg-surface",
                   )}
                 >
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "grid size-10 shrink-0 place-items-center rounded-full text-xs font-bold",
-                      selected ? "bg-ink text-signal" : "bg-surface-2 text-fg-secondary",
-                    )}
-                  >
-                    {e.artist.name
-                      .replace(/^the\s+/i, "")
-                      .split(/\s+/)
-                      .slice(0, 2)
-                      .map((w) => w[0])
-                      .join("")
-                      .toUpperCase()}
-                  </span>
+                  <ArtistAvatar artist={e.artist} className={selected ? "ring-2 ring-signal-ink/50" : undefined} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{e.artist.name}</p>
                     <p className="text-xs text-fg-muted">{e.category === "indian" ? "Indian" : "International"}</p>

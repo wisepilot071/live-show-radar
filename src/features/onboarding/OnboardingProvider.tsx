@@ -56,6 +56,16 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
   const [loadNonce, setLoadNonce] = useState(0);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const failedSinceFlush = useRef(false);
+  /** Writes not yet confirmed by the server; while > 0, closing/reloading the tab asks first. */
+  const pendingWrites = useRef(0);
+
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (pendingWrites.current > 0) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
 
   const replaceState = useCallback((next: OnboardingState) => {
     stateRef.current = next;
@@ -127,8 +137,11 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
       }
 
       // Server mode: serialise writes so they reach the API in order.
+      pendingWrites.current += 1;
       const job = queue.current.then(async (): Promise<SyncResult> => {
-        const result = await syncAction(action, before, after);
+        const result = await syncAction(action, before, after).finally(() => {
+          pendingWrites.current -= 1;
+        });
         if (!result.ok) {
           failedSinceFlush.current = true;
           setSyncError(`${result.error.message} Your last change wasn't saved, so we restored what's on the server.`);

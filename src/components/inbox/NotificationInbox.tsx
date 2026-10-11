@@ -93,7 +93,7 @@ export function NotificationInbox() {
       )}
 
       {state.phase === "ready" && state.notifications.length === 0 && (
-        <EmptyState icon={BellRing} title="No alerts yet" action={<ButtonLink href="/settings#alerts">Alert settings</ButtonLink>}>
+        <EmptyState doodle="bell" icon={BellRing} title="No alerts yet" action={<ButtonLink href="/settings#alerts">Alert settings</ButtonLink>}>
           You&rsquo;ll get an alert here when a source reports a new show, a verified ticket update, an early-bird deadline,
           or a date or venue change for an artist you follow. Shows you paste in yourself don&rsquo;t create alerts.
         </EmptyState>

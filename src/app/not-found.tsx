@@ -10,6 +10,7 @@ export default function NotFound() {
       <BrandMark />
       <main id="main">
         <EmptyState
+          doodle="compass"
           icon={Radar}
           title="Nothing on the radar here"
           action={

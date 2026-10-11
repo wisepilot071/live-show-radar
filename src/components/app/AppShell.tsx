@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
+import { AmbientBackdrop } from "./AmbientBackdrop";
 import { SyncErrorBanner } from "./SyncErrorBanner";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { INITIAL_CITIES } from "@/domain/cities";
@@ -49,7 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const unread = useUnreadCount(mode, pathname);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="relative isolate flex min-h-dvh flex-col">
+      <AmbientBackdrop />
       <header className="sticky top-0 z-40 border-b border-line bg-canvas/92 backdrop-blur-md">
         <div className="mx-auto flex min-h-16 w-full max-w-[90rem] items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
           <BrandMark className="shrink-0 max-sm:[&>span]:sr-only" />

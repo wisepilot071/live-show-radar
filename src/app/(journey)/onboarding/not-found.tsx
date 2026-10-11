@@ -7,6 +7,7 @@ export default function OnboardingNotFound() {
   return (
     <Container width="narrow" className="py-16">
       <EmptyState
+        doodle="compass"
         icon={Compass}
         title="That setup step doesn't exist"
         action={<ButtonLink href="/onboarding">Back to setup</ButtonLink>}
