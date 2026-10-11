@@ -75,9 +75,10 @@ describe("Google Calendar event building (no invented times)", () => {
     const r = buildCalendarEvent(ev({ when: { timeZone: "Asia/Kolkata" } }), "0b1e2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d");
     expect(r).toEqual({ ok: false, reason: expect.stringContaining("hasn't been announced") });
   });
-  it("authorisation URL asks only for calendar.events, offline access, with state", () => {
+  it("authorisation URL asks only for calendar.events + identity (openid email), offline access, with state", () => {
     const u = new URL(authorizationUrl({ clientId: "TEST-id", clientSecret: "x", redirectUri: "https://radar.example/cb" }, "STATE123"));
-    expect(u.searchParams.get("scope")).toBe(CALENDAR_SCOPE);
+    // Exactly these three: no broader calendar or profile access.
+    expect(u.searchParams.get("scope")?.split(" ").sort()).toEqual(["email", "openid", CALENDAR_SCOPE].sort());
     expect(u.searchParams.get("access_type")).toBe("offline");
     expect(u.searchParams.get("state")).toBe("STATE123");
   });
