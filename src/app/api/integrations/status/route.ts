@@ -88,13 +88,8 @@ export async function GET() {
     emailReason: email.configured ? null : (email.reason ?? "not configured"),
     telegramReason: telegramStatus().configured ? null : (telegramStatus().reason ?? "not configured"),
     googleCalendar: { configured: googleCalendarStatus().configured, reason: googleCalendarStatus().reason ?? null },
-    unavailableSources: [
-      {
-        id: "beescraper",
-        name: "Beescraper",
-        reason: "Not integrated: no Beescraper API, documentation or credentials were found, so no endpoints were assumed.",
-      },
-    ],
+    // "Beescraper" was requested; the key provided is ScrapingBee, integrated as news-announcement discovery above.
+    unavailableSources: [],
     scheduler: {
       configured: Boolean(getServerEnv().cronSecret),
       cadence: "Daily at 07:00 IST (Vercel Hobby cron: at most once a day, timing within the hour)",

@@ -8,9 +8,10 @@ import type { AdapterOutcome, EventSourceAdapter, SourceEventRecord } from "./co
 /**
  * Ticketmaster Discovery API v2 (developer.ticketmaster.com).
  * Needs TICKETMASTER_API_KEY (free developer key; 5,000 calls/day, 5 rps).
- * Coverage of Indian events is NOT verified — Ticketmaster documents global
- * coverage but has little Indian presence. UNTESTED against the live API in
- * Part 3 because no key was available.
+ * Live-tested 2026-10-11 with a real key: artist searches work (e.g. an
+ * artist's US/EU tour is returned), but countryCode=IN returned 0 music
+ * events — Ticketmaster doesn't sell in India, so this source rarely adds
+ * Indian shows. Kept so any Indian listing it does carry is picked up.
  *
  * Matching: keyword search per artist, then keep only events whose
  * attraction name equals the artist name/alias exactly (normalised) —

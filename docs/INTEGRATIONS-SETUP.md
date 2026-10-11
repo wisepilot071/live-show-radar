@@ -13,12 +13,24 @@ To push only some keys, add a comma-separated list: `node scripts/vercel-env-pus
 | Integration | Status |
 |---|---|
 | In-app inbox | ✅ Live |
-| Telegram bot `@liveshow101bot` | ✅ Token verified with `getMe`; webhook registered in production. Linking a real chat needs **you** to press Start once |
-| Email (Resend) | 🟡 Implemented and tested with mocks; **awaiting** `RESEND_API_KEY`, `EMAIL_FROM` and `EMAIL_ALLOWED_RECIPIENTS` |
-| Google Calendar | 🟡 Implemented and tested with mocks; **awaiting** an OAuth client (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) |
-| Beescraper | ⛔ Not integrated. No Beescraper code, docs or credentials were found anywhere, and there's no public product by that name (ScrapingBee's documented API has no structured events). **Needs:** the API docs (endpoints, auth, response fields) and a key. A new source plugs into `src/integrations/events/registry.ts` as one adapter file |
-| Spotify | Frontend-only "Coming soon" card by design. No OAuth, API calls or credentials |
-| Gemini Flash | ✅ Live (unchanged) |
+| Telegram `@liveshow101bot` | ✅ Bot and webhook verified in production. **You:** link your chat once (Settings → Alerts → Connect Telegram → Start) |
+| Email (Resend) | ✅ Key verified with a real send (test email accepted). Test mode: sender `onboarding@resend.dev`, delivers **only to the Resend account's own address** (`sagar_choudhary@pg27.mesaschool.co`) |
+| Google Calendar | 🟡 OAuth client configured in production. **You:** Settings → Connections → Connect Google Calendar (sign in as a test user) |
+| Ticketmaster | ✅ Live-tested: artist searches work, but **0 music events in India** (Ticketmaster doesn't sell in India) |
+| ScrapingBee ("Beescraper") | ✅ Live as **news-announcement discovery**: real Google News searches; Gemini reads only pre-filtered snippets; kept only with a full upcoming date in an Indian city; never claims tickets. 10 credits per artist search, max 8 artists per run (`SCRAPINGBEE_MAX_ARTISTS_PER_RUN`) |
+| Spotify | Frontend-only "Coming soon" card by design |
+| Gemini Flash | ✅ Live. Free-tier rate limits (HTTP 429) can pause news reading; it resumes on the next run |
+
+## Keys provided on 2026-10-11
+
+Resend, Google OAuth, Ticketmaster and ScrapingBee keys are stored in `.env.local` (git-ignored) and in Vercel. They were pasted in chat, so **rotate them** once everything is confirmed working:
+- Resend → API Keys
+- Google Cloud → Credentials → reset secret
+- Ticketmaster → My Apps
+- ScrapingBee → dashboard
+- Telegram → @BotFather `/revoke`
+
+The Ticketmaster consumer secret isn't used: the Discovery API only needs the key.
 
 ## Telegram
 

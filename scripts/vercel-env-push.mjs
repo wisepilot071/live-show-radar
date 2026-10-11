@@ -33,6 +33,7 @@ const KEYS = [
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "TOKEN_ENCRYPTION_KEY",
+  "SCRAPINGBEE_API_KEY",
 ];
 
 const env = Object.fromEntries(

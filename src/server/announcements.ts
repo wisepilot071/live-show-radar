@@ -130,7 +130,7 @@ function publicView(x: Extraction): PublicExtraction {
   };
 }
 
-async function extractCached(text: string): Promise<{ x: Extraction; cached: boolean }> {
+export async function extractCached(text: string): Promise<{ x: Extraction; cached: boolean }> {
   const { model } = geminiStatus();
   const hash = sha(`${PROMPT_VERSION}|${model}|${text}`);
   const sql = getSql();

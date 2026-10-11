@@ -27,6 +27,8 @@ export interface ServerEnv {
   gemini: { apiKey?: string; model: string; fallbackModel?: string };
   musicbrainz: { enabled: boolean; contact?: string };
   ticketmaster: { apiKey?: string };
+  /** ScrapingBee Google News search (announcement discovery); 10 credits per search. */
+  scrapingbee: { apiKey?: string; maxArtistsPerRun: number };
   bandsintown: { appId?: string };
   /** Vercel Cron sends "Authorization: Bearer $CRON_SECRET". */
   cronSecret?: string;
@@ -60,6 +62,10 @@ export function getServerEnv(): ServerEnv {
     },
     musicbrainz: { enabled: read("MUSICBRAINZ_ENABLED") !== "false", contact: read("MUSICBRAINZ_CONTACT") },
     ticketmaster: { apiKey: read("TICKETMASTER_API_KEY") },
+    scrapingbee: {
+      apiKey: read("SCRAPINGBEE_API_KEY"),
+      maxArtistsPerRun: Math.min(50, Math.max(1, Number(read("SCRAPINGBEE_MAX_ARTISTS_PER_RUN") ?? 8) || 8)),
+    },
     bandsintown: { appId: read("BANDSINTOWN_APP_ID") },
     cronSecret: read("CRON_SECRET"),
     email: {
