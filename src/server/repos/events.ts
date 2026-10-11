@@ -60,7 +60,7 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
   // Event details: the best state any source currently supports.
   const rank: Record<VerificationState, number> = { confirmed: 4, stale: 3, unconfirmed: 2, pending: 1, unavailable: 0 };
   const evidence: EventSourceEvidence[] = ordered.map((s) => ({
-    sourceId: s.source_id,
+    sourceId: publicSourceId(s.source_id),
     sourceName: publicSourceName(s.source_id, s.source_name, s.source_url),
     url: s.source_url ?? undefined,
     firstSeenAt: s.first_seen_at.toISOString(),
@@ -131,7 +131,7 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
           : undefined,
     },
     source: {
-      id: primary?.source_id ?? "unknown",
+      id: primary ? publicSourceId(primary.source_id) : "unknown",
       name: primary ? publicSourceName(primary.source_id, primary.source_name, primary.source_url) : "Unknown source",
       url: primary?.source_url ?? undefined,
       origin: primary?.record.sourceClass === "user_submitted" ? "user_submitted" : "event_source",
@@ -165,6 +165,11 @@ async function hydrate(rows: EventRow[], now: Date): Promise<LiveEvent[]> {
  * publication they came from ("News report (outlookindia.com)"); internal
  * vendor names never reach the UI.
  */
+/** Source id exposed in API responses (internal vendor-named ids stay on the server). */
+export function publicSourceId(sourceId: string): string {
+  return sourceId === "scrapingbee_news" ? "news" : sourceId;
+}
+
 export function publicSourceName(sourceId: string, storedName: string, url: string | null): string {
   if (sourceId !== "scrapingbee_news") return storedName;
   try {

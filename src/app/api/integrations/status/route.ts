@@ -11,6 +11,7 @@ import { googleCalendarStatus } from "@/server/google-calendar";
 import { isSessionConfigured } from "@/server/session";
 import { getServerEnv } from "@/config/server-env";
 import { getActiveArtistSearch } from "@/services/artist-search/active";
+import { publicSourceId } from "@/server/repos/events";
 
 /** Reports what is actually wired up — and what has actually worked. No secrets. */
 export async function GET() {
@@ -56,12 +57,12 @@ export async function GET() {
       ? { kind: "server", label: "Saved to your profile on the server" }
       : { kind: "browser_draft", label: "Saved in this browser only" },
     eventSources: {
-      connected: EVENT_SOURCES.filter((s) => s.configStatus().configured).map((s) => ({ id: s.id, name: s.name })),
+      connected: EVENT_SOURCES.filter((s) => s.configStatus().configured).map((s) => ({ id: publicSourceId(s.id), name: s.name })),
       all: EVENT_SOURCES.map((s) => {
         const cfg = s.configStatus();
         const run = runs.find((r) => r.source_id === s.id);
         return {
-          id: s.id,
+          id: publicSourceId(s.id),
           name: s.name,
           configured: cfg.configured,
           reason: cfg.reason,

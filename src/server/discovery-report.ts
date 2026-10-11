@@ -2,6 +2,7 @@ import type { DiscoveryReport, SourceCheck } from "@/domain/types";
 import { EVENT_SOURCES } from "@/integrations/events/registry";
 import { getSql } from "./db";
 import { listUserEvents, type EventFilters } from "./repos/events";
+import { publicSourceId } from "@/server/repos/events";
 
 /**
  * Builds the dashboard's discovery report for one user from what actually
@@ -27,14 +28,14 @@ export async function buildDiscoveryReport(userId: string, filters: EventFilters
 
   const sources: SourceCheck[] = EVENT_SOURCES.map((s) => {
     if (!s.configStatus().configured) {
-      return { sourceId: s.id, sourceName: s.name, outcome: "not_configured", checkedAt: generatedAt, message: s.configStatus().reason };
+      return { sourceId: publicSourceId(s.id), sourceName: s.name, outcome: "not_configured", checkedAt: generatedAt, message: s.configStatus().reason };
     }
     const mine = checks.filter((c) => c.source_id === s.id);
-    if (mine.length === 0) return { sourceId: s.id, sourceName: s.name, outcome: "never_run", checkedAt: generatedAt };
+    if (mine.length === 0) return { sourceId: publicSourceId(s.id), sourceName: s.name, outcome: "never_run", checkedAt: generatedAt };
     const latest = mine.reduce((a, b) => (b.last_attempt_at > a.last_attempt_at ? b : a));
     const failed = latest.last_error_category !== null && (!latest.last_success_at || latest.last_success_at < latest.last_attempt_at);
     return {
-      sourceId: s.id,
+      sourceId: publicSourceId(s.id),
       sourceName: s.name,
       outcome: failed ? "failed" : "ok",
       checkedAt: latest.last_attempt_at.toISOString(),
