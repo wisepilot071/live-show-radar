@@ -89,7 +89,11 @@ export function NotificationInbox() {
     else if (success) toast({ message: success });
   }
 
-  const unread = state.phase === "ready" ? state.unread : 0;
+  // Count only what's on screen (other-city alerts are hidden unless "Show other cities").
+  const unread =
+    state.phase !== "ready"
+      ? 0
+      : (allCities ? state.notifications : inChosenCities(state.notifications, radar.location)).filter((n) => !n.read_at).length;
 
   return (
     <Container width="default" className="space-y-8 py-8 sm:py-12">
