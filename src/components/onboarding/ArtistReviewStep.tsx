@@ -26,7 +26,7 @@ export function ArtistReviewStep() {
       title={count ? `${pluralize(count, "artist")} on your list` : "Your list is empty"}
       description={
         count
-          ? "These are selected — not monitored yet. Monitoring starts once event sources are connected."
+          ? "Once you finish setup, we check these artists' upcoming shows daily and when you tap “Check now” on your radar."
           : undefined
       }
       footer={

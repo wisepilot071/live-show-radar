@@ -36,7 +36,7 @@ const FILTER_TEST: Record<FilterId, (r: Row) => boolean> = {
 };
 
 export function SavedShows() {
-  const { state, hydrated } = useOnboarding();
+  const { state, hydrated, mode } = useOnboarding();
   const now = useNow();
   const [filter, setFilter] = useState<FilterId>("all");
   const [sort, setSort] = useState<SortId>("show_date");
@@ -88,8 +88,8 @@ export function SavedShows() {
           title="Nothing saved yet"
           action={<ButtonLink href="/radar">Go to your radar</ButtonLink>}
         >
-          Tap <span className="font-semibold text-fg">Save</span> on any show to keep it here. Saved shows stay in this
-          browser.
+          Tap <span className="font-semibold text-fg">Save</span> on any show to keep it here. Saved shows stay{" "}
+          {mode === "server" ? "in your profile." : "in this browser."}
         </EmptyState>
       ) : (
         <>

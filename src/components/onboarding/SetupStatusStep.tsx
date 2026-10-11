@@ -101,8 +101,8 @@ export function SetupStatusStep() {
 
         {hasArtists && (
           <InlineAlert tone="info" title="What happens next">
-            Your radar page shows your artists and cities now. Shows will appear there once event sources are connected
-            — we&rsquo;ll mark each one with how well it&rsquo;s verified.
+            Your radar page shows your artists and cities now. Press Check now there to look for shows; the daily monitor
+            keeps checking after that. Each show is marked with how well it&rsquo;s verified.
           </InlineAlert>
         )}
 
