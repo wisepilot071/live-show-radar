@@ -44,12 +44,12 @@ export function SaveEventButton({ event, className }: { event: LiveEvent; classN
       className={cn(
         "inline-flex min-h-11 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold transition-colors",
         saved
-          ? "border-signal/60 bg-signal/10 text-fg hover:bg-signal/15"
+          ? "border-signal-ink/60 bg-signal/30 text-fg hover:bg-signal/45"
           : "border-line-strong text-fg-secondary hover:border-fg-muted hover:text-fg",
         className,
       )}
     >
-      <Icon aria-hidden className={cn("size-4", saved && "animate-pop text-signal")} />
+      <Icon aria-hidden className={cn("size-4", saved && "animate-pop text-signal-ink")} />
       {saved ? "Saved" : "Save"}
       <span className="sr-only">
         {" "}

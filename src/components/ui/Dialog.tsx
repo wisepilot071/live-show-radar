@@ -48,8 +48,8 @@ export function Dialog({
         if (e.target === e.currentTarget) onClose();
       }}
       className={cn(
-        "m-auto w-[min(32rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface-2 p-0 text-fg shadow-raised",
-        "backdrop:bg-canvas/75 backdrop:backdrop-blur-sm open:animate-rise",
+        "m-auto w-[min(32rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-0 text-fg shadow-raised",
+        "backdrop:bg-ink/45 backdrop:backdrop-blur-sm open:animate-rise",
         className,
       )}
     >
@@ -62,7 +62,7 @@ export function Dialog({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mt-1 -mr-2 grid size-11 shrink-0 place-items-center rounded-md text-fg-secondary hover:bg-surface hover:text-fg"
+            className="-mt-1 -mr-2 grid size-11 shrink-0 place-items-center rounded-md text-fg-secondary hover:bg-surface-2 hover:text-fg"
           >
             <X aria-hidden className="size-5" />
           </button>

@@ -2,15 +2,36 @@
 
 import { Cloud, CloudOff, HardDrive, X } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, type ReactNode } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { SyncErrorBanner } from "@/components/app/SyncErrorBanner";
 import { Container } from "@/components/ui/Container";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { OnboardingProgress } from "./OnboardingProgress";
 
+/**
+ * Returning users who already finished setup go straight to their radar.
+ * Checked once, on the first hydrated render, so finishing onboarding in this
+ * session (which sets completedAt optimistically) never navigates early —
+ * that navigation happens only after the save succeeds. `?edit=1` (from
+ * Settings → Run setup again) opts back in.
+ */
+function useReturningUserRedirect() {
+  const { state, hydrated } = useOnboarding();
+  const router = useRouter();
+  const checked = useRef(false);
+  useEffect(() => {
+    if (!hydrated || checked.current) return;
+    checked.current = true;
+    const editing = new URLSearchParams(window.location.search).get("edit") === "1";
+    if (state.completedAt && !editing) router.replace("/radar");
+  }, [hydrated, state.completedAt, router]);
+}
+
 /** Focused shell for the onboarding journey: logo, honest save indicator, exit, progress. */
 export function OnboardingFrame({ children }: { children: ReactNode }) {
+  useReturningUserRedirect();
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/90 backdrop-blur-md">
@@ -29,7 +50,7 @@ export function OnboardingFrame({ children }: { children: ReactNode }) {
             </Link>
           </div>
         </Container>
-        <Container width="wide" className="pb-3">
+        <Container width="wide" className="pb-3 empty:hidden">
           <OnboardingProgress />
         </Container>
       </header>
@@ -55,7 +76,7 @@ function SaveIndicator() {
     <p
       role="status"
       title={view.title}
-      className="hidden items-center gap-1.5 font-mono text-[0.7rem] tracking-wide text-fg-muted uppercase sm:flex"
+      className="hidden items-center gap-1.5 text-xs font-medium text-fg-muted sm:flex"
     >
       <view.Icon aria-hidden className={view.warn ? "size-3.5 text-warning" : "size-3.5"} />
       {view.label}

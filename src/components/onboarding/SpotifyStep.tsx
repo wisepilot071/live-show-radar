@@ -73,7 +73,7 @@ export function SpotifyStep() {
             <ul className="space-y-2">
               {SPOTIFY_PLANNED_SCOPES.map((s) => (
                 <li key={s.scope} className="flex gap-3 rounded-md border border-line/70 bg-inset p-3">
-                  <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-signal" />
+                  <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-signal-ink" />
                   <div>
                     <p className="text-sm font-semibold text-fg">{s.title}</p>
                     <p className="text-sm text-fg-secondary">{s.usage}</p>

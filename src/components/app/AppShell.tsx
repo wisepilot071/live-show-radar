@@ -1,12 +1,13 @@
 "use client";
 
-import { Bell, Bookmark, Radar, Settings, Users, type LucideIcon } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, Compass, MapPin, Search, Settings, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { SyncErrorBanner } from "./SyncErrorBanner";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { INITIAL_CITIES } from "@/domain/cities";
 import { useIntegrationStatus } from "@/features/integrations/useIntegrationStatus";
 import { useUnreadCount } from "@/features/notifications/useInbox";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
@@ -15,18 +16,20 @@ import { cn } from "@/lib/cn";
 interface NavItem {
   href: string;
   label: string;
+  /** Shorter label for the mobile tab bar. */
+  short?: string;
   icon: LucideIcon;
   count?: (s: ReturnType<typeof useOnboarding>["state"]) => number;
   /** Shows the server's unread-alert count instead of a local count. */
   unread?: boolean;
 }
 
-/** The primary destinations. Every one is a real route. */
+/** The primary destinations. Every one is a real route (paths unchanged). */
 export const APP_NAV: NavItem[] = [
-  { href: "/radar", label: "Radar", icon: Radar },
-  { href: "/inbox", label: "Inbox", icon: Bell, unread: true },
-  { href: "/artists", label: "Artists", icon: Users, count: (s) => s.selections.length },
-  { href: "/saved", label: "Saved shows", icon: Bookmark, count: (s) => s.savedEvents.length },
+  { href: "/radar", label: "Discover", icon: Compass },
+  { href: "/artists", label: "My artists", short: "Artists", icon: Users, count: (s) => s.selections.length },
+  { href: "/inbox", label: "Alerts", icon: Bell, unread: true },
+  { href: "/saved", label: "Saved", icon: Bookmark, count: (s) => s.savedEvents.length },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -35,9 +38,9 @@ function isActive(pathname: string, href: string) {
 }
 
 /**
- * Main application frame.
- * - ≥ lg: fixed left sidebar with brand, nav, and the real discovery status
- * - < lg: compact top bar + bottom tab bar (thumb-reachable, no overflow)
+ * Main application frame (discovery-site pattern):
+ * - top header: brand, primary nav, artist search, home-city picker
+ * - < lg: compact header + thumb-reachable bottom tab bar (no overflow)
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -45,110 +48,157 @@ export function AppShell({ children }: { children: ReactNode }) {
   const unread = useUnreadCount(mode, pathname);
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[16.5rem_minmax(0,1fr)]">
-      {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-line/60 bg-inset px-4 py-5 lg:flex">
-        <BrandMark className="px-2" />
-        <nav aria-label="Main">
-          <ul className="space-y-1">
-            {APP_NAV.map((item) => {
-              const active = isActive(pathname, item.href);
-              const Icon = item.icon;
-              const count = item.unread ? (unread ?? undefined) : hydrated && item.count ? item.count(state) : undefined;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "group relative flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
-                      active ? "bg-surface text-fg" : "text-fg-secondary hover:bg-surface/60 hover:text-fg",
-                    )}
-                  >
-                    {active && <span aria-hidden className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-signal" />}
-                    <Icon aria-hidden className={cn("size-4.5", active ? "text-signal" : "text-fg-muted group-hover:text-fg")} />
-                    <span className="flex-1">{item.label}</span>
-                    {count !== undefined && count > 0 && (
-                      <span
-                        className={cn(
-                          "font-mono text-xs tabular-nums",
-                          item.unread ? "rounded-full bg-signal px-1.5 py-0.5 font-semibold text-on-signal" : "text-fg-muted",
-                        )}
-                      >
-                        {count}
-                        <span className="sr-only">{item.unread ? " unread" : " items"}</span>
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-        <div className="mt-auto">
-          <DiscoveryChip />
-        </div>
-      </aside>
+    <div className="flex min-h-dvh flex-col">
+      <header className="sticky top-0 z-40 border-b border-line bg-canvas/92 backdrop-blur-md">
+        <div className="mx-auto flex min-h-16 w-full max-w-[90rem] items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
+          <BrandMark className="shrink-0 max-sm:[&>span]:sr-only" />
 
-      <div className="flex min-h-dvh min-w-0 flex-col">
-        {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-line/60 bg-canvas/90 px-4 backdrop-blur-md lg:hidden">
-          <BrandMark />
-          <DiscoveryChip compact />
-        </header>
-
-        <main id="main" className="flex-1 pb-24 lg:pb-0">
-          <SyncErrorBanner className="mx-4 mt-4 sm:mx-6 lg:mx-8" />
-          {children}
-        </main>
-
-        {/* Mobile bottom tabs */}
-        <nav
-          aria-label="Main"
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-line/70 bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
-        >
-          <ul className="grid grid-cols-5">
-            {APP_NAV.map((item) => {
-              const active = isActive(pathname, item.href);
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-medium transition-colors",
-                      active ? "text-fg" : "text-fg-muted hover:text-fg",
-                    )}
-                  >
-                    <span
+          <nav aria-label="Main" className="hidden lg:block">
+            <ul className="flex items-center gap-1">
+              {APP_NAV.map((item) => {
+                const active = isActive(pathname, item.href);
+                const count = item.unread ? (unread ?? undefined) : hydrated && item.count ? item.count(state) : undefined;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
-                        "relative grid h-7 w-12 place-items-center rounded-full transition-colors",
-                        active && "bg-signal/15",
+                        "relative inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 text-sm font-semibold whitespace-nowrap transition-colors",
+                        active ? "bg-ink text-on-ink" : "text-fg-secondary hover:bg-surface-2 hover:text-fg",
                       )}
                     >
-                      <Icon aria-hidden className={cn("size-5", active && "text-signal")} />
-                      {item.unread && unread !== null && unread > 0 && (
-                        <span className="absolute translate-x-3 -translate-y-2.5 rounded-full bg-signal px-1 font-mono text-[0.6rem] font-semibold text-on-signal">
-                          {unread > 9 ? "9+" : unread}
-                          <span className="sr-only"> unread</span>
+                      {item.label}
+                      {count !== undefined && count > 0 && (
+                        <span
+                          className={cn(
+                            "rounded-full px-1.5 py-0.5 text-[0.7rem] leading-none font-bold tabular-nums",
+                            item.unread ? "bg-signal text-on-signal" : active ? "bg-on-ink/15 text-on-ink" : "bg-surface-2 text-fg-secondary",
+                          )}
+                        >
+                          {count}
+                          <span className="sr-only">{item.unread ? " unread" : " items"}</span>
                         </span>
                       )}
-                    </span>
-                    {item.label === "Saved shows" ? "Saved" : item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          <div className="ml-auto flex min-w-0 items-center gap-2">
+            <HeaderSearch />
+            <CityPicker />
+            <DiscoveryChip />
+          </div>
+        </div>
+      </header>
+
+      <main id="main" className="flex-1 pb-24 lg:pb-0">
+        <SyncErrorBanner className="mx-4 mt-4 sm:mx-6 lg:mx-8" />
+        {children}
+      </main>
+
+      {/* Mobile bottom tabs */}
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      >
+        <ul className="grid grid-cols-5">
+          {APP_NAV.map((item) => {
+            const active = isActive(pathname, item.href);
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-semibold transition-colors",
+                    active ? "text-fg" : "text-fg-muted hover:text-fg",
+                  )}
+                >
+                  <span
+                    className={cn("relative grid h-7 w-12 place-items-center rounded-full transition-colors", active && "bg-signal")}
+                  >
+                    <Icon aria-hidden className="size-5" />
+                    {item.unread && unread !== null && unread > 0 && (
+                      <span className="absolute translate-x-3 -translate-y-2.5 rounded-full bg-urgent px-1 text-[0.6rem] font-bold text-ink">
+                        {unread > 9 ? "9+" : unread}
+                        <span className="sr-only"> unread</span>
+                      </span>
+                    )}
+                  </span>
+                  {item.short ?? item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
+  );
+}
+
+/** Artist search: hands the query to the Artists page, which runs the real MusicBrainz search. */
+function HeaderSearch() {
+  const router = useRouter();
+  const id = useId();
+  const [q, setQ] = useState("");
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    const query = q.trim();
+    router.push(query ? `/artists?q=${encodeURIComponent(query)}#add-artists` : "/artists#add-artists");
+  }
+  return (
+    <form role="search" onSubmit={submit} className="relative">
+      <label htmlFor={id} className="sr-only">
+        Search artists to follow
+      </label>
+      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-fg-muted" />
+      <input
+        id={id}
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search artists"
+        className="h-11 w-11 rounded-full border border-line bg-surface pr-3 pl-10 text-sm text-fg transition-[width,border-color] placeholder:text-fg-muted focus:w-52 focus:border-fg focus:outline-none sm:w-40 sm:focus:w-56 2xl:w-56"
+      />
+    </form>
+  );
+}
+
+/** Home city: the same preference as Settings → Location (saved through the existing preferences endpoint). */
+function CityPicker() {
+  const { state, run, hydrated } = useOnboarding();
+  const id = useId();
+  if (!hydrated) return null;
+  return (
+    <div className="relative">
+      <label htmlFor={id} className="sr-only">
+        Home city (shows here rank first)
+      </label>
+      <MapPin aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-signal-ink" />
+      <select
+        id={id}
+        value={state.location.primaryCityId}
+        onChange={(e) => void run({ type: "set_primary_city", cityId: e.target.value })}
+        className="h-11 max-w-[10.5rem] appearance-none truncate rounded-full border border-line bg-surface pr-8 pl-9 text-sm font-semibold text-fg transition-colors hover:border-fg-muted focus:border-fg focus:outline-none sm:max-w-none"
+      >
+        {INITIAL_CITIES.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown aria-hidden className="pointer-events-none absolute top-1/2 right-3 size-3.5 -translate-y-1/2 text-fg-muted" />
     </div>
   );
 }
 
 /** Real discovery status from the server — never an assumed "monitoring" state. */
-function DiscoveryChip({ compact }: { compact?: boolean }) {
+function DiscoveryChip() {
   const { status } = useIntegrationStatus();
   const content =
     status.phase === "loading" ? (
@@ -156,18 +206,15 @@ function DiscoveryChip({ compact }: { compact?: boolean }) {
     ) : status.phase === "error" ? (
       <StatusBadge tone="failed" label="Status unknown" />
     ) : status.report.eventSources.connected.length === 0 ? (
-      <StatusBadge tone="unavailable" label={compact ? "Discovery off" : "Not connected"} />
+      <StatusBadge tone="unavailable" label="Discovery off" />
     ) : (
-      <StatusBadge tone="confirmed" label={`${status.report.eventSources.connected.length} source${status.report.eventSources.connected.length === 1 ? "" : "s"}`} />
+      <StatusBadge
+        tone="confirmed"
+        label={`${status.report.eventSources.connected.length} source${status.report.eventSources.connected.length === 1 ? "" : "s"} connected`}
+      />
     );
-
-  if (compact) return <Link href="/settings#connections" aria-label="Event discovery status">{content}</Link>;
   return (
-    <Link
-      href="/settings#connections"
-      className="block space-y-2 rounded-lg border border-line/70 bg-surface p-3 transition-colors hover:border-line-strong"
-    >
-      <span className="block font-mono text-[0.7rem] tracking-wide text-fg-muted uppercase">Event discovery</span>
+    <Link href="/settings#connections" aria-label="Event discovery status" className="hidden 2xl:inline-flex">
       {content}
     </Link>
   );

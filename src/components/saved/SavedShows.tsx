@@ -118,12 +118,12 @@ export function SavedShows() {
                       className={cn(
                         "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
                         active
-                          ? "border-signal bg-signal/10 text-fg"
+                          ? "border-signal-ink bg-signal/30 text-fg"
                           : "border-line bg-surface text-fg-secondary hover:border-line-strong hover:text-fg",
                       )}
                     >
                       {f.label}
-                      <span className={cn("font-mono text-xs tabular-nums", active ? "text-signal" : "text-fg-muted")}>
+                      <span className={cn("font-mono text-xs tabular-nums", active ? "text-signal-ink" : "text-fg-muted")}>
                         {count}
                       </span>
                     </button>

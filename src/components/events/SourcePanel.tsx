@@ -21,7 +21,7 @@ export function SourcePanel({ event }: { event: LiveEvent }) {
             href={event.source.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-medium text-signal hover:underline"
+            className="inline-flex items-center gap-1 font-medium text-signal-ink hover:underline"
           >
             Open at {event.source.name}
             <ArrowUpRight aria-hidden className="size-3.5" />
@@ -88,7 +88,7 @@ export function SourcePanel({ event }: { event: LiveEvent }) {
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-9 items-center gap-1 text-xs font-medium text-signal hover:underline"
+                      className="inline-flex min-h-9 items-center gap-1 text-xs font-medium text-signal-ink hover:underline"
                     >
                       Open
                       <ArrowUpRight aria-hidden className="size-3.5" />

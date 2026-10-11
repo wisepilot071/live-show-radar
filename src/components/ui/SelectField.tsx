@@ -28,7 +28,7 @@ export function SelectField({
         <select
           id={id}
           aria-describedby={hintId}
-          className="min-h-13 w-full appearance-none rounded-lg border border-line-strong bg-inset px-4 pr-11 text-base text-fg transition-colors hover:border-fg-muted focus:border-signal focus:outline-none"
+          className="min-h-13 w-full appearance-none rounded-lg border border-line-strong bg-surface px-4 pr-11 text-base text-fg transition-colors hover:border-fg-muted focus:border-signal-ink focus:outline-none"
           {...select}
         >
           {children}

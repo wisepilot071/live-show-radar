@@ -2,20 +2,19 @@
 
 import {
   AlertOctagon,
-  BellOff,
+  Bell,
   CalendarSearch,
-  History,
-  MapPin,
   Plug,
   Plus,
+  Radio,
   RotateCw,
   SlidersHorizontal,
   Sparkles,
   Users,
+  X,
   type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { PageHeader } from "@/components/app/PageHeader";
+import { useId, useState, type ReactNode } from "react";
 import { EventCard } from "@/components/events/EventCard";
 import { SaveEventButton } from "@/components/events/SaveEventButton";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -24,9 +23,11 @@ import { InlineAlert } from "@/components/ui/InlineAlert";
 import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { StatusBadge, type StatusTone } from "@/components/ui/StatusBadge";
 import { ILLUSTRATIVE_EVENTS } from "@/data/illustrative-events";
-import { cityLabel } from "@/domain/cities";
+import { artistIdentityKey } from "@/domain/artist-identity";
+import { cityLabel, INITIAL_CITIES } from "@/domain/cities";
 import type { DiscoveryReport, LiveEvent } from "@/domain/types";
 import { deriveDashboard, type DashboardSituation } from "@/features/discovery/dashboard-view";
+import { applyFilters, buildSections, DEFAULT_FILTERS, genreOptions, type DiscoveryFilters } from "@/features/discovery/sections";
 import { useDiscovery } from "@/features/discovery/useDiscovery";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
@@ -64,11 +65,12 @@ export function RadarDashboard() {
   const coverage = report?.coverage;
 
   return (
-    <Container width="wide" className="space-y-10 py-8 sm:py-12">
-      <PageHeader
-        eyebrow="Your radar"
-        title="Your next show is out there."
-        description="Your artists, their upcoming shows, and the moments worth acting on."
+    <Container width="wide" className="space-y-10 py-6 sm:py-10">
+      <DiscoverHero
+        artistCount={state.selections.length}
+        primaryCityId={state.location.primaryCityId}
+        nationwide={state.location.includeNationwide}
+        hydrated={hydrated}
         actions={
           <>
             {canCheck && (
@@ -80,10 +82,28 @@ export function RadarDashboard() {
                 {check.phase === "running" ? "Checking sources…" : "Check now"}
               </Button>
             )}
-            <ButtonLink href="/artists" variant="secondary" leadingIcon={<Plus aria-hidden className="size-4" />}>
+            <ButtonLink
+              href="/artists"
+              variant="onInk"
+              leadingIcon={<Plus aria-hidden className="size-4" />}
+            >
               Add artists
             </ButtonLink>
           </>
+        }
+        status={
+          hydrated ? (
+            <StatusPanel
+              artistCount={state.selections.length}
+              primaryCityId={state.location.primaryCityId}
+              nationwide={state.location.includeNationwide}
+              saved={persistence !== "unavailable"}
+              savedWhere={mode === "server" ? "Saved to your profile." : "Saved in this browser."}
+              situation={situation}
+              busy={busy}
+              alerts={alertsCell}
+            />
+          ) : null
         }
       />
 
@@ -104,19 +124,6 @@ export function RadarDashboard() {
           to a MusicBrainz record, so no connected source can search for {coverage.uncovered === 1 ? "it" : "them"}.{" "}
           <a href="/artists">Link them on the Artists page.</a>
         </InlineAlert>
-      )}
-
-      {hydrated && (
-        <StatusPanel
-          artistCount={state.selections.length}
-          primaryCityId={state.location.primaryCityId}
-          nationwide={state.location.includeNationwide}
-          saved={persistence !== "unavailable"}
-          savedWhere={mode === "server" ? "Saved to your profile." : "Saved in this browser."}
-          situation={situation}
-          busy={busy}
-          alerts={alertsCell}
-        />
       )}
 
       {situation.kind === "loading" && <LoadingIndicator label="Checking your radar…" />}
@@ -238,22 +245,7 @@ export function RadarDashboard() {
               Dates and ticket details may have changed since.
             </InlineAlert>
           )}
-          <EventSection
-            id="important"
-            title="Important updates"
-            subtitle="New announcements, open early-bird windows, deadlines and changes."
-            events={situation.important}
-            empty="Nothing time-sensitive right now."
-            savedIds={savedIds}
-          />
-          <EventSection
-            id="upcoming"
-            title="Upcoming shows"
-            subtitle={`${cityLabel(state.location.primaryCityId).split(",")[0]} first, then your other cities.`}
-            events={situation.upcoming}
-            empty="No upcoming shows."
-            savedIds={savedIds}
-          />
+          <DiscoverySectionsView events={situation.upcoming} />
         </>
       )}
 
@@ -308,9 +300,9 @@ function StatusPanel({
               : { tone: "unknown", label: "Unknown", detail: "No successful check recorded." };
 
   return (
-    <section aria-label="Radar status" className="grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3 sm:gap-px">
+    <section aria-label="Radar status" className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3">
       <StatusCell
-        label="Artist preferences"
+        label="Your artists"
         badge={
           artistCount === 0 ? (
             <StatusBadge tone="pending" label="None yet" />
@@ -325,22 +317,23 @@ function StatusPanel({
             ? "No artists selected."
             : `${pluralize(artistCount, "artist")} · ${cityLabel(primaryCityId).split(",")[0]} first${nationwide ? ", all India" : ""}. ${savedWhere}`
         }
-        icon={MapPin}
+        icon={Users}
       />
       <StatusCell
         label="Event discovery"
         badge={<StatusBadge tone={discovery.tone} label={discovery.label} />}
         detail={discovery.detail}
-        icon={History}
+        icon={Radio}
       />
-      <StatusCell label="Alerts" badge={<StatusBadge tone={alerts.tone} label={alerts.label} />} detail={alerts.detail} icon={BellOff} />
+      <StatusCell label="Alerts" badge={<StatusBadge tone={alerts.tone} label={alerts.label} />} detail={alerts.detail} icon={Bell} />
     </section>
   );
 }
 
+/** Status cells sit on the ink hero, so each one is a light card. */
 function StatusCell({ label, badge, detail, icon: Icon }: { label: string; badge: ReactNode; detail: string; icon: LucideIcon }) {
   return (
-    <div className="space-y-2 border-b border-line bg-surface p-4 last:border-b-0 sm:border-b-0 sm:p-5">
+    <div className="space-y-2 rounded-lg bg-surface p-4 text-fg">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-fg">
           <Icon aria-hidden className="size-4 text-fg-muted" />
@@ -350,6 +343,44 @@ function StatusCell({ label, badge, detail, icon: Icon }: { label: string; badge
       </div>
       <p className="text-sm text-fg-secondary">{detail}</p>
     </div>
+  );
+}
+
+/** Compact hero: what this page is for, the user's real setup, and the next action. */
+function DiscoverHero({
+  artistCount,
+  primaryCityId,
+  nationwide,
+  hydrated,
+  actions,
+  status,
+}: {
+  artistCount: number;
+  primaryCityId: string;
+  nationwide: boolean;
+  hydrated: boolean;
+  actions: ReactNode;
+  status: ReactNode;
+}) {
+  const city = cityLabel(primaryCityId).split(",")[0];
+  return (
+    <section aria-labelledby="discover-title" className="on-ink grain overflow-hidden rounded-2xl bg-ink text-on-ink">
+      <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="space-y-3">
+          <p className="text-xs font-semibold tracking-[0.12em] text-signal uppercase">Discover</p>
+          <h1 id="discover-title" className="font-display text-[clamp(1.9rem,4.4vw,3.1rem)] leading-[1.02] font-semibold">
+            Never miss a show from your favourite artists.
+          </h1>
+          <p className="max-w-2xl text-on-ink/80">
+            {hydrated && artistCount > 0
+              ? `Watching ${pluralize(artistCount, "artist")} across ${nationwide ? "India" : "your cities"}, with ${city} first. Sources are checked daily, and ticket windows are flagged only when a source confirms them.`
+              : "Follow artists and we will look for their shows across India, with your city first."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">{actions}</div>
+      </div>
+      {status && <div className="border-t border-on-ink/10 bg-on-ink/[0.04] p-3 sm:p-4">{status}</div>}
+    </section>
   );
 }
 
@@ -381,7 +412,7 @@ function DashboardState({
       <span
         className={cn(
           "grid size-14 place-items-center rounded-full border",
-          tone === "error" ? "border-urgent/40 text-urgent" : tone === "positive" ? "border-signal/40 text-signal" : "border-line text-fg-secondary",
+          tone === "error" ? "border-urgent/40 text-urgent-ink" : tone === "positive" ? "border-signal-ink/40 text-signal-ink" : "border-line text-fg-secondary",
         )}
       >
         <Icon aria-hidden className="size-6" />
@@ -402,6 +433,195 @@ function RetryButton({ onRetry, busy }: { onRetry: () => void; busy: boolean }) 
   );
 }
 
+/** Filters + discovery sections, all over the real events from /api/me/events. */
+function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
+  const { state } = useOnboarding();
+  const now = useNow();
+  const [filters, setFilters] = useState<DiscoveryFilters>(DEFAULT_FILTERS);
+  if (!now) return null;
+  const filtered = applyFilters(events, filters, { selections: state.selections, now });
+  const sections = buildSections(filtered, state.location, now);
+  const savedIds = new Set(state.savedEvents.map((s) => s.eventId));
+  const city = cityLabel(state.location.primaryCityId).split(",")[0];
+  const active = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
+
+  return (
+    <div className="space-y-12">
+      <FilterBar filters={filters} onChange={setFilters} count={filtered.length} total={events.length} />
+
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-line-strong p-6">
+          <p className="font-semibold">No shows match these filters.</p>
+          <p className="text-sm text-fg-secondary">
+            {pluralize(events.length, "show")} on your radar — try widening the city or dates.
+          </p>
+          {active && (
+            <Button variant="secondary" onClick={() => setFilters(DEFAULT_FILTERS)} leadingIcon={<X aria-hidden className="size-4" />}>
+              Clear filters
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          {sections.attention.length > 0 && (
+            <EventSection
+              id="attention"
+              title="Needs your attention"
+              subtitle="Verified early-bird deadlines inside a week, cancellations and changed details."
+              events={sections.attention}
+              savedIds={savedIds}
+              tone="urgent"
+            />
+          )}
+          <EventSection
+            id="just-announced"
+            title="Just announced"
+            subtitle="Announced in the last 7 days, going by the source's own announcement time — not when we found it."
+            events={sections.justAnnounced}
+            empty="Nothing announced this week for your artists."
+            savedIds={savedIds}
+          />
+          <EventSection
+            id="from-your-artists"
+            title="From your artists"
+            subtitle={`Every upcoming show from the artists you follow — ${city} first, then the rest of India.`}
+            events={sections.fromYourArtists}
+            empty="No upcoming shows from your artists."
+            savedIds={savedIds}
+          />
+          <EventSection
+            id="tickets"
+            title="Tickets available"
+            subtitle="Tickets a source confirms are on sale, with a real ticket link."
+            events={sections.ticketsAvailable}
+            empty="No verified on-sale tickets yet. When a source confirms a sale, it shows up here."
+            savedIds={savedIds}
+          />
+          <EventSection
+            id="early-bird"
+            title="Early bird & presale"
+            subtitle="Only when a source confirms the window — deadlines are never guessed."
+            events={sections.earlyBird}
+            empty="No verified early-bird or presale windows right now."
+            savedIds={savedIds}
+          />
+          <EventSection
+            id="coming-soon"
+            title="Coming soon"
+            subtitle="Announced shows whose tickets aren't on sale yet, or that have a confirmed sale date."
+            events={sections.comingSoon}
+            empty="No confirmed upcoming sale dates."
+            savedIds={savedIds}
+          />
+          <EventSection
+            id="beyond"
+            title={`Beyond ${city}`}
+            subtitle="Shows elsewhere in India — worth a trip?"
+            events={sections.beyondHome}
+            empty={`Nothing outside ${city} right now.`}
+            savedIds={savedIds}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function FilterBar({
+  filters,
+  onChange,
+  count,
+  total,
+}: {
+  filters: DiscoveryFilters;
+  onChange: (f: DiscoveryFilters) => void;
+  count: number;
+  total: number;
+}) {
+  const { state } = useOnboarding();
+  const genres = genreOptions(state.selections);
+  const active = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);
+  const set = <K extends keyof DiscoveryFilters>(k: K, v: DiscoveryFilters[K]) => onChange({ ...filters, [k]: v });
+  return (
+    <section aria-label="Filter shows" className="space-y-3 rounded-xl bg-surface-2 p-3 sm:p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <SlidersHorizontal aria-hidden className="size-4 text-fg-muted" />
+        <FilterSelect label="City" value={filters.city} onChange={(v) => set("city", v)}>
+          <option value="all">All of India</option>
+          {INITIAL_CITIES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </FilterSelect>
+        <FilterSelect label="Dates" value={filters.when} onChange={(v) => set("when", v as DiscoveryFilters["when"])}>
+          <option value="any">Any date</option>
+          <option value="30d">Next 30 days</option>
+          <option value="90d">Next 3 months</option>
+        </FilterSelect>
+        <FilterSelect label="Artist" value={filters.artist} onChange={(v) => set("artist", v)}>
+          <option value="all">All my artists</option>
+          {state.selections.map((s) => (
+            <option key={artistIdentityKey(s.artist)} value={artistIdentityKey(s.artist)}>
+              {s.artist.name}
+            </option>
+          ))}
+        </FilterSelect>
+        {genres.length > 0 && (
+          <FilterSelect label="Genre" value={filters.genre} onChange={(v) => set("genre", v)}>
+            <option value="all">All genres</option>
+            {genres.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </FilterSelect>
+        )}
+        {active && (
+          <Button variant="ghost" onClick={() => onChange(DEFAULT_FILTERS)} leadingIcon={<X aria-hidden className="size-4" />}>
+            Clear
+          </Button>
+        )}
+      </div>
+      <p className="text-sm text-fg-secondary" aria-live="polite">
+        {active ? `${pluralize(count, "show")} of ${total} match your filters.` : `${pluralize(total, "upcoming show")} on your radar.`}
+      </p>
+    </section>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  children: ReactNode;
+}) {
+  const id = useId();
+  return (
+    <div className="relative">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          "h-10 max-w-[13rem] appearance-none truncate rounded-full border bg-surface pr-4 pl-3.5 text-sm font-semibold transition-colors focus:border-fg focus:outline-none",
+          value === "all" || value === "any" ? "border-line text-fg-secondary" : "border-fg text-fg",
+        )}
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
 function EventSection({
   id,
   title,
@@ -409,25 +629,31 @@ function EventSection({
   events,
   empty,
   savedIds,
+  tone,
 }: {
   id: string;
   title: string;
   subtitle: string;
   events: LiveEvent[];
-  empty: string;
+  empty?: string;
   savedIds: Set<string>;
+  tone?: "urgent";
 }) {
   const { state } = useOnboarding();
   return (
     <section aria-labelledby={`${id}-title`} className="space-y-4">
-      <div>
-        <h2 id={`${id}-title`} className="font-display text-2xl font-bold tracking-tight">
-          {title}
-        </h2>
-        <p className="text-sm text-fg-secondary">{subtitle}</p>
+      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line pb-3">
+        <div className="space-y-1">
+          <h2 id={`${id}-title`} className="flex items-center gap-2 font-display text-[1.7rem] leading-tight font-semibold">
+            {tone === "urgent" && <span aria-hidden className="size-2.5 rounded-full bg-urgent" />}
+            {title}
+          </h2>
+          <p className="text-sm text-fg-secondary">{subtitle}</p>
+        </div>
+        {events.length > 0 && <p className="text-sm font-semibold text-fg-secondary tabular-nums">{pluralize(events.length, "show")}</p>}
       </div>
       {events.length === 0 ? (
-        <p className="rounded-lg border border-line/70 bg-surface p-4 text-sm text-fg-secondary">{empty}</p>
+        <p className="text-sm text-fg-muted">{empty}</p>
       ) : (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
           {events.map((e) => (

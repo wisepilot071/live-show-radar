@@ -22,9 +22,9 @@ export function LocationPreferenceSelector() {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
       <div className="space-y-6">
         <Card tone="raised" className="space-y-4 p-5 sm:p-6">
-          <div className="flex items-center gap-2 text-signal">
+          <div className="flex items-center gap-2 text-signal-ink">
             <MapPin aria-hidden className="size-4" />
-            <p className="font-mono text-xs font-medium tracking-wide uppercase">Priority 1 · Home city</p>
+            <p className="text-xs font-semibold">Priority 1 · Home city</p>
           </div>
           <SelectField
             label="Primary city"
@@ -57,12 +57,12 @@ export function LocationPreferenceSelector() {
                   className={cn(
                     "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors",
                     on
-                      ? "border-signal bg-signal/10 text-fg"
+                      ? "border-signal-ink bg-signal/30 text-fg"
                       : "border-line bg-surface text-fg-secondary hover:border-line-strong hover:text-fg",
                   )}
                 >
                   {on ? (
-                    <Check aria-hidden className="size-4 text-signal" strokeWidth={3} />
+                    <Check aria-hidden className="size-4 text-signal-ink" strokeWidth={3} />
                   ) : (
                     <Plus aria-hidden className="size-4" />
                   )}
@@ -130,7 +130,7 @@ function SummaryRow({
         aria-hidden
         className={cn(
           "grid size-7 shrink-0 place-items-center rounded-full border font-mono text-xs",
-          strong ? "border-signal bg-signal text-on-signal" : "border-line-strong text-fg-secondary",
+          strong ? "border-signal-ink bg-signal text-on-signal" : "border-line-strong text-fg-secondary",
         )}
       >
         {rank}

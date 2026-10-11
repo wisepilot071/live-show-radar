@@ -26,7 +26,7 @@ export function TrustSection() {
           <ul className="space-y-3">
             {PROMISES.map((p) => (
               <li key={p} className="flex gap-3 text-fg-secondary">
-                <ShieldCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-signal" />
+                <ShieldCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-signal-ink" />
                 <span>{p}</span>
               </li>
             ))}

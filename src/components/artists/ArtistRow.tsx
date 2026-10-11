@@ -49,7 +49,7 @@ export function ArtistRow({
       id={id}
       className={cn(
         "transition-colors duration-[var(--duration-slow)]",
-        highlighted && "bg-signal/[0.06]",
+        highlighted && "bg-signal/30",
       )}
     >
       <div className="flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
@@ -62,7 +62,7 @@ export function ArtistRow({
           className="group flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md text-left"
         >
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-semibold text-fg group-hover:text-signal">{artist.name}</span>
+            <span className="block truncate font-semibold text-fg group-hover:text-signal-ink">{artist.name}</span>
             <span className="block truncate text-sm text-fg-muted">
               {typed ? "Added as typed · not matched yet" : artistContext(artist) || ORIGIN_LABEL[artist.origin]}
               {!typed && !linked ? " · not linked" : ""}
@@ -82,7 +82,7 @@ export function ArtistRow({
         <button
           type="button"
           onClick={onRemove}
-          className="grid size-11 shrink-0 place-items-center rounded-md text-fg-secondary transition-colors hover:bg-urgent/10 hover:text-urgent"
+          className="grid size-11 shrink-0 place-items-center rounded-md text-fg-secondary transition-colors hover:bg-urgent/10 hover:text-urgent-ink"
           aria-label={`Remove ${artist.name}`}
         >
           <Trash2 aria-hidden className="size-4.5" />

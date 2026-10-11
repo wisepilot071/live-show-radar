@@ -109,8 +109,8 @@ export function NotificationInbox() {
               <li
                 key={n.id}
                 className={cn(
-                  "rounded-lg border p-4 sm:p-5",
-                  isUnread ? "border-line-strong bg-surface" : "border-line/60 bg-inset",
+                  "rounded-xl border p-4 sm:p-5",
+                  isUnread ? "border-line-strong bg-surface shadow-raised" : "border-line bg-surface-2/60",
                   n.priority === "high" && isUnread && "border-urgent/50",
                 )}
               >
@@ -119,7 +119,7 @@ export function NotificationInbox() {
                     aria-hidden
                     className={cn(
                       "mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border",
-                      n.priority === "high" ? "border-urgent/40 text-urgent" : "border-line text-signal",
+                      n.priority === "high" ? "border-urgent/40 text-urgent-ink" : "border-line text-signal-ink",
                     )}
                   >
                     <Icon className="size-4.5" />
@@ -127,17 +127,18 @@ export function NotificationInbox() {
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
                       {isUnread && (
-                        <span className="inline-flex items-center gap-1.5 font-mono text-[0.7rem] font-medium tracking-wide text-signal uppercase">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-signal-ink">
                           <span aria-hidden className="size-2 rounded-full bg-signal" /> Unread
                         </span>
                       )}
-                      <StatusBadge tone={n.priority === "high" ? "urgent" : "unknown"} label={n.priority === "high" ? "Time-sensitive" : cat.label} />
+                      <StatusBadge tone="unknown" label={cat.label} />
+                      {n.priority === "high" && <StatusBadge tone="urgent" label="Time-sensitive" />}
                       {n.is_test && <StatusBadge tone="example" label="Test notification" />}
                       <time dateTime={n.created_at} className="text-xs text-fg-muted">
                         {formatTimestamp(n.created_at)}
                       </time>
                     </div>
-                    <h2 className="font-semibold break-words text-fg">{n.title}</h2>
+                    <h2 className="font-display text-lg leading-snug font-semibold break-words text-fg">{n.title}</h2>
                     <p className="text-sm break-words text-fg-secondary">{n.body}</p>
                     <p className="text-xs text-fg-muted">
                       <span className="font-medium text-fg-secondary">Why: </span>
@@ -157,7 +158,7 @@ export function NotificationInbox() {
                           onClick={() => {
                             if (isUnread) void markRead([n.id]);
                           }}
-                          className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-line-strong px-3 text-sm font-semibold text-fg hover:border-fg-muted hover:bg-surface-2"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-semibold text-on-ink hover:bg-ink/90"
                         >
                           View show <ArrowRight aria-hidden className="size-4" />
                         </Link>

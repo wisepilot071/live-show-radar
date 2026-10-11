@@ -4,11 +4,11 @@ import type { LiveEvent, TicketStatusKind, VerificationState } from "@/domain/ty
 import { cityLabel } from "@/domain/cities";
 
 export const TICKET_STATUS_LABEL: Record<TicketStatusKind, string> = {
-  unknown: "Ticket status not verified",
-  announced_not_on_sale: "Announced · not on sale yet",
-  presale: "Presale",
-  early_bird: "Early-bird tickets",
-  on_sale: "General tickets on sale",
+  unknown: "Awaiting ticket information",
+  announced_not_on_sale: "On sale soon",
+  presale: "Presale available",
+  early_bird: "Early bird available",
+  on_sale: "Tickets available",
   limited: "Limited availability",
   sold_out: "Sold out",
   cancelled: "Cancelled",
@@ -49,11 +49,11 @@ export function cardVariant(signals: EventSignals): CardVariant {
 
 export const VARIANT_TAG: Record<Exclude<CardVariant, "standard">, { tone: StatusTone; label: string }> = {
   cancelled: { tone: "failed", label: "Cancelled" },
-  rescheduled: { tone: "unconfirmed", label: "Date or venue changed" },
+  rescheduled: { tone: "unconfirmed", label: "Details changed" },
   deadline: { tone: "urgent", label: "Early-bird ends soon" },
-  new: { tone: "confirmed", label: "Newly announced" },
-  early_bird: { tone: "confirmed", label: "Early-bird open" },
-  unverified: { tone: "unconfirmed", label: "Needs verification" },
+  new: { tone: "confirmed", label: "Just announced" },
+  early_bird: { tone: "confirmed", label: "Early bird available" },
+  unverified: { tone: "unconfirmed", label: "Verification needed" },
 };
 
 /** Why this show is on the user's radar, in plain words. */
@@ -62,4 +62,16 @@ export function relevanceLine(event: LiveEvent, signals: EventSignals | null, pr
   if (signals.locality === "primary") return `In ${event.cityName} — your city`;
   if (signals.locality === "additional") return `In ${event.cityName} — a city you prioritised`;
   return `In ${event.cityName} — elsewhere in India, ranked after ${cityLabel(primaryCityId).split(",")[0]}`;
+}
+
+/** Month/day for the card's date tile, read from the event's own calendar date. */
+export function dateTile(event: LiveEvent): { month: string; day: string; weekday: string } | null {
+  const date = event.when.date;
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const d = new Date(`${date}T12:00:00Z`); // noon UTC: same calendar day everywhere
+  return {
+    month: d.toLocaleString("en-IN", { month: "short", timeZone: "UTC" }),
+    day: String(d.getUTCDate()),
+    weekday: d.toLocaleString("en-IN", { weekday: "short", timeZone: "UTC" }),
+  };
 }

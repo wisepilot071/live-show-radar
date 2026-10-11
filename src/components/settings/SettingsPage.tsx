@@ -202,12 +202,12 @@ export function SettingsPage() {
             )}
           </p>
           <div className="flex flex-wrap gap-2 border-t border-line/60 pt-4">
-            <ButtonLink href="/onboarding" variant="ghost">
+            <ButtonLink href="/onboarding/artists?edit=1" variant="ghost">
               Run setup again
             </ButtonLink>
             <Button
               variant="secondary"
-              className="border-urgent/50 text-urgent hover:bg-urgent/10"
+              className="border-urgent/50 text-urgent-ink hover:bg-urgent/10"
               leadingIcon={<RotateCcw aria-hidden className="size-4" />}
               onClick={() => setConfirmReset(true)}
             >
@@ -229,7 +229,7 @@ export function SettingsPage() {
             </Button>
             <Button
               variant="secondary"
-              className="border-urgent/60 text-urgent hover:bg-urgent/10"
+              className="border-urgent/60 text-urgent-ink hover:bg-urgent/10"
               onClick={async () => {
                 setConfirmReset(false);
                 const r = await run({ type: "reset" });
@@ -262,7 +262,7 @@ function SettingsSection({
     <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 space-y-4 border-t border-line/60 pt-8">
       <div className="space-y-1">
         <h2 id={`${id}-title`} className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight">
-          <Icon aria-hidden className="size-5 text-signal" />
+          <Icon aria-hidden className="size-5 text-signal-ink" />
           {title}
         </h2>
         <p className="text-fg-secondary">{description}</p>

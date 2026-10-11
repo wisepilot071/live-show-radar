@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toast && (
           <div
             key={toast.id}
-            className="pointer-events-auto flex w-full max-w-md animate-rise items-center gap-3 rounded-lg border border-line-strong bg-surface-2 py-2 pr-2 pl-4 text-sm shadow-raised"
+            className="pointer-events-auto flex w-full max-w-md animate-rise items-center gap-3 rounded-lg border border-line-strong bg-surface py-2 pr-2 pl-4 text-sm shadow-raised"
           >
             <Icon aria-hidden className={cn("size-4.5 shrink-0", toast.tone === "info" ? "text-info" : "text-success")} />
             <p className="min-w-0 flex-1 text-fg">{toast.message}</p>
@@ -60,7 +60,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   toast.action?.onAction();
                   setToast(null);
                 }}
-                className="min-h-11 shrink-0 rounded-md px-3 font-semibold text-signal hover:bg-surface"
+                className="min-h-11 shrink-0 rounded-md px-3 font-semibold text-signal-ink hover:bg-surface-2"
               >
                 {toast.action.label}
               </button>
@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               type="button"
               aria-label="Dismiss"
               onClick={() => setToast(null)}
-              className="grid size-11 shrink-0 place-items-center rounded-md text-fg-muted hover:bg-surface hover:text-fg"
+              className="grid size-11 shrink-0 place-items-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg"
             >
               <X aria-hidden className="size-4" />
             </button>

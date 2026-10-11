@@ -110,9 +110,9 @@ export function MethodStep() {
                   key={opt.method}
                   className={cn(
                     "group relative flex cursor-pointer flex-col gap-4 rounded-xl border p-5 transition-[border-color,background-color,box-shadow] duration-[var(--duration-base)] sm:p-6",
-                    "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-signal",
+                    "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-3 has-[:focus-visible]:outline-fg",
                     isSelected
-                      ? "border-signal bg-signal/[0.06] shadow-signal"
+                      ? "border-signal-ink bg-signal/30 shadow-signal"
                       : "border-line bg-surface hover:border-line-strong hover:bg-surface-2",
                   )}
                 >
@@ -128,7 +128,7 @@ export function MethodStep() {
                     <span
                       className={cn(
                         "grid size-12 place-items-center rounded-lg border transition-colors",
-                        isSelected ? "border-signal/50 bg-signal text-on-signal" : "border-line bg-inset text-fg",
+                        isSelected ? "border-signal-ink/50 bg-signal text-on-signal" : "border-line bg-inset text-fg",
                       )}
                     >
                       <Icon className="size-6" aria-hidden />
@@ -137,7 +137,7 @@ export function MethodStep() {
                       aria-hidden
                       className={cn(
                         "grid size-6 place-items-center rounded-full border transition-colors",
-                        isSelected ? "animate-pop border-signal bg-signal text-on-signal" : "border-line-strong",
+                        isSelected ? "animate-pop border-signal-ink bg-signal text-on-signal" : "border-line-strong",
                       )}
                     >
                       {isSelected && <Check className="size-4" strokeWidth={3} />}
@@ -168,7 +168,7 @@ export function MethodStep() {
             </Button>
             <Button
               variant="secondary"
-              className="border-urgent/60 text-urgent hover:bg-urgent/10"
+              className="border-urgent/60 text-urgent-ink hover:bg-urgent/10"
               onClick={() => {
                 dispatch({ type: "reset" });
                 setConfirmReset(false);

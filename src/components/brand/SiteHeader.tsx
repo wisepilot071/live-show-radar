@@ -105,5 +105,5 @@ const noSubscribe = () => () => {};
 function useRadarCta() {
   // Server render and hydration use false; the browser value is read after hydration.
   const hasRadar = useSyncExternalStore(noSubscribe, hasBrowserRadar, () => false);
-  return hasRadar ? { href: "/radar", label: "Open my radar" } : { href: "/onboarding", label: "Build my radar" };
+  return hasRadar ? { href: "/radar", label: "Open my radar" } : { href: "/onboarding/artists", label: "Build my radar" };
 }

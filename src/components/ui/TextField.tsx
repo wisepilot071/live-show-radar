@@ -28,7 +28,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       <div
         className={cn(
           "flex min-h-13 items-center gap-3 rounded-lg border bg-inset px-4 transition-colors duration-[var(--duration-fast)]",
-          "focus-within:border-signal focus-within:bg-surface",
+          "focus-within:border-signal-ink focus-within:bg-surface",
           error ? "border-urgent" : "border-line-strong hover:border-fg-muted",
         )}
       >
@@ -53,7 +53,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         </p>
       ) : null}
       {error ? (
-        <p id={errorId} className="text-sm font-medium text-urgent">
+        <p id={errorId} className="text-sm font-medium text-urgent-ink">
           {error}
         </p>
       ) : null}

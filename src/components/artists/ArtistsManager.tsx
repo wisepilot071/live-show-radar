@@ -28,7 +28,14 @@ export function ArtistsManager() {
   const [expanded, setExpanded] = useState<string | null>(focusKey);
   const [resolving, setResolving] = useState<ArtistSelection | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-  const [addQuery, setAddQuery] = useState({ value: "", nonce: 0 });
+  // ?q= comes from the header search: prefill the real catalogue search with it.
+  const headerQuery = params.get("q") ?? "";
+  const [addQuery, setAddQuery] = useState({ value: headerQuery, nonce: 0 });
+  const [lastHeaderQuery, setLastHeaderQuery] = useState(headerQuery);
+  if (headerQuery !== lastHeaderQuery) {
+    setLastHeaderQuery(headerQuery);
+    setAddQuery((q) => ({ value: headerQuery, nonce: q.nonce + 1 }));
+  }
   const addRef = useRef<HTMLElement>(null);
 
   const selectedKeys = useMemo(() => new Set(state.selections.map((s) => artistIdentityKey(s.artist))), [state.selections]);
@@ -41,6 +48,11 @@ export function ArtistsManager() {
     ? sorted.filter((s) => [s.artist.name, ...(s.artist.aliases ?? [])].some((n) => normalizeArtistName(n).includes(f)))
     : sorted;
   const unlinkedCount = state.selections.filter((s) => !s.artist.externalIds?.musicbrainz).length;
+
+  // Arriving from the header search: bring the search into view.
+  useEffect(() => {
+    if (headerQuery) addRef.current?.scrollIntoView({ block: "start" });
+  }, [headerQuery]);
 
   // Arriving from an event page (?focus=…): bring that artist into view once.
   useEffect(() => {
@@ -250,7 +262,7 @@ export function ArtistsManager() {
             </Button>
             <Button
               variant="secondary"
-              className="border-urgent/60 text-urgent hover:bg-urgent/10"
+              className="border-urgent/60 text-urgent-ink hover:bg-urgent/10"
               onClick={async () => {
                 setConfirmClear(false);
                 const r = await run({ type: "clear_artists" });

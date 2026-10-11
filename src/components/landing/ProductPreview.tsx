@@ -39,7 +39,7 @@ export function ProductPreview() {
             <div className="space-y-4">
               <div className="rounded-lg border border-line/70 bg-surface p-4">
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                  <Music2 aria-hidden className="size-4 text-signal" /> Your artists
+                  <Music2 aria-hidden className="size-4 text-signal-ink" /> Your artists
                 </p>
                 <ul className="flex flex-wrap gap-2">
                   {EXAMPLE_FOLLOWED.map((name) => (
@@ -57,7 +57,7 @@ export function ProductPreview() {
               </div>
               <div className="rounded-lg border border-urgent/40 bg-urgent/[0.06] p-4">
                 <p className="mb-1 flex items-center gap-2 text-sm font-semibold text-fg">
-                  <BellRing aria-hidden className="size-4 text-urgent" /> Example alert
+                  <BellRing aria-hidden className="size-4 text-urgent-ink" /> Example alert
                 </p>
                 <p className="text-sm text-fg-secondary">
                   Early-bird tickets for Northbound Saints in Bengaluru close on 9 Nov. Confirmed by the listing source.

@@ -40,7 +40,7 @@ export interface OnboardingState {
   channelRequests: Record<RequestableChannel, boolean>;
   /** Shows the user saved, newest last. Unique by eventId. */
   savedEvents: SavedEvent[];
-  /** Set when the user finishes the setup-status step. */
+  /** Set when the user finishes onboarding (Continue after picking artists). */
   completedAt: IsoTimestamp | null;
   updatedAt: IsoTimestamp | null;
 }

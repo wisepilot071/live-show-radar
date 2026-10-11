@@ -16,11 +16,12 @@ export function OnboardingProgress() {
   const currentIndex = seq.findIndex((id) => STEPS[id].path === pathname);
   const current = currentIndex >= 0 ? seq[currentIndex] : undefined;
 
-  if (!hydrated || !current) return <div className="h-[1.375rem]" aria-hidden />;
+  // A single-step path (the default: just pick artists) needs no progress bar.
+  if (!hydrated || !current || seq.length < 2) return null;
 
   return (
     <nav aria-label="Setup progress" className="flex items-center gap-3">
-      <p className="shrink-0 font-mono text-[0.7rem] tracking-wide text-fg-secondary uppercase">
+      <p className="shrink-0 text-xs font-medium text-fg-secondary">
         Step {currentIndex + 1}/{seq.length}
         <span className="text-fg-muted"> · {STEPS[current].label}</span>
       </p>
@@ -31,7 +32,7 @@ export function OnboardingProgress() {
             aria-current={i === currentIndex ? "step" : undefined}
             className={cn(
               "h-1 flex-1 rounded-full transition-colors duration-[var(--duration-slow)]",
-              i < currentIndex ? "bg-signal/70" : i === currentIndex ? "bg-signal" : "bg-line",
+              i < currentIndex ? "bg-signal-ink/60" : i === currentIndex ? "bg-signal-ink" : "bg-line",
             )}
           >
             <span className="sr-only">

@@ -24,7 +24,7 @@ export function SelectedArtistChips({
         return (
           <li
             key={key}
-            className="inline-flex max-w-full animate-pop items-center gap-2 rounded-full border border-signal/40 bg-signal/[0.07] py-1 pr-1 pl-1"
+            className="inline-flex max-w-full animate-pop items-center gap-2 rounded-full border border-signal-ink/40 bg-signal/30 py-1 pr-1 pl-1"
           >
             <ArtistAvatar artist={s.artist} size="sm" />
             <span className="truncate text-sm font-medium text-fg">
@@ -35,7 +35,7 @@ export function SelectedArtistChips({
               type="button"
               onClick={() => onRemove(key)}
               aria-label={`Remove ${s.artist.name}`}
-              className="grid size-10 shrink-0 place-items-center rounded-full text-fg-secondary hover:bg-urgent/15 hover:text-urgent"
+              className="grid size-10 shrink-0 place-items-center rounded-full text-fg-secondary hover:bg-urgent/15 hover:text-urgent-ink"
             >
               <X aria-hidden className="size-4" />
             </button>

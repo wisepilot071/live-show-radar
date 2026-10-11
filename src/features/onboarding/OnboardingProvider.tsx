@@ -27,6 +27,11 @@ interface OnboardingContextValue {
   dispatch: (action: OnboardingAction) => void;
   /** Awaitable; resolve before showing a success message. */
   run: (action: OnboardingAction) => Promise<SyncResult>;
+  /**
+   * Waits for every queued server write. Resolves false if any write since the
+   * previous flush failed (state was then restored from the server).
+   */
+  flush: () => Promise<boolean>;
   hydrated: boolean;
   mode: ProfileMode;
   persistence: DraftPersistence;
@@ -50,6 +55,7 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
   const [migratedFromBrowser, setMigrated] = useState(false);
   const [loadNonce, setLoadNonce] = useState(0);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const failedSinceFlush = useRef(false);
 
   const replaceState = useCallback((next: OnboardingState) => {
     stateRef.current = next;
@@ -124,6 +130,7 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
       const job = queue.current.then(async (): Promise<SyncResult> => {
         const result = await syncAction(action, before, after);
         if (!result.ok) {
+          failedSinceFlush.current = true;
           setSyncError(`${result.error.message} Your last change wasn't saved, so we restored what's on the server.`);
           const fresh = await fetchServerProfile();
           if (fresh.kind === "server") replaceState(fresh.profile);
@@ -138,11 +145,19 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
 
   const dispatch = useCallback((action: OnboardingAction) => void run(action), [run]);
 
+  const flush = useCallback(async () => {
+    await queue.current;
+    const ok = !failedSinceFlush.current;
+    failedSinceFlush.current = false;
+    return ok;
+  }, []);
+
   const value = useMemo<OnboardingContextValue>(
     () => ({
       state,
       dispatch,
       run,
+      flush,
       hydrated: mode !== "loading",
       mode,
       persistence,
@@ -157,7 +172,7 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
       },
       migratedFromBrowser,
     }),
-    [state, dispatch, run, mode, persistence, store.kind, syncError, migratedFromBrowser],
+    [state, dispatch, run, flush, mode, persistence, store.kind, syncError, migratedFromBrowser],
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;

@@ -177,7 +177,7 @@ export function ArtistSearchPanel({
       {response && (
         <div aria-busy={search.phase === "loading"} className="space-y-3">
           <div className="flex min-h-6 items-center justify-between gap-2">
-            <ResultsHeading className="font-mono text-xs tracking-wide text-fg-secondary uppercase">
+            <ResultsHeading className="text-sm font-semibold text-fg-secondary">
               {response.query ? `Results for “${response.query}”` : results.length ? "Popular starting points" : "Search"}
             </ResultsHeading>
             {search.phase === "loading" && <span className="text-xs text-fg-muted">Updating…</span>}

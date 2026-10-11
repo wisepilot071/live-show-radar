@@ -21,7 +21,7 @@ export function SiteFooter() {
           <FooterLink href="/">Home</FooterLink>
           <FooterLink href="/explore">Explore the preview</FooterLink>
           <FooterLink href="/#how-it-works">How it works</FooterLink>
-          <FooterLink href="/onboarding">Build my radar</FooterLink>
+          <FooterLink href="/onboarding/artists">Build my radar</FooterLink>
           <FooterLink href="/#transparency">What we verify</FooterLink>
         </nav>
       </Container>

@@ -4,9 +4,9 @@ import { cn } from "@/lib/cn";
 type Tone = "surface" | "raised" | "inset" | "outline";
 
 const tones: Record<Tone, string> = {
-  surface: "bg-surface border border-line/60",
-  raised: "bg-surface-2 border border-line shadow-raised",
-  inset: "bg-inset border border-line/50",
+  surface: "bg-surface border border-line",
+  raised: "bg-surface border border-line shadow-raised",
+  inset: "bg-inset border border-line",
   outline: "border border-dashed border-line-strong",
 };
 

@@ -8,7 +8,7 @@ const tones: Record<Tone, { icon: LucideIcon; cls: string; iconCls: string }> = 
   info: { icon: Info, cls: "border-line bg-inset", iconCls: "text-info" },
   success: { icon: CheckCircle2, cls: "border-success/35 bg-success/[0.06]", iconCls: "text-success" },
   warning: { icon: AlertTriangle, cls: "border-warning/35 bg-warning/[0.06]", iconCls: "text-warning" },
-  error: { icon: XCircle, cls: "border-urgent/40 bg-urgent/[0.07]", iconCls: "text-urgent" },
+  error: { icon: XCircle, cls: "border-urgent/40 bg-urgent/[0.07]", iconCls: "text-urgent-ink" },
 };
 
 export function InlineAlert({

@@ -38,7 +38,7 @@ export function ArtistResult({
       data-artist-result
       className={cn(
         "group flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-[border-color,background-color] duration-[var(--duration-fast)]",
-        selected ? "border-signal/60 bg-signal/[0.07]" : "border-line/70 bg-surface hover:border-line-strong hover:bg-surface-2",
+        selected ? "border-signal-ink/60 bg-signal/30" : "border-line/70 bg-surface hover:border-line-strong hover:bg-surface-2",
       )}
     >
       <ArtistAvatar artist={artist} />
@@ -52,7 +52,7 @@ export function ArtistResult({
         className={cn(
           "inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold transition-colors",
           selected
-            ? "animate-pop border-signal bg-signal text-on-signal"
+            ? "animate-pop border-signal-ink bg-signal text-on-signal"
             : "border-line-strong text-fg-secondary group-hover:border-fg-muted group-hover:text-fg",
         )}
       >

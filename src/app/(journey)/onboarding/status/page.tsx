@@ -1,5 +1,6 @@
-import { SetupStatusStep } from "@/components/onboarding/SetupStatusStep";
+import { redirect } from "next/navigation";
 
+/** Setup status now lives on the radar itself (its status panel). */
 export default function StatusPage() {
-  return <SetupStatusStep />;
+  redirect("/radar");
 }

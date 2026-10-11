@@ -10,16 +10,14 @@ const motion = "transition-[opacity,transform] duration-[var(--duration-slow)] e
  */
 export function BrandGlyph({ className }: { className?: string }) {
   return (
-    <svg viewBox="4 10 40 28" aria-hidden className={cn("h-7 w-10", className)} fill="none">
+    <svg viewBox="4 10 40 28" width="40" height="28" aria-hidden className={cn("h-7 w-10", className)} fill="none">
+      {/* Ink ticket so the lime ping reads on the light canvas. */}
       <path
         d="M5 12 H43 V20 A4 4 0 0 0 43 28 V36 H5 V28 A4 4 0 0 0 5 20 Z"
-        fill="var(--background-surface)"
-        stroke="currentColor"
-        strokeOpacity=".4"
-        strokeWidth="1.2"
+        fill="var(--background-ink)"
         strokeLinejoin="round"
       />
-      <path d="M31 14.5 V33.5" stroke="currentColor" strokeOpacity=".4" strokeDasharray="2 2.5" />
+      <path d="M31 14.5 V33.5" stroke="var(--text-on-ink)" strokeOpacity=".45" strokeDasharray="2 2.5" />
       <circle cx="18" cy="24" r="3" fill="var(--accent-primary)" />
       <path d="M12.5 18.5 A7.8 7.8 0 0 1 23.5 18.5" stroke="var(--accent-primary)" strokeWidth="2.2" strokeLinecap="round" />
       <path
@@ -50,7 +48,7 @@ export function BrandMark({ className }: { className?: string }) {
     >
       <BrandGlyph className={cn("-rotate-6 group-hover:rotate-0", motion)} />
       <span className="font-display text-[1.05rem] leading-none font-extrabold tracking-tight">
-        Live Show <span className="text-signal">Radar</span>
+        Live Show <span className="text-signal-ink">Radar</span>
       </span>
     </Link>
   );

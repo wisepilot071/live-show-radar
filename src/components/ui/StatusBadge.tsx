@@ -37,11 +37,11 @@ const toneMap: Record<StatusTone, { icon: LucideIcon; label: string; cls: string
   stale: { icon: History, label: "Stale", cls: "text-fg-secondary border-line-strong bg-surface-2" },
   pending: { icon: Clock3, label: "Pending", cls: "text-info border-info/40 bg-info/10" },
   in_progress: { icon: Loader2, label: "In progress", cls: "text-info border-info/40 bg-info/10", spin: true },
-  unavailable: { icon: CircleSlash, label: "Not available", cls: "text-fg-muted border-line bg-inset" },
-  failed: { icon: XCircle, label: "Failed", cls: "text-urgent border-urgent/40 bg-urgent/10" },
-  urgent: { icon: Flame, label: "Act soon", cls: "text-urgent border-urgent/45 bg-urgent/10" },
-  example: { icon: Sparkles, label: "Example", cls: "text-fg border-fg-muted/60 bg-surface-2 border-dashed" },
-  unknown: { icon: CircleDashed, label: "Unknown", cls: "text-fg-muted border-line bg-inset" },
+  unavailable: { icon: CircleSlash, label: "Not available", cls: "text-fg-secondary border-line bg-surface-2" },
+  failed: { icon: XCircle, label: "Failed", cls: "text-urgent-ink border-urgent/40 bg-urgent/10" },
+  urgent: { icon: Flame, label: "Act soon", cls: "text-urgent-ink border-urgent/45 bg-urgent/10" },
+  example: { icon: Sparkles, label: "Example", cls: "text-fg border-fg-muted/60 bg-surface border-dashed" },
+  unknown: { icon: CircleDashed, label: "Unknown", cls: "text-fg-secondary border-line bg-surface-2" },
 };
 
 export function StatusBadge({
@@ -59,7 +59,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2 py-1 font-mono text-[0.72rem] leading-none font-medium tracking-wide uppercase",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs leading-none font-semibold",
         t.cls,
         className,
       )}

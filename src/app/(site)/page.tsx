@@ -18,7 +18,7 @@ export default function LandingPage() {
           <h2 id="cta-title" className="max-w-2xl font-display text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl">
             Stop finding out after the early-bird is gone.
           </h2>
-          <ButtonLink href="/onboarding" size="lg" trailingIcon={<ArrowRight aria-hidden className="size-5" />}>
+          <ButtonLink href="/onboarding/artists" size="lg" trailingIcon={<ArrowRight aria-hidden className="size-5" />}>
             Build my music radar
           </ButtonLink>
         </Container>

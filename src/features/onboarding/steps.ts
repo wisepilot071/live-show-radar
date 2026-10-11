@@ -1,6 +1,6 @@
 import type { ArtistAcquisitionMethod } from "@/domain/types";
 
-export type OnboardingStepId = "method" | "spotify" | "artists" | "review" | "location" | "alerts" | "status";
+export type OnboardingStepId = "method" | "spotify" | "artists";
 
 export interface StepMeta {
   id: OnboardingStepId;
@@ -12,23 +12,23 @@ export const STEPS: Record<OnboardingStepId, StepMeta> = {
   method: { id: "method", path: "/onboarding", label: "Start" },
   spotify: { id: "spotify", path: "/onboarding/spotify", label: "Spotify" },
   artists: { id: "artists", path: "/onboarding/artists", label: "Artists" },
-  review: { id: "review", path: "/onboarding/review", label: "Review" },
-  location: { id: "location", path: "/onboarding/location", label: "Cities" },
-  alerts: { id: "alerts", path: "/onboarding/alerts", label: "Alerts" },
-  status: { id: "status", path: "/onboarding/status", label: "Setup" },
 };
 
+/** Where onboarding ends: the radar dashboard, entered straight after artist selection. */
+export const ONBOARDING_DONE_PATH = "/radar";
+
 /**
- * The step sequence is derived from the chosen method:
- *   spotify → method, spotify, review, …
- *   manual  → method, artists, review, …
- *   mix     → method, spotify, artists, review, …
- * With no method yet (e.g. a deep link), the manual path is assumed.
+ * Onboarding ends at artist selection: picking artists and pressing Continue
+ * saves them and opens the radar. Cities and alerts start from sensible
+ * defaults (Bengaluru first, all India, every alert on) and live in Settings.
+ *   no method yet (the default entry) → artists
+ *   manual  → method, artists
+ *   spotify → method, spotify, artists   (Spotify always hands over to search)
+ *   mix     → method, spotify, artists
  */
 export function stepSequence(method: ArtistAcquisitionMethod | null): OnboardingStepId[] {
-  const acquisition: OnboardingStepId[] =
-    method === "spotify" ? ["spotify"] : method === "mix" ? ["spotify", "artists"] : ["artists"];
-  return ["method", ...acquisition, "review", "location", "alerts", "status"];
+  if (method === null) return ["artists"];
+  return method === "manual" ? ["method", "artists"] : ["method", "spotify", "artists"];
 }
 
 export function nextStep(method: ArtistAcquisitionMethod | null, current: OnboardingStepId): StepMeta | null {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "quiet";
+type Variant = "primary" | "secondary" | "ghost" | "quiet" | "onInk";
 type Size = "md" | "lg";
 
 const base =
@@ -11,15 +11,17 @@ const base =
   "active:translate-y-px disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-signal text-on-signal hover:bg-signal-hover hover:shadow-signal",
-  secondary: "border border-line-strong bg-surface text-fg hover:border-fg-muted hover:bg-surface-2",
-  ghost: "text-fg-secondary hover:text-fg hover:bg-surface",
-  quiet: "text-fg-secondary underline underline-offset-4 decoration-line-strong hover:text-fg hover:decoration-signal",
+  primary: "bg-signal text-on-signal shadow-[inset_0_-1px_0_rgb(32_40_32/0.12)] hover:bg-signal-hover hover:shadow-signal",
+  secondary: "border border-line-strong bg-surface text-fg hover:border-fg hover:bg-surface",
+  ghost: "text-fg-secondary hover:text-fg hover:bg-surface-2",
+  /** Outline button for dark ink panels. */
+  onInk: "border border-on-ink/35 text-on-ink hover:border-on-ink hover:bg-on-ink/10",
+  quiet: "text-fg-secondary underline underline-offset-4 decoration-line-strong hover:text-fg hover:decoration-signal-ink",
 };
 
 const sizes: Record<Size, string> = {
-  md: "min-h-11 px-4 text-sm rounded-md",
-  lg: "min-h-13 px-6 text-base rounded-lg",
+  md: "min-h-11 px-4 text-sm rounded-full",
+  lg: "min-h-13 px-6 text-base rounded-full",
 };
 
 interface CommonProps {

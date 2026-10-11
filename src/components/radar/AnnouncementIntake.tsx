@@ -81,7 +81,7 @@ export function AnnouncementIntake({ onExtracted }: { onExtracted: () => void })
     <section aria-labelledby="intake-title" className="space-y-4 rounded-xl border border-line bg-surface p-4 sm:p-6">
       <div className="space-y-1">
         <h2 id="intake-title" className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight">
-          <Wand2 aria-hidden className="size-5 text-signal" />
+          <Wand2 aria-hidden className="size-5 text-signal-ink" />
           Seen an announcement?
         </h2>
         <p className="max-w-2xl text-sm text-fg-secondary">
@@ -107,13 +107,13 @@ export function AnnouncementIntake({ onExtracted }: { onExtracted: () => void })
           aria-describedby={inputError ? errorId : undefined}
           placeholder="e.g. ‘Prateek Kuhad — live in Bengaluru, Sat 14 Nov 2026 at Phoenix Arena. Early bird on now: district.in/…’"
           className={cn(
-            "w-full resize-y rounded-lg border bg-inset px-4 py-3 text-base text-fg placeholder:text-fg-muted focus:border-signal focus:outline-none",
+            "w-full resize-y rounded-lg border bg-inset px-4 py-3 text-base text-fg placeholder:text-fg-muted focus:border-signal-ink focus:outline-none",
             inputError ? "border-urgent" : "border-line-strong",
           )}
         />
         <div className="flex justify-between text-xs text-fg-muted">
           {inputError ? (
-            <p id={errorId} className="font-medium text-urgent">
+            <p id={errorId} className="font-medium text-urgent-ink">
               {inputError}
             </p>
           ) : (

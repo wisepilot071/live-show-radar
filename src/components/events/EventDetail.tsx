@@ -145,7 +145,7 @@ export function EventDetail({ id }: { id: string }) {
           {tag && <StatusBadge tone={tag.tone} label={tag.label} />}
           <StatusBadge tone={VERIFICATION_TONE[event.verification.state]} />
         </div>
-        <p className="font-mono text-xs tracking-wide text-fg-muted uppercase">
+        <p className="text-sm font-medium text-fg-muted">
           {event.kind === "festival" ? "Festival" : event.kind === "tour_stop" ? "Tour stop" : "Concert"}
         </p>
         <h1
@@ -158,7 +158,7 @@ export function EventDetail({ id }: { id: string }) {
         </h1>
         <p className="text-lg text-fg-secondary">{event.title}</p>
         {signals && (
-          <p className={cn("text-sm", signals.locality === "primary" ? "font-medium text-signal" : "text-fg-secondary")}>
+          <p className={cn("text-sm", signals.locality === "primary" ? "font-medium text-signal-ink" : "text-fg-secondary")}>
             {relevanceLine(event, signals, state.location.primaryCityId)}
           </p>
         )}
@@ -235,7 +235,7 @@ export function EventDetail({ id }: { id: string }) {
               </DetailRow>
               <DetailRow icon={Clock} label="Early-bird deadline">
                 {ticketConfirmed && ticket.earlyBirdEndsAt ? (
-                  <span className={variant === "deadline" ? "font-semibold text-urgent" : undefined}>
+                  <span className={variant === "deadline" ? "font-semibold text-urgent-ink" : undefined}>
                     {formatTimestamp(ticket.earlyBirdEndsAt, event.when.timeZone)}
                     {signals?.deadlinePassed && " (passed)"}
                   </span>
@@ -272,7 +272,7 @@ export function EventDetail({ id }: { id: string }) {
                   <li key={artistIdentityKey(s.artist)}>
                     <Link
                       href={`/artists?focus=${encodeURIComponent(artistIdentityKey(s.artist))}`}
-                      className="inline-flex min-h-11 items-center gap-1.5 font-medium text-fg hover:text-signal"
+                      className="inline-flex min-h-11 items-center gap-1.5 font-medium text-fg hover:text-signal-ink"
                     >
                       {s.artist.name} — in your artists
                     </Link>

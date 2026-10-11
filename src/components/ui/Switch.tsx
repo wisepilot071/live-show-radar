@@ -29,7 +29,7 @@ export function Switch({
       htmlFor={id}
       className={cn(
         "flex cursor-pointer items-start gap-4 rounded-lg border p-4 transition-colors duration-[var(--duration-fast)]",
-        checked ? "border-signal/45 bg-signal/[0.05]" : "border-line bg-surface hover:border-line-strong",
+        checked ? "border-signal-ink/45 bg-surface" : "border-line bg-surface hover:border-line-strong",
         disabled && "cursor-not-allowed opacity-60",
       )}
     >
@@ -47,8 +47,8 @@ export function Switch({
         aria-hidden
         className={cn(
           "relative mt-0.5 inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-colors duration-[var(--duration-base)]",
-          "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-signal",
-          checked ? "border-signal bg-signal" : "border-line-strong bg-inset",
+          "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-fg",
+          checked ? "border-signal-ink bg-signal" : "border-line-strong bg-surface",
         )}
       >
         <span
@@ -61,7 +61,7 @@ export function Switch({
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-2">
           <span className="font-semibold text-fg">{label}</span>
-          <span className="font-mono text-[0.7rem] tracking-wide text-fg-muted uppercase">
+          <span className="text-xs font-semibold text-fg-muted">
             {checked ? "On" : "Off"}
           </span>
           {trailing}

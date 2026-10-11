@@ -53,7 +53,7 @@ export default function ExplorePage() {
           </h2>
           <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
             {ANATOMY.map((a) => (
-              <div key={a.term} className="space-y-1 border-l-2 border-signal/60 pl-4">
+              <div key={a.term} className="space-y-1 border-l-2 border-signal-ink/60 pl-4">
                 <dt className="font-semibold text-fg">{a.term}</dt>
                 <dd className="text-sm text-fg-secondary">{a.desc}</dd>
               </div>
@@ -70,7 +70,7 @@ export default function ExplorePage() {
             </h2>
             <p className="text-fg-secondary">Pick your artists and cities. Spotify is optional.</p>
           </div>
-          <ButtonLink href="/onboarding" size="lg" trailingIcon={<ArrowRight aria-hidden className="size-5" />}>
+          <ButtonLink href="/onboarding/artists" size="lg" trailingIcon={<ArrowRight aria-hidden className="size-5" />}>
             Build my music radar
           </ButtonLink>
         </Container>

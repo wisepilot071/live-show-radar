@@ -1,27 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Instrument_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-// Display: expressive, poster-like grotesque for headlines.
-const bricolage = Bricolage_Grotesque({
+// Display: editorial serif with optical sizing, for headlines.
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  variable: "--font-fraunces",
   display: "swap",
+  axes: ["opsz"],
 });
 
-// Body & controls: highly legible humanist sans.
+// Body, controls and metadata: highly legible humanist sans.
 const instrument = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument",
-  display: "swap",
-});
-
-// Status labels & metadata: compact mono for a "signal" feel.
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -35,13 +28,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0d1118",
-  colorScheme: "dark",
+  themeColor: "#f7f4ec",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-IN" className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable}`}>
+    <html lang="en-IN" className={`${fraunces.variable} ${instrument.variable}`}>
       <body className="min-h-dvh">
         <a
           href="#main"
