@@ -20,7 +20,7 @@ export interface InboxNotification {
   artist: string | null;
   city: string | null;
   event_date: string | null;
-  deliveries: Array<{ channel: "in_app" | "email"; status: string; sentAt: string | null; error: string | null }> | null;
+  deliveries: Array<{ channel: "in_app" | "email" | "telegram"; status: string; sentAt: string | null; error: string | null }> | null;
 }
 
 export type InboxState =

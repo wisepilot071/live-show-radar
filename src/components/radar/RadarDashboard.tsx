@@ -74,9 +74,9 @@ export function RadarDashboard() {
             tone: "confirmed",
             label: "Inbox active",
             detail: integrations.report.scheduler.lastRun
-              ? `Daily monitor last ran ${formatTimestamp(integrations.report.scheduler.lastRun.at)} (${integrations.report.scheduler.lastRun.status}).`
+              ? `Scheduled monitor last ran ${formatTimestamp(integrations.report.scheduler.lastRun.at)} (${integrations.report.scheduler.lastRun.status}).`
               : integrations.report.scheduler.configured
-                ? "Daily monitor is scheduled but hasn't run yet. Check now also creates alerts."
+                ? "Scheduled monitor is set up but hasn't run yet. Check now also creates alerts."
                 : "No scheduled monitor on this server; alerts come from Check now.",
           };
   const canCheck = mode === "server" && state.selections.length > 0 && situation.kind !== "not_connected";
@@ -268,7 +268,12 @@ export function RadarDashboard() {
         </>
       )}
 
-      {hydrated && mode === "server" && <CityUpcoming />}
+      {hydrated && mode === "server" && (
+        <CityUpcoming
+          // Shows already on your radar above aren't repeated in the city lists.
+          excludeIds={situation.kind === "results" ? situation.upcoming.map((e) => e.id) : []}
+        />
+      )}
 
       {/* Starts muted as soon as it scrolls into view ("Tap for sound"); off under reduced motion. */}
       {hydrated && <LiveOnStage autoplay />}
@@ -500,7 +505,10 @@ function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
   const focus = focusByCity(events, state.location.primaryCityId, now);
   const focused = everyCity ? events : focus.events;
   const filtered = applyFilters(focused, filters, { selections: state.selections, now });
-  const sections = buildSections(filtered, state.location, now);
+  const built = buildSections(filtered, state.location, now);
+  // Each show appears once: "From your artists" skips what the sections above already show.
+  const shownAbove = new Set([...built.attention, ...built.justAnnounced].map((e) => e.id));
+  const sections = { ...built, fromYourArtists: built.fromYourArtists.filter((e) => !shownAbove.has(e.id)) };
   const savedIds = new Set(state.savedEvents.map((s) => s.eventId));
   const city = cityLabel(state.location.primaryCityId).split(",")[0];
   const active = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS);

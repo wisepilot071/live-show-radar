@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, BellOff, BellRing, CalendarCheck2, CalendarClock, CalendarX2, CheckCheck, Mail, Megaphone, RotateCw, Ticket, type LucideIcon } from "lucide-react";
+import { ArrowRight, Send, BellOff, BellRing, CalendarCheck2, CalendarClock, CalendarX2, CheckCheck, Mail, Megaphone, RotateCw, Ticket, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -68,6 +68,13 @@ const EMAIL_STATUS: Record<string, string> = {
   failed: "Email failed — will retry",
   failed_permanent: "Email failed",
   unavailable: "Email not sent",
+};
+const TELEGRAM_STATUS: Record<string, string> = {
+  queued: "Telegram queued",
+  sent: "Telegram message accepted by Telegram",
+  failed: "Telegram failed — will retry",
+  failed_permanent: "Telegram failed",
+  unavailable: "Telegram not sent",
 };
 
 /**
@@ -230,6 +237,7 @@ export function NotificationInbox() {
             const cat = CATEGORY[n.category] ?? FALLBACK_CATEGORY;
             const Icon = cat.icon;
             const email = n.deliveries?.find((d) => d.channel === "email");
+            const telegram = n.deliveries?.find((d) => d.channel === "telegram");
             const isUnread = !n.read_at;
             return (
               <li
@@ -275,6 +283,13 @@ export function NotificationInbox() {
                         <Mail aria-hidden className="size-3.5" />
                         {EMAIL_STATUS[email.status] ?? email.status}
                         {email.error && email.status !== "sent" ? ` (${email.error})` : ""}
+                      </p>
+                    )}
+                    {telegram && (
+                      <p className="flex items-center gap-1.5 text-xs text-fg-muted">
+                        <Send aria-hidden className="size-3.5" />
+                        {TELEGRAM_STATUS[telegram.status] ?? telegram.status}
+                        {telegram.error && telegram.status !== "sent" ? ` (${telegram.error})` : ""}
                       </p>
                     )}
                     <div className="flex flex-wrap gap-2 pt-1">

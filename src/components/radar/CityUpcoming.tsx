@@ -21,20 +21,20 @@ const DAYS = 60;
  * tracked artist (the catalogue and everyone's follows), not only yours.
  * Your home city first; Bengaluru second when your home is elsewhere.
  */
-export function CityUpcoming() {
+export function CityUpcoming({ excludeIds = [] }: { excludeIds?: string[] }) {
   const { state } = useOnboarding();
   const home = state.location.primaryCityId;
   const cities = home === "bengaluru" ? ["bengaluru"] : [home, "bengaluru"];
   return (
     <div className="space-y-12">
       {cities.map((c) => (
-        <CitySection key={c} cityId={c} />
+        <CitySection key={c} cityId={c} excludeIds={excludeIds} />
       ))}
     </div>
   );
 }
 
-function CitySection({ cityId }: { cityId: string }) {
+function CitySection({ cityId, excludeIds }: { cityId: string; excludeIds: string[] }) {
   const { state } = useOnboarding();
   const [load, setLoad] = useState<Load>({ phase: "loading" });
   const [nonce, setNonce] = useState(0);
@@ -55,6 +55,10 @@ function CitySection({ cityId }: { cityId: string }) {
   }, [cityId, nonce]);
 
   const savedIds = new Set(state.savedEvents.map((s) => s.eventId));
+  const exclude = new Set(excludeIds);
+  const all = load.phase === "ready" ? load.events : [];
+  const shown = all.filter((e) => !exclude.has(e.id));
+  const alreadyAbove = all.length - shown.length;
   return (
     <section aria-labelledby={`city-${cityId}`} className="space-y-5">
       <Reveal className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-3">
@@ -89,7 +93,7 @@ function CitySection({ cityId }: { cityId: string }) {
             artist to get alerts.
           </p>
         </div>
-        {load.phase === "ready" && load.events.length > 0 && <p className="text-sm text-fg-muted">{pluralize(load.events.length, "show")}</p>}
+        {load.phase === "ready" && shown.length > 0 && <p className="text-sm text-fg-muted">{pluralize(shown.length, "show")}</p>}
       </Reveal>
       {load.phase === "loading" && <EventGridSkeleton label={`Loading shows in ${city}…`} />}
       {load.phase === "error" && (
@@ -107,15 +111,20 @@ function CitySection({ cityId }: { cityId: string }) {
           </Button>
         </div>
       )}
-      {load.phase === "ready" && load.events.length === 0 && (
+      {load.phase === "ready" && shown.length === 0 && alreadyAbove > 0 && (
+        <p className="rounded-xl border border-dashed border-line-strong p-5 text-sm text-fg-secondary">
+          Every show we&rsquo;ve found in {city} for the next 2 months is already in your list above.
+        </p>
+      )}
+      {load.phase === "ready" && all.length === 0 && (
         <p className="rounded-xl border border-dashed border-line-strong p-5 text-sm text-fg-secondary">
           No shows by tracked artists found in {city} for the next 2 months yet. News for {city} is checked daily, and every
           followed artist is looked up on a rolling schedule.
         </p>
       )}
-      {load.phase === "ready" && load.events.length > 0 && (
+      {load.phase === "ready" && shown.length > 0 && (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {load.events.map((e) => (
+          {shown.map((e) => (
             <li key={e.id}>
               <EventCard
                 event={e}

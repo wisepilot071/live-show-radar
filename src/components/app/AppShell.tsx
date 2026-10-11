@@ -13,6 +13,7 @@ import { useIntegrationStatus } from "@/features/integrations/useIntegrationStat
 import { useUnreadCount } from "@/features/notifications/useInbox";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
+import { useNow } from "@/lib/useNow";
 
 interface NavItem {
   href: string;
@@ -200,21 +201,32 @@ function CityPicker() {
   );
 }
 
-/** Real discovery status from the server — never an assumed "monitoring" state. */
+/**
+ * Real discovery status from the server — never an assumed "monitoring" state.
+ * "Connected" counts only sources that actually completed a check in the last
+ * 48 hours; a configured key alone is not evidence that a source works.
+ */
 function DiscoveryChip() {
   const { status } = useIntegrationStatus();
+  const now = useNow();
+  const working =
+    status.phase === "ready" && now
+      ? status.report.eventSources.all.filter(
+          (s) => s.configured && s.lastSuccessAt && now.getTime() - Date.parse(s.lastSuccessAt) < 48 * 3_600_000,
+        ).length
+      : 0;
+  const configured = status.phase === "ready" ? status.report.eventSources.connected.length : 0;
   const content =
     status.phase === "loading" ? (
       <StatusBadge tone="in_progress" label="Checking" />
     ) : status.phase === "error" ? (
       <StatusBadge tone="failed" label="Status unknown" />
-    ) : status.report.eventSources.connected.length === 0 ? (
+    ) : configured === 0 ? (
       <StatusBadge tone="unavailable" label="Discovery off" />
+    ) : working === 0 ? (
+      <StatusBadge tone="unconfirmed" label="Not checked recently" />
     ) : (
-      <StatusBadge
-        tone="confirmed"
-        label={`${status.report.eventSources.connected.length} source${status.report.eventSources.connected.length === 1 ? "" : "s"} connected`}
-      />
+      <StatusBadge tone="confirmed" label={`${working} source${working === 1 ? "" : "s"} connected`} />
     );
   return (
     <Link href="/settings#connections" aria-label="Event discovery status" className="hidden 2xl:inline-flex">

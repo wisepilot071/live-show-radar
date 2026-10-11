@@ -93,7 +93,8 @@ export async function GET() {
     unavailableSources: [],
     scheduler: {
       configured: Boolean(getServerEnv().cronSecret),
-      cadence: "Daily at 07:00 IST (Vercel Hobby cron: at most once a day, timing within the hour)",
+      // Matches vercel.json: three daily slots (01:30, 09:30, 17:30 UTC).
+      cadence: "Three times a day — around 07:00, 15:00 and 23:00 IST (Vercel cron timing can drift within the hour)",
       lastRun: job ? { at: job.started_at.toISOString(), status: job.status, trigger: job.trigger } : undefined,
       lastSuccessAt: jobOk?.toISOString(),
     },
