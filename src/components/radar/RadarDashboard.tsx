@@ -369,7 +369,7 @@ function DiscoverHero({
         <div className="space-y-3">
           <p className="text-xs font-semibold tracking-[0.12em] text-signal uppercase">Discover</p>
           <h1 id="discover-title" className="font-display text-[clamp(1.9rem,4.4vw,3.1rem)] leading-[1.02] font-semibold">
-            Never miss a show from your favourite artists.
+            Your artists. Your next unforgettable night.
           </h1>
           <p className="max-w-2xl text-on-ink/80">
             {hydrated && artistCount > 0
