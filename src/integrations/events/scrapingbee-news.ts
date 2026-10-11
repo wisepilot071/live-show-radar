@@ -257,11 +257,12 @@ function scheduleScore(text: string): number {
 export function createScrapingBeeNewsAdapter(deps: () => ScrapingBeeDeps | null): EventSourceAdapter {
   return {
     id: "scrapingbee_news",
-    name: "News announcements (ScrapingBee)",
+    // Public name: the retrieval vendor is an implementation detail and never shown to users.
+    name: "News reports",
     sourceClass: "community",
     configStatus() {
-      if (!getServerEnv().scrapingbee.apiKey) return { configured: false, reason: "SCRAPINGBEE_API_KEY is not set" };
-      if (!geminiStatus().configured) return { configured: false, reason: "needs Gemini (GEMINI_API_KEY) to read articles" };
+      if (!getServerEnv().scrapingbee.apiKey) return { configured: false, reason: "news search isn't configured on this server" };
+      if (!geminiStatus().configured) return { configured: false, reason: "article reading (AI) isn't configured on this server" };
       return { configured: true };
     },
     canLookUp: (a) => a.name.trim().length >= 3,

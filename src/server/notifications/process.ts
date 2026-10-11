@@ -8,7 +8,7 @@ import type {
 import { getSql } from "@/server/db";
 import { withJobLock } from "@/server/guards";
 import { errorMessage, log } from "@/server/log";
-import { getEventById } from "@/server/repos/events";
+import { getEventById, publicSourceName } from "@/server/repos/events";
 import {
   addressConfirmed,
   emailChannelStatus,
@@ -219,12 +219,12 @@ async function sourceClassOf(
   sourceId: string,
 ): Promise<{ sourceClass: SourceClass; sourceName: string }> {
   const sql = getSql();
-  const [row] = await sql<{ cls: SourceClass | null; source_name: string }[]>`
-    select record->>'sourceClass' as cls, source_name from radar.event_sources
+  const [row] = await sql<{ cls: SourceClass | null; source_name: string; source_url: string | null }[]>`
+    select record->>'sourceClass' as cls, source_name, source_url from radar.event_sources
     where event_id = ${eventId} and source_id = ${sourceId} limit 1`;
   return {
     sourceClass: row?.cls ?? "user_submitted",
-    sourceName: row?.source_name ?? sourceId,
+    sourceName: row ? publicSourceName(sourceId, row.source_name, row.source_url) : sourceId,
   };
 }
 

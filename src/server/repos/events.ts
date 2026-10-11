@@ -61,7 +61,7 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
   const rank: Record<VerificationState, number> = { confirmed: 4, stale: 3, unconfirmed: 2, pending: 1, unavailable: 0 };
   const evidence: EventSourceEvidence[] = ordered.map((s) => ({
     sourceId: s.source_id,
-    sourceName: s.source_name,
+    sourceName: publicSourceName(s.source_id, s.source_name, s.source_url),
     url: s.source_url ?? undefined,
     firstSeenAt: s.first_seen_at.toISOString(),
     lastCheckedAt: s.last_checked_at.toISOString(),
@@ -116,7 +116,11 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
       verification: {
         state: ticketVerification,
         lastVerifiedAt: iso(bestTicketCheck ?? null),
-        note: ticketSources.length ? undefined : `${primary?.source_name ?? "This source"} doesn't provide ticket availability.`,
+        note: ticketSources.length
+          ? undefined
+          : primary?.source_id === "scrapingbee_news"
+            ? "From a news report — no ticketing site has confirmed availability yet."
+            : `${primary?.source_name ?? "This source"} doesn't provide ticket availability.`,
       },
       saleOpensAt: iso(e.sale_opens_at),
       earlyBirdEndsAt: iso(e.early_bird_ends_at),
@@ -128,7 +132,7 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
     },
     source: {
       id: primary?.source_id ?? "unknown",
-      name: primary?.source_name ?? "Unknown source",
+      name: primary ? publicSourceName(primary.source_id, primary.source_name, primary.source_url) : "Unknown source",
       url: primary?.source_url ?? undefined,
       origin: primary?.record.sourceClass === "user_submitted" ? "user_submitted" : "event_source",
     },
@@ -154,6 +158,21 @@ async function hydrate(rows: EventRow[], now: Date): Promise<LiveEvent[]> {
   const byEvent = new Map<string, SourceRow[]>();
   for (const s of sources) byEvent.set(s.event_id, [...(byEvent.get(s.event_id) ?? []), s]);
   return rows.map((r) => mapEvent(r, byEvent.get(r.id) ?? [], now));
+}
+
+/**
+ * Name shown to users for a source. News-derived shows are credited to the
+ * publication they came from ("News report (outlookindia.com)"); internal
+ * vendor names never reach the UI.
+ */
+export function publicSourceName(sourceId: string, storedName: string, url: string | null): string {
+  if (sourceId !== "scrapingbee_news") return storedName;
+  try {
+    const host = url ? new URL(url).hostname.replace(/^www\./, "") : null;
+    return host ? `News report (${host})` : "News report";
+  } catch {
+    return "News report";
+  }
 }
 
 const EVENT_COLUMNS = (sql: ReturnType<typeof getSql>) => sql`

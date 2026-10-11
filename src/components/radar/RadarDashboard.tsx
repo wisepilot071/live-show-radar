@@ -270,7 +270,8 @@ export function RadarDashboard() {
 
       {hydrated && mode === "server" && <CityUpcoming />}
 
-      {hydrated && <LiveOnStage />}
+      {/* Starts muted as soon as it scrolls into view ("Tap for sound"); off under reduced motion. */}
+      {hydrated && <LiveOnStage autoplay />}
 
       {hydrated && mode === "server" && state.selections.length > 0 && <AnnouncementIntake onExtracted={retry} />}
 

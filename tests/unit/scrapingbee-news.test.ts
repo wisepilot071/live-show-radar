@@ -68,7 +68,7 @@ describe("recordFrom: only trustworthy, upcoming, Indian, exact-artist shows", (
 describe("adapter run", () => {
   it("not configured without SCRAPINGBEE_API_KEY", () => {
     delete process.env.SCRAPINGBEE_API_KEY;
-    expect(createScrapingBeeNewsAdapter(() => null).configStatus()).toMatchObject({ configured: false, reason: "SCRAPINGBEE_API_KEY is not set" });
+    expect(createScrapingBeeNewsAdapter(() => null).configStatus()).toMatchObject({ configured: false, reason: "news search isn't configured on this server" });
   });
 
   it("searches once per artist (capped), AI only on pre-filtered snippets, grounding applied", async () => {
