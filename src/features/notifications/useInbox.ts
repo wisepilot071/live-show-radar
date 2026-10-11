@@ -15,6 +15,10 @@ export interface InboxNotification {
   read_at: string | null;
   is_test: boolean;
   muted: boolean;
+  /** From the stored show snapshot (null for alerts without a show). */
+  artist: string | null;
+  city: string | null;
+  event_date: string | null;
   deliveries: Array<{ channel: "in_app" | "email"; status: string; sentAt: string | null; error: string | null }> | null;
 }
 

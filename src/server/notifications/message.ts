@@ -57,3 +57,28 @@ export function renderNotification(n: NotificationForMessage, appBaseUrl?: strin
   parts.push(`Why you're getting this: ${n.reason}`, "", "— Live Show Radar");
   return { subject: n.title.slice(0, 200), text: parts.join("\n") };
 }
+
+/**
+ * Several new shows by ONE artist, sent as a single email / Telegram message:
+ * one line per show (date — city, venue), then a ticket link only if the
+ * source gave one. Built from the stored snapshots only.
+ */
+export function renderArtistDigest(items: NotificationForMessage[], appBaseUrl?: string): { subject: string; text: string } {
+  const events = items
+    .map((n) => n.event)
+    .filter((e): e is LiveEvent => Boolean(e))
+    .sort((a, b) => (a.when.date ?? "9999").localeCompare(b.when.date ?? "9999"));
+  const artist = events[0]?.artistNames[0] ?? "An artist you follow";
+  const cities = [...new Set(events.map((e) => e.cityName))];
+  const subject = `${artist}: ${events.length} new shows — ${cities.join(", ")}`;
+  const lines: string[] = [`${artist} announced ${events.length} shows in your cities:`, ""];
+  for (const e of events) {
+    lines.push(`• ${formatEventDate(e.when)} — ${e.cityName}${e.venueName ? `, ${e.venueName}` : " (venue not announced yet)"}`);
+    if (appBaseUrl) lines.push(`  ${appBaseUrl}/radar/events/${encodeURIComponent(e.id)}`);
+  }
+  const links = [...new Set(events.map((e) => e.ticket.bookingUrl).filter((u): u is string => !!u && /^https?:\/\//.test(u)))];
+  if (links.length) lines.push("", `Ticket link${links.length > 1 ? "s" : ""} (from the source): ${links.join(" , ")}`);
+  const sources = [...new Set(events.map((e) => e.source.name))];
+  lines.push("", `Source: ${sources.join(", ")}`, `Why you're getting this: you follow ${artist} and these shows are in your chosen cities.`, "", "— Live Show Radar");
+  return { subject: subject.slice(0, 200), text: lines.join("\n") };
+}

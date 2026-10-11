@@ -8,6 +8,8 @@ export const GET = meReadRoute("api/me/notifications", async (_req, userId) => {
   const sql = getSql();
   const notifications = await sql`
     select n.id, n.event_id, n.category, n.priority, n.title, n.body, n.reason, n.created_at, n.read_at, n.is_test,
+      n.event_snapshot->'artistNames'->>0 as artist, n.event_snapshot->>'cityName' as city,
+      n.event_snapshot->'when'->>'date' as event_date,
       exists (select 1 from radar.event_mutes m where m.user_id = n.user_id and m.event_id = n.event_id) as muted,
       (select json_agg(json_build_object('channel', d.channel, 'status', d.status, 'sentAt', d.sent_at, 'error', d.last_error))
          from radar.notification_deliveries d where d.notification_id = n.id) as deliveries

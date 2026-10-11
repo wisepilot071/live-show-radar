@@ -544,52 +544,22 @@ function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
               tone="urgent"
             />
           )}
-          <EventSection
-            id="just-announced"
-            title="Just announced"
-            subtitle="Announced in the last 7 days, going by the source's own announcement time — not when we found it."
-            events={sections.justAnnounced}
-            empty="Nothing announced this week for your artists."
-            savedIds={savedIds}
-          />
+          {sections.justAnnounced.length > 0 && (
+            <EventSection
+              id="just-announced"
+              title="Just announced"
+              subtitle="Announced in the last 7 days, going by the source's own announcement time — not when we found it."
+              events={sections.justAnnounced}
+              savedIds={savedIds}
+            />
+          )}
+          {/* One grid: ticket status, ticket link, sale time and booking live on each card. */}
           <EventSection
             id="from-your-artists"
             title="From your artists"
-            subtitle={`Every upcoming show from the artists you follow — ${city} first, then the rest of India.`}
+            subtitle={`Every upcoming show from the artists you follow — ${city} first. Each card shows its tickets and where the details came from.`}
             events={sections.fromYourArtists}
             empty="No upcoming shows from your artists."
-            savedIds={savedIds}
-          />
-          <EventSection
-            id="tickets"
-            title="Tickets available"
-            subtitle="Tickets a source confirms are on sale, with a real ticket link."
-            events={sections.ticketsAvailable}
-            empty="No verified on-sale tickets yet. When a source confirms a sale, it shows up here."
-            savedIds={savedIds}
-          />
-          <EventSection
-            id="early-bird"
-            title="Early bird & presale"
-            subtitle="Only when a source confirms the window — deadlines are never guessed."
-            events={sections.earlyBird}
-            empty="No verified early-bird or presale windows right now."
-            savedIds={savedIds}
-          />
-          <EventSection
-            id="coming-soon"
-            title="Coming soon"
-            subtitle="Announced shows whose tickets aren't on sale yet, or that have a confirmed sale date."
-            events={sections.comingSoon}
-            empty="No confirmed upcoming sale dates."
-            savedIds={savedIds}
-          />
-          <EventSection
-            id="beyond"
-            title={`Beyond ${city}`}
-            subtitle="Shows elsewhere in India — worth a trip?"
-            events={sections.beyondHome}
-            empty={`Nothing outside ${city} right now.`}
             savedIds={savedIds}
           />
         </>

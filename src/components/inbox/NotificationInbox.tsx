@@ -12,8 +12,10 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
 import { useInbox, type InboxNotification } from "@/features/notifications/useInbox";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
+import { matchIndianCity } from "@/domain/cities";
+import type { LocationPreference } from "@/domain/types";
 import { cn } from "@/lib/cn";
-import { formatTimestamp, pluralize } from "@/lib/format";
+import { formatEventDate, formatTimestamp, pluralize } from "@/lib/format";
 import { RowListSkeleton } from "@/components/ui/Skeletons";
 
 const CATEGORY: Record<InboxNotification["category"], { icon: LucideIcon; label: string }> = {
@@ -26,6 +28,39 @@ const CATEGORY: Record<InboxNotification["category"], { icon: LucideIcon; label:
 };
 /** Any category this build doesn't know yet still renders (never crash the inbox). */
 const FALLBACK_CATEGORY = { icon: BellRing, label: "Alert" };
+
+/** New-show alerts outside the person's chosen cities (sent before city-only alerts) are hidden by default. */
+function inChosenCities(list: InboxNotification[], location: LocationPreference): InboxNotification[] {
+  const chosen = new Set([location.primaryCityId, ...location.additionalCityIds]);
+  return list.filter((n) => {
+    if (n.category !== "new_show" || !n.city) return true;
+    const id = matchIndianCity(n.city)?.id;
+    return !id || chosen.has(id);
+  });
+}
+
+type AlertItem = { kind: "one"; n: InboxNotification } | { kind: "group"; artist: string; items: InboxNotification[] };
+
+/**
+ * New-show alerts for the same artist become ONE card listing each city and date
+ * (placed where the newest one was); everything else stays a single card.
+ */
+function groupAlerts(list: InboxNotification[]): AlertItem[] {
+  const byArtist = new Map<string, InboxNotification[]>();
+  for (const n of list) if (n.category === "new_show" && n.artist) byArtist.set(n.artist, [...(byArtist.get(n.artist) ?? []), n]);
+  const out: AlertItem[] = [];
+  const done = new Set<string>();
+  for (const n of list) {
+    const group = n.category === "new_show" && n.artist ? byArtist.get(n.artist) : undefined;
+    if (group && group.length > 1) {
+      if (!done.has(n.artist!)) {
+        done.add(n.artist!);
+        out.push({ kind: "group", artist: n.artist!, items: group });
+      }
+    } else out.push({ kind: "one", n });
+  }
+  return out;
+}
 
 const EMAIL_STATUS: Record<string, string> = {
   queued: "Email queued",
@@ -40,10 +75,11 @@ const EMAIL_STATUS: Record<string, string> = {
  * delivered in-app; read state and email delivery state come from the server.
  */
 export function NotificationInbox() {
-  const { mode } = useOnboarding();
+  const { mode, state: radar } = useOnboarding();
   const { state, reload, markRead, markAllRead, setMuted } = useInbox(mode);
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
+  const [allCities, setAllCities] = useState(false);
 
   async function run(key: string, fn: () => Promise<string | null>, success?: string) {
     setBusy(key);
@@ -102,9 +138,91 @@ export function NotificationInbox() {
         </EmptyState>
       )}
 
+      {state.phase === "ready" && state.notifications.length > inChosenCities(state.notifications, radar.location).length && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/80 px-4 py-3 text-sm shadow-card">
+          <p className="text-fg-secondary">
+            {allCities
+              ? "Showing alerts for every city."
+              : `Showing alerts for your cities only. ${pluralize(state.notifications.length - inChosenCities(state.notifications, radar.location).length, "older alert")} for other cities hidden.`}
+          </p>
+          <Button variant="secondary" onClick={() => setAllCities((v) => !v)}>
+            {allCities ? "Only my cities" : "Show other cities"}
+          </Button>
+        </div>
+      )}
+
       {state.phase === "ready" && state.notifications.length > 0 && (
         <ul className="space-y-3" aria-label="Alerts">
-          {state.notifications.map((n) => {
+          {groupAlerts(allCities ? state.notifications : inChosenCities(state.notifications, radar.location)).map((item) => {
+            if (item.kind === "group") {
+              const unreadIds = item.items.filter((x) => !x.read_at).map((x) => x.id);
+              const key = `g:${item.items[0]!.id}`;
+              return (
+                <li
+                  key={key}
+                  className={cn(
+                    "rounded-xl border p-4 sm:p-5",
+                    unreadIds.length ? "border-line-strong bg-surface shadow-raised" : "border-line bg-surface-2/60",
+                  )}
+                >
+                  <div className="flex gap-3 sm:gap-4">
+                    <span aria-hidden className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-full border border-line text-signal-ink">
+                      <Megaphone className="size-4.5" />
+                    </span>
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {unreadIds.length > 0 && (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-signal-ink">
+                            <span aria-hidden className="size-2 rounded-full bg-signal" /> {unreadIds.length} unread
+                          </span>
+                        )}
+                        <StatusBadge tone="unknown" label="New shows" />
+                        <time dateTime={item.items[0]!.created_at} className="text-xs text-fg-muted">
+                          {formatTimestamp(item.items[0]!.created_at)}
+                        </time>
+                      </div>
+                      <h2 className="font-display text-lg leading-snug font-semibold break-words text-fg">
+                        {item.artist} announced {pluralize(item.items.length, "show")}
+                      </h2>
+                      <ul className="divide-y divide-line/60 rounded-lg border border-line/70 bg-surface">
+                        {[...item.items]
+                          .sort((a, b) => (a.event_date ?? "9999").localeCompare(b.event_date ?? "9999"))
+                          .map((x) => (
+                            <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                              <span className="min-w-0">
+                                <span className="font-semibold text-fg">{x.city ?? "City not stated"}</span>
+                                <span className="text-fg-secondary"> · {x.event_date ? formatEventDate({ date: x.event_date, timeZone: "Asia/Kolkata" }) : "Date not announced"}</span>
+                                {!x.read_at && <span className="ml-2 text-xs font-semibold text-signal-ink">New</span>}
+                              </span>
+                              {x.event_id && (
+                                <Link
+                                  href={`/radar/events/${x.event_id}`}
+                                  onClick={() => {
+                                    if (!x.read_at) void markRead([x.id]);
+                                  }}
+                                  className="inline-flex min-h-11 items-center gap-1 font-semibold text-signal-ink hover:underline"
+                                >
+                                  View show <ArrowRight aria-hidden className="size-4" />
+                                </Link>
+                              )}
+                            </li>
+                          ))}
+                      </ul>
+                      <p className="text-xs text-fg-muted">
+                        <span className="font-medium text-fg-secondary">Why: </span>
+                        {item.items[0]!.reason}
+                      </p>
+                      {unreadIds.length > 0 && (
+                        <Button variant="ghost" loading={busy === key} onClick={() => run(key, () => markRead(unreadIds))}>
+                          Mark all {unreadIds.length} read
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            }
+            const n = item.n;
             const cat = CATEGORY[n.category] ?? FALLBACK_CATEGORY;
             const Icon = cat.icon;
             const email = n.deliveries?.find((d) => d.channel === "email");

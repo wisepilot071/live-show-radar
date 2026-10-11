@@ -76,19 +76,15 @@ describe("decide: preferences, scope and verification", () => {
     expect(decide(input({}, { mutedEvent: true }))).toEqual({ notify: false, skip: "muted" });
     expect(decide(input({}, { triggers: { new_announcement: false } }))).toEqual({ notify: false, skip: "trigger_disabled" });
   });
-  it("city preferences: out-of-city allowed by default, suppressed when turned off or out of scope", () => {
+  it("city preferences: alerts only for the person's chosen cities (home + extra); saved shows always", () => {
     const soon = { date: "2026-12-10", startsAt: "2026-12-10T14:00:00.000Z", timeZone: "Asia/Kolkata" };
     const chennai = event({ cityId: "chennai", cityName: "Chennai", when: soon });
-    expect(decide(input({ event: chennai })).notify).toBe(true);
-    // Other city, more than 2 months away: skipped (Discover shows it under "every city" only).
-    expect(decide(input({ event: event({ cityId: "chennai", cityName: "Chennai" }) }))).toEqual({ notify: false, skip: "other_city_beyond_window" });
-    expect(decide(input({ event: chennai }, { triggers: { outside_primary_city: false } }))).toEqual({ notify: false, skip: "outside_city_disabled" });
-    expect(decide(input({ event: chennai }, { location: { primaryCityId: "bengaluru", additionalCityIds: [], includeNationwide: false } }))).toEqual({
-      notify: false,
-      skip: "outside_location_scope",
-    });
+    expect(decide(input({ event: chennai }))).toEqual({ notify: false, skip: "not_in_chosen_cities" });
+    expect(decide(input({ event: chennai }, { location: { primaryCityId: "chennai", additionalCityIds: [], includeNationwide: true } })).notify).toBe(true);
     const mumbai = event({ cityId: "mumbai", cityName: "Mumbai" });
-    expect(decide(input({ event: mumbai }, { triggers: { outside_primary_city: false }, location: { primaryCityId: "bengaluru", additionalCityIds: ["mumbai"], includeNationwide: true } })).notify).toBe(true);
+    expect(decide(input({ event: mumbai }, { location: { primaryCityId: "bengaluru", additionalCityIds: ["mumbai"], includeNationwide: true } })).notify).toBe(true);
+    // A change to a show you saved still reaches you, wherever it is.
+    expect(decide(input({ kind: "cancelled", event: chennai }, { savedEvent: true })).notify).toBe(true);
   });
   it("never alerts from unverified, stale, past, or user-submitted information", () => {
     expect(decide(input({ sourceClass: "user_submitted" }))).toEqual({ notify: false, skip: "unverified_source" });

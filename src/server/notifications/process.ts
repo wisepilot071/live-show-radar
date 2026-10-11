@@ -24,7 +24,7 @@ import {
   type Decision,
   type NotificationCategory,
 } from "./decide";
-import { renderNotification } from "./message";
+import { renderArtistDigest, renderNotification } from "./message";
 import { sendTelegram, telegramStatus } from "./telegram";
 
 /**
@@ -388,7 +388,7 @@ const MAX_ATTEMPTS = 4;
  */
 export async function deliverPending(
   summary = emptySummary(),
-  limit = 25,
+  limit = 100,
   onlyNotificationId?: string,
 ): Promise<NotificationSummary> {
   const sql = getSql();
@@ -401,6 +401,7 @@ export async function deliverPending(
       email_address: string | null;
       email_verified_address: string | null;
       chat_id: string | null;
+      user_id: string;
       category: string;
       title: string;
       body: string;
@@ -409,7 +410,7 @@ export async function deliverPending(
     }[]
   >`
     select d.id, d.channel, d.attempts, p.email_address, p.email_verified_address, t.chat_id::text as chat_id,
-           n.category, n.title, n.body, n.reason, n.event_snapshot
+           n.user_id, n.category, n.title, n.body, n.reason, n.event_snapshot
     from radar.notification_deliveries d
     join radar.notifications n on n.id = d.notification_id
     left join radar.user_preferences p on p.user_id = n.user_id
@@ -418,17 +419,24 @@ export async function deliverPending(
       and (d.next_attempt_at is null or d.next_attempt_at <= now())
       and (${onlyNotificationId ?? null}::uuid is null or d.notification_id = ${onlyNotificationId ?? null}::uuid)
     order by d.created_at limit ${limit}`;
+  // One message per (person, channel, artist) for new shows: a tour found in one
+  // run arrives as ONE email/Telegram listing every date and city. Everything else
+  // (changes, deadlines, bookings) still goes individually.
+  const groups = new Map<string, Array<(typeof pending)[number]>>();
   for (const d of pending) {
-    const message = renderNotification(
-      {
-        category: d.category,
-        title: d.title,
-        body: d.body,
-        reason: d.reason,
-        event: d.event_snapshot,
-      },
-      appBaseUrl,
-    );
+    const artist = d.category === "new_show" ? d.event_snapshot?.artistNames[0] : undefined;
+    const key = artist ? `${d.channel}|${d.user_id}|${artist}` : d.id;
+    groups.set(key, [...(groups.get(key) ?? []), d]);
+  }
+  for (const group of groups.values()) {
+    const d = group[0]!;
+    const message =
+      group.length > 1
+        ? renderArtistDigest(
+            group.map((g) => ({ category: g.category, title: g.title, body: g.body, reason: g.reason, event: g.event_snapshot })),
+            appBaseUrl,
+          )
+        : renderNotification({ category: d.category, title: d.title, body: d.body, reason: d.reason, event: d.event_snapshot }, appBaseUrl);
     let result: SendResult;
     if (d.channel === "email") {
       const to = validateEmail(d.email_address);
@@ -441,26 +449,23 @@ export async function deliverPending(
     } else {
       result = d.chat_id
         ? await sendTelegram({ chatId: d.chat_id, text: message.text })
-        : {
-            ok: false,
-            retryable: false,
-            error: "Telegram is no longer connected",
-          };
+        : { ok: false, retryable: false, error: "Telegram is no longer connected" };
     }
-    const attempts = d.attempts + 1;
-    if (result.ok) {
-      summary.deliveriesSent++;
-      await sql`update radar.notification_deliveries set status = 'sent', attempts = ${attempts}, last_attempt_at = now(),
-                sent_at = now(), provider_message_id = ${result.providerMessageId}, last_error = null where id = ${d.id}`;
-    } else {
-      const permanent = !result.retryable || attempts >= MAX_ATTEMPTS;
-      summary.deliveriesFailed++;
-      // Exponential backoff: 5, 10, 20 minutes.
-      const next = permanent
-        ? null
-        : new Date(Date.now() + 5 * 60_000 * 2 ** (attempts - 1));
-      await sql`update radar.notification_deliveries set status = ${permanent ? "failed_permanent" : "failed"}, attempts = ${attempts},
-                last_attempt_at = now(), next_attempt_at = ${next}, last_error = ${result.error} where id = ${d.id}`;
+    // Every delivery in the group shares the one message's outcome.
+    for (const g of group) {
+      const attempts = g.attempts + 1;
+      if (result.ok) {
+        summary.deliveriesSent++;
+        await sql`update radar.notification_deliveries set status = 'sent', attempts = ${attempts}, last_attempt_at = now(),
+                  sent_at = now(), provider_message_id = ${result.providerMessageId}, last_error = null where id = ${g.id}`;
+      } else {
+        const permanent = !result.retryable || attempts >= MAX_ATTEMPTS;
+        summary.deliveriesFailed++;
+        // Exponential backoff: 5, 10, 20 minutes.
+        const next = permanent ? null : new Date(Date.now() + 5 * 60_000 * 2 ** (attempts - 1));
+        await sql`update radar.notification_deliveries set status = ${permanent ? "failed_permanent" : "failed"}, attempts = ${attempts},
+                  last_attempt_at = now(), next_attempt_at = ${next}, last_error = ${result.error} where id = ${g.id}`;
+      }
     }
   }
   return summary;
