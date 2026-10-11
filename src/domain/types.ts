@@ -29,7 +29,8 @@ export type DataOrigin =
   | "musicbrainz" // MusicBrainz open music database (artist search, events)
   | "spotify" // planned
   | "event_source" // a supported ticketing / listing source
-  | "user_submitted"; // announcement text pasted by the user, extracted by Gemini
+  | "user_submitted" // announcement text pasted by the user, extracted by Gemini
+  | "curated"; // curated catalogue artist with no external id (never invented)
 
 /**
  * The five information states the UI must keep distinct.
@@ -75,6 +76,8 @@ export interface Artist {
   imageUrl?: string;
   externalIds?: ArtistExternalIds;
   origin: DataOrigin;
+  /** Curated catalogue grouping (only for catalogue artists). */
+  category?: "international" | "indian";
 }
 
 export type ArtistAcquisitionMethod = "spotify" | "manual" | "mix";

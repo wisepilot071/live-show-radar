@@ -18,6 +18,7 @@ const ORIGIN_LABEL: Record<ArtistSelection["artist"]["origin"], string> = {
   illustrative: "Example",
   musicbrainz: "MusicBrainz",
   user_submitted: "From a pasted announcement",
+  curated: "Live Show Radar catalogue",
 };
 
 /** One followed artist: summary row + expandable details. */

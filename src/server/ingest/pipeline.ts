@@ -41,9 +41,14 @@ export type DiscoveryRunResult =
   | { status: "no_sources" }
   | { status: "no_artists" };
 
-async function loadArtists(scope: { userId?: string }): Promise<SourceArtistRef[]> {
+async function loadArtists(scope: { userId?: string; artistListKey?: string }): Promise<SourceArtistRef[]> {
   const sql = getSql();
-  const rows = scope.userId
+  const rows = scope.artistListKey
+    ? // A curated list (e.g. discovery test targets) — independent of anyone's follows.
+      await sql<{ id: string; name: string; aliases: string[]; musicbrainz_id: string | null }[]>`
+        select distinct a.id, a.name, a.aliases, a.musicbrainz_id from radar.artists a
+        join radar.curated_artist_lists l on l.artist_id = a.id where l.list_key = ${scope.artistListKey}`
+    : scope.userId
     ? await sql<{ id: string; name: string; aliases: string[]; musicbrainz_id: string | null }[]>`
         select a.id, a.name, a.aliases, a.musicbrainz_id from radar.artists a
         join radar.user_artists ua on ua.artist_id = a.id where ua.user_id = ${scope.userId}`
@@ -167,13 +172,15 @@ export async function runDiscovery(opts: {
   timeBudgetMs?: number;
   /** Per-source cap on artists checked in one run. */
   maxArtistsPerSource?: number;
+  /** Check the artists on a curated list instead of followed artists (admin testing). */
+  artistListKey?: string;
 }): Promise<DiscoveryRunResult> {
   const sources = opts.sources ?? configuredSources();
   if (sources.length === 0) return { status: "no_sources" };
-  const artists = await loadArtists({ userId: opts.userId });
+  const artists = await loadArtists({ userId: opts.userId, artistListKey: opts.artistListKey });
   if (artists.length === 0) return { status: "no_artists" };
 
-  const lockKey = opts.userId ? `discovery:user:${opts.userId}` : "discovery:all";
+  const lockKey = opts.artistListKey ? `discovery:list:${opts.artistListKey}` : opts.userId ? `discovery:user:${opts.userId}` : "discovery:all";
   const locked = await withJobLock(lockKey, 120, async () => {
     const deadline = Date.now() + (opts.timeBudgetMs ?? TIME_BUDGET_MS);
     const summaries: SourceRunSummary[] = [];

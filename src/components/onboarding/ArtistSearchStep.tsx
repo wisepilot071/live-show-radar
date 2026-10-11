@@ -4,6 +4,7 @@ import { Users } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ArtistSearchPanel } from "@/components/artists/ArtistSearchPanel";
+import { CuratedArtistPicker } from "@/components/artists/CuratedArtistPicker";
 import { Card } from "@/components/ui/Card";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 import { artistIdentityKey } from "@/domain/artist-identity";
@@ -51,21 +52,21 @@ export function ArtistSearchStep() {
   return (
     <StepLayout
       width="default"
-      eyebrow="Choose artists"
-      title="Who would you hate to miss?"
-      description="Pick a few to start — you can add the rest any time. Next: your cities and what's worth an alert."
+      eyebrow="Your watchlist"
+      title="Choose Your Artists"
+      description="Select the artists you want Live Show Radar to track for upcoming concerts and festivals across India."
       footer={
         <StepNav
           backHref={back?.path ?? "/"}
           backLabel={back ? "Back" : "Home"}
           aside={
             <span aria-hidden>
-              <span className="font-semibold text-fg tabular-nums">{count}</span> selected
+              <span className="font-semibold text-fg tabular-nums">{count}</span> {count === 1 ? "artist" : "artists"} selected
             </span>
           }
           next={{
             kind: "action",
-            label: submit.busy ? "Saving your artists…" : "Continue",
+            label: submit.busy ? "Saving your artists…" : "Save My Artists",
             onClick: () => void submit.advance(STEPS.location.path),
             disabled: count === 0,
             loading: submit.busy,
@@ -85,7 +86,19 @@ export function ArtistSearchStep() {
 
       <SpotifyComingSoonCard />
 
-      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div className="mt-8 space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-semibold">Suggested artists</h2>
+          <p className="text-sm font-semibold text-fg-secondary tabular-nums" aria-live="polite">
+            {pluralize(count, "artist")} selected
+          </p>
+        </div>
+        <p className="text-sm text-fg-muted">Suggestions only — nothing is followed until you add it.</p>
+        <CuratedArtistPicker isSelected={(a) => selectedKeys.has(artistIdentityKey(a))} onToggle={toggle} />
+      </div>
+
+      <h2 className="mt-10 font-display text-xl font-semibold">Can&rsquo;t find an artist? Search everyone</h2>
+      <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <ArtistSearchPanel
           isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
           onToggle={toggle}

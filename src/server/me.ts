@@ -41,13 +41,14 @@ export function meReadRoute<C>(scope: string, fn: (req: Request, userId: string 
 export const artistInputSchema = z.object({
   id: z.string().min(1).max(200),
   name: z.string().trim().min(1).max(200),
-  origin: z.enum(["sample_catalogue", "user_entered", "musicbrainz", "spotify", "event_source", "illustrative", "user_submitted"]),
+  origin: z.enum(["sample_catalogue", "user_entered", "musicbrainz", "spotify", "event_source", "illustrative", "user_submitted", "curated"]),
   externalIds: z.object({ musicbrainz: z.string().max(64).optional(), spotify: z.string().max(64).optional() }).optional(),
   aliases: z.array(z.string().max(200)).max(20).optional(),
   disambiguation: z.string().max(300).optional(),
   country: z.string().max(80).optional(),
   genres: z.array(z.string().max(80)).max(10).optional(),
   imageUrl: z.string().max(2000).optional(),
+  category: z.enum(["international", "indian"]).optional(),
 });
 
 export const selectionInputSchema = z.object({

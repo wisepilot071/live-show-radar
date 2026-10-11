@@ -18,11 +18,13 @@ import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { pluralize } from "@/lib/format";
 import { ArtistRow } from "./ArtistRow";
 import { ArtistSearchPanel } from "./ArtistSearchPanel";
+import { CuratedArtistPicker } from "./CuratedArtistPicker";
 
 export function ArtistsManager() {
   const params = useSearchParams();
   const focusKey = params.get("focus");
-  const { state, run, hydrated } = useOnboarding();
+  const { state, run, hydrated, flush, mode } = useOnboarding();
+  const [savingAll, setSavingAll] = useState(false);
   const toast = useToast();
   const [filter, setFilter] = useState("");
   const [expanded, setExpanded] = useState<string | null>(focusKey);
@@ -59,6 +61,18 @@ export function ArtistsManager() {
     if (!hydrated || !focusKey) return;
     document.getElementById(`artist-${focusKey}`)?.scrollIntoView({ block: "center" });
   }, [hydrated, focusKey]);
+
+  /** Confirms every queued change reached the server; success is shown only after that. */
+  async function saveAll() {
+    setSavingAll(true);
+    const ok = await flush();
+    setSavingAll(false);
+    toast(
+      ok
+        ? { message: `Saved — ${pluralize(state.selections.length, "artist")} on your watchlist.` }
+        : { message: "Some changes didn't save. Your list now shows what's saved — please try again.", tone: "info" },
+    );
+  }
 
   // Success toasts wait for the server; failures surface in the sync-error banner.
   async function toggle(artist: Artist) {
@@ -121,6 +135,30 @@ export function ArtistsManager() {
           </ButtonLink>
         }
       />
+
+      {/* Curated catalogue: Choose Your Artists */}
+      <section aria-labelledby="choose-title" className="space-y-4 rounded-2xl border border-line bg-surface-2/50 p-4 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="space-y-1">
+            <h2 id="choose-title" className="font-display text-2xl font-semibold">
+              Choose Your Artists
+            </h2>
+            <p className="max-w-2xl text-sm text-fg-secondary">
+              Select the artists you want Live Show Radar to track for upcoming concerts and festivals across India. Suggestions only — nothing is
+              followed until you add it.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-semibold tabular-nums" aria-live="polite">
+              {pluralize(state.selections.length, "artist")} selected
+            </p>
+            <Button onClick={() => void saveAll()} loading={savingAll} disabled={mode !== "server"}>
+              Save My Artists
+            </Button>
+          </div>
+        </div>
+        <CuratedArtistPicker isSelected={(a) => selectedKeys.has(artistIdentityKey(a))} onToggle={(a) => void toggle(a)} />
+      </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         {/* Your list */}

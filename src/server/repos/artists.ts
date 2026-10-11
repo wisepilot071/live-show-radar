@@ -33,6 +33,7 @@ export interface ArtistRow {
   musicbrainz_id: string | null;
   spotify_id: string | null;
   origin: Artist["origin"];
+  category?: "international" | "indian" | null;
 }
 
 export function rowToArtist(r: ArtistRow): Artist {
@@ -49,6 +50,7 @@ export function rowToArtist(r: ArtistRow): Artist {
         ? { musicbrainz: r.musicbrainz_id ?? undefined, spotify: r.spotify_id ?? undefined }
         : undefined,
     origin: r.origin,
+    ...(r.category ? { category: r.category } : {}),
   };
 }
 
@@ -91,6 +93,12 @@ async function resolveTrusted(input: Artist, sql: Sql): Promise<Artist> {
       }
       throw new ArtistResolutionError("Couldn't confirm this artist with MusicBrainz right now. Try again shortly.", 503);
     }
+  }
+  if (input.origin === "curated") {
+    // Catalogue artists without an external id: only ones that exist in the curated catalogue.
+    const [row] = await sql<ArtistRow[]>`select * from radar.artists where catalogue_key = ${input.id} and origin = 'curated'`;
+    if (!row) throw new ArtistResolutionError("That catalogue artist doesn't exist.", 400);
+    return rowToArtist(row);
   }
   if (input.origin === "sample_catalogue") {
     const sample = SAMPLE_ARTISTS.find((a) => a.id === input.id);
