@@ -1,0 +1,264 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1800" viewBox="0 0 3200 1800" font-family="Segoe UI, Arial, Helvetica, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M1,1 L11,6 L1,11 Z" fill="#3B4756"/></marker></defs>
+<rect width="3200" height="1800" fill="#FAFBFC"/>
+<text x="40" y="92" font-size="54" font-weight="800" fill="#1F2A37">Live Show Radar — Components Map</text>
+<text x="42" y="140" font-size="25" fill="#5B6675">Artist tracking, concert discovery, event processing and alerts · mapped from the repository code</text>
+<rect x="284" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="476.42857142857144" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">ACTOR</text>
+<rect x="696.8571428571429" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="889.2857142857143" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">TRIGGER</text>
+<rect x="1109.7142857142858" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="1302.142857142857" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">INPUT</text>
+<rect x="1522.5714285714284" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="1714.9999999999998" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">CONTEXT</text>
+<rect x="1935.4285714285713" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="2127.8571428571427" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">PROCESSING</text>
+<rect x="2348.285714285714" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="2540.714285714286" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">AI</text>
+<rect x="2761.142857142857" y="186" width="384.85714285714283" height="48" rx="24" fill="#1F2A37"/>
+<text x="2953.5714285714284" y="218" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="1">OUTPUT</text>
+<rect x="40" y="252" width="3120" height="180" fill="#FFFFFF" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="60" y="336" font-size="15" font-weight="700" fill="#5B6675" letter-spacing="1">LANE 1</text>
+<text x="60" y="364" font-size="23" font-weight="800" fill="#1F2A37">Follow artists</text>
+<text x="60" y="390" font-size="15" fill="#5B6675">fan-initiated</text>
+<rect x="40" y="432" width="3120" height="362" fill="#F1F4F7" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="60" y="607" font-size="15" font-weight="700" fill="#5B6675" letter-spacing="1">LANE 2</text>
+<text x="60" y="635" font-size="23" font-weight="800" fill="#1F2A37">Find shows</text>
+<text x="60" y="661" font-size="15" fill="#5B6675">scheduled + on demand</text>
+<rect x="40" y="794" width="3120" height="332" fill="#FFFFFF" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="60" y="954" font-size="15" font-weight="700" fill="#5B6675" letter-spacing="1">LANE 3</text>
+<text x="60" y="982" font-size="23" font-weight="800" fill="#1F2A37">Alert the fan</text>
+<text x="60" y="1008" font-size="15" fill="#5B6675">same job, after discovery</text>
+<rect x="40" y="1126" width="3120" height="268" fill="#F1F4F7" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="60" y="1254" font-size="15" font-weight="700" fill="#5B6675" letter-spacing="1">LANE 4</text>
+<text x="60" y="1282" font-size="23" font-weight="800" fill="#1F2A37">Browse &amp; book</text>
+<text x="60" y="1308" font-size="15" fill="#5B6675">fan-initiated</text>
+<rect x="40" y="1394" width="3120" height="178" fill="#FFFFFF" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="60" y="1477" font-size="15" font-weight="700" fill="#5B6675" letter-spacing="1">LANE 5</text>
+<text x="60" y="1505" font-size="23" font-weight="800" fill="#1F2A37">Pasted</text>
+<text x="60" y="1533" font-size="23" font-weight="800" fill="#1F2A37">announcement</text>
+<text x="60" y="1559" font-size="15" fill="#5B6675">fan-initiated, private</text>
+<line x1="682.8571428571429" y1="252" x2="682.8571428571429" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="1095.7142857142858" y1="252" x2="1095.7142857142858" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="1508.5714285714284" y1="252" x2="1508.5714285714284" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="1921.4285714285713" y1="252" x2="1921.4285714285713" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="2334.285714285714" y1="252" x2="2334.285714285714" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="2747.142857142857" y1="252" x2="2747.142857142857" y2="1572" stroke="#D3D9E0" stroke-width="1.2" stroke-dasharray="4 8"/>
+<line x1="270" y1="252" x2="270" y2="1572" stroke="#C9D0D8" stroke-width="1.5"/>
+<path d="M657.4285714285714,342 L704.2857142857143,342" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,342 L1117.142857142857,342" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,342 L1529.9999999999998,342" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,342 L1942.8571428571427,342" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,342 L2768.5714285714284,342" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,530.5 L704.2857142857143,530.5" fill="none" stroke="#3B4756" stroke-width="2.6" stroke-dasharray="11 8" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,695.5 L704.2857142857143,695.5" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,566 L1117.142857142857,566" fill="none" stroke="#3B4756" stroke-width="2.6" stroke-dasharray="11 8" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,695.5 H1083.7142857142858 Q1093.7142857142858,695.5 1093.7142857142858,685.5 V623 Q1093.7142857142858,613 1103.7142857142858,613 H1117.142857142857" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,613 H1496.5714285714284 Q1506.5714285714284,613 1506.5714285714284,603 V513 Q1506.5714285714284,503 1516.5714285714284,503 H1529.9999999999998" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,613 L1529.9999999999998,613" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,613 H1496.5714285714284 Q1506.5714285714284,613 1506.5714285714284,623 V713 Q1506.5714285714284,723 1516.5714285714284,723 H1529.9999999999998" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,503 H1909.428571428571 Q1919.428571428571,503 1919.428571428571,513 V603 Q1919.428571428571,613 1929.428571428571,613 H1942.8571428571427" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,613 L1942.8571428571427,613" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,723 H1909.428571428571 Q1919.428571428571,723 1919.428571428571,713 V623 Q1919.428571428571,613 1929.428571428571,613 H1942.8571428571427" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,552.55 L2355.714285714286,552.55" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2359.714285714286,569.875 L2312.8571428571427,569.875" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,663 L2768.5714285714284,663" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,960 L704.2857142857143,960" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,960 L1117.142857142857,960" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,960 L1529.9999999999998,960" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,960 L1942.8571428571427,960" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,960 H2528.7142857142853 Q2538.7142857142853,960 2538.7142857142853,950 V870 Q2538.7142857142853,860 2548.7142857142853,860 H2768.5714285714284" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,960 L2768.5714285714284,960" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,960 H2528.7142857142853 Q2538.7142857142853,960 2538.7142857142853,970 V1050 Q2538.7142857142853,1060 2548.7142857142853,1060 H2768.5714285714284" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,1260 H670.8571428571429 Q680.8571428571429,1260 680.8571428571429,1250 V1211 Q680.8571428571429,1201 690.8571428571429,1201 H704.2857142857143" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,1260 H670.8571428571429 Q680.8571428571429,1260 680.8571428571429,1270 V1309 Q680.8571428571429,1319 690.8571428571429,1319 H704.2857142857143" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,1201 L1117.142857142857,1201" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,1201 L1529.9999999999998,1201" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,1201 L1942.8571428571427,1201" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,1201 L2768.5714285714284,1201" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,1319 L1117.142857142857,1319" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,1319 L1529.9999999999998,1319" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,1319 L1942.8571428571427,1319" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,1319 L2768.5714285714284,1319" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M657.4285714285714,1483 L704.2857142857143,1483" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1070.2857142857142,1483 L1117.142857142857,1483" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1483.142857142857,1483 L1529.9999999999998,1483" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M1895.9999999999998,1483 L1942.8571428571427,1483" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,1456.98 L2355.714285714286,1456.98" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2359.714285714286,1477.48 L2312.8571428571427,1477.48" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2308.8571428571427,1504.5 L2768.5714285714284,1504.5" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<path d="M2953.5714285714284,379.5 V420 Q2953.5714285714284,432 2941.5714285714284,432 H1314.142857142857 Q1302.142857142857,432 1302.142857142857,444 V548.5" fill="none" stroke="#3B4756" stroke-width="2.6" stroke-dasharray="11 8" marker-end="url(#arrow)"/>
+<path d="M2953.5714285714284,662 V782 Q2953.5714285714284,794 2941.5714285714284,794 H901.2857142857143 Q889.2857142857143,794 889.2857142857143,806 V918.5" fill="none" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<rect x="295.42857142857144" y="293" width="362" height="98" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="476.42857142857144" y="327" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Fan</text>
+<text x="476.42857142857144" y="351" text-anchor="middle" font-size="16.5" fill="#5B6675">Browser, anonymous signed cookie</text>
+<text x="476.42857142857144" y="374" text-anchor="middle" font-size="16.5" fill="#5B6675">Google sign-in links devices</text>
+<rect x="708.2857142857143" y="304.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="889.2857142857143" y="338.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Search &amp; follow</text>
+<text x="889.2857142857143" y="362.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Onboarding or My Artists</text>
+<rect x="1121.142857142857" y="304.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="1302.142857142857" y="338.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Artist query + cities</text>
+<text x="1302.142857142857" y="362.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Any artist; home + extra cities</text>
+<rect x="1533.9999999999998" y="304.5" width="362" height="75" rx="14" fill="#DCF1E0" stroke="#5DAE78" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="338.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">MusicBrainz artist search</text>
+<text x="1714.9999999999998" y="362.5" text-anchor="middle" font-size="16.5" fill="#5B6675">+ curated catalogue in the repo</text>
+<rect x="1946.8571428571427" y="293" width="362" height="98" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="327" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/me/artists</text>
+<text x="2127.8571428571427" y="351" text-anchor="middle" font-size="16.5" fill="#5B6675">Save follow; after(): quick lookup</text>
+<text x="2127.8571428571427" y="374" text-anchor="middle" font-size="16.5" fill="#5B6675">MusicBrainz + Ticketmaster</text>
+<rect x="2772.5714285714284" y="304.5" width="362" height="75" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="338.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Follows &amp; preferences</text>
+<text x="2953.5714285714284" y="362.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Postgres · schema radar</text>
+<rect x="295.42857142857144" y="493" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5" stroke-dasharray="10 7"/>
+<text x="476.42857142857144" y="527" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Vercel Cron</text>
+<text x="476.42857142857144" y="551" text-anchor="middle" font-size="16.5" fill="#5B6675">3 runs a day (scheduler)</text>
+<rect x="295.42857142857144" y="658" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="476.42857142857144" y="692" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Fan</text>
+<text x="476.42857142857144" y="716" text-anchor="middle" font-size="16.5" fill="#5B6675">“Check now” button</text>
+<rect x="708.2857142857143" y="481.5" width="362" height="98" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5" stroke-dasharray="10 7"/>
+<text x="889.2857142857143" y="515.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/cron/monitor</text>
+<text x="889.2857142857143" y="539.5" text-anchor="middle" font-size="16.5" fill="#5B6675">01:30 · 09:30 · 17:30 UTC</text>
+<text x="889.2857142857143" y="562.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Bearer CRON_SECRET</text>
+<rect x="708.2857142857143" y="658" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="889.2857142857143" y="692" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/me/discovery</text>
+<text x="889.2857142857143" y="716" text-anchor="middle" font-size="16.5" fill="#5B6675">Rate limit: 4 per hour</text>
+<rect x="1121.142857142857" y="552.5" width="362" height="121" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="1302.142857142857" y="586.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Targets</text>
+<text x="1302.142857142857" y="610.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Followed artists + catalogue</text>
+<text x="1302.142857142857" y="633.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Cities due for a news sweep</text>
+<text x="1302.142857142857" y="656.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Credit check before news calls</text>
+<rect x="1533.9999999999998" y="465.5" width="362" height="75" rx="14" fill="#DCF1E0" stroke="#5DAE78" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="499.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Ticketmaster Discovery v2</text>
+<text x="1714.9999999999998" y="523.5" text-anchor="middle" font-size="16.5" fill="#5B6675">country IN · 0 Indian events so far</text>
+<rect x="1533.9999999999998" y="575.5" width="362" height="75" rx="14" fill="#DCF1E0" stroke="#5DAE78" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="609.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">MusicBrainz events</text>
+<text x="1714.9999999999998" y="633.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Needs artist MBID · sparse for India</text>
+<rect x="1533.9999999999998" y="685.5" width="362" height="75" rx="14" fill="#DCF1E0" stroke="#5DAE78" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="719.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">News search + article fetch</text>
+<text x="1714.9999999999998" y="743.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Google News via ScrapingBee</text>
+<rect x="1946.8571428571427" y="541" width="362" height="144" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="575" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">runDiscovery pipeline</text>
+<text x="2127.8571428571427" y="599" text-anchor="middle" font-size="16.5" fill="#5B6675">Ground: quote, city, date in article</text>
+<text x="2127.8571428571427" y="622" text-anchor="middle" font-size="16.5" fill="#5B6675">Normalise · safe ticket URL</text>
+<text x="2127.8571428571427" y="645" text-anchor="middle" font-size="16.5" fill="#5B6675">Dedup + upsert with provenance</text>
+<text x="2127.8571428571427" y="668" text-anchor="middle" font-size="16.5" fill="#5B6675">Record changes</text>
+<rect x="2359.714285714286" y="481.5" width="362" height="98" rx="14" fill="#F1E2F5" stroke="#AE72C4" stroke-width="2.5"/>
+<text x="2540.714285714286" y="515.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Gemini Flash</text>
+<text x="2540.714285714286" y="539.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Extract dates &amp; cities</text>
+<text x="2540.714285714286" y="562.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Cached per article</text>
+<rect x="2772.5714285714284" y="564" width="362" height="98" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="598" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Events store</text>
+<text x="2953.5714285714284" y="622" text-anchor="middle" font-size="16.5" fill="#5B6675">events · event_sources</text>
+<text x="2953.5714285714284" y="645" text-anchor="middle" font-size="16.5" fill="#5B6675">event_changes · ai_extractions</text>
+<rect x="295.42857142857144" y="922.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="476.42857142857144" y="956.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Notification pipeline</text>
+<text x="476.42857142857144" y="980.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Server job, no user present</text>
+<rect x="708.2857142857143" y="922.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="889.2857142857143" y="956.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">New / changed shows</text>
+<text x="889.2857142857143" y="980.5" text-anchor="middle" font-size="16.5" fill="#5B6675">From event_changes</text>
+<rect x="1121.142857142857" y="911" width="362" height="98" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="1302.142857142857" y="945" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Each fan’s settings</text>
+<text x="1302.142857142857" y="969" text-anchor="middle" font-size="16.5" fill="#5B6675">Followed artists, saved shows</text>
+<text x="1302.142857142857" y="992" text-anchor="middle" font-size="16.5" fill="#5B6675">Home + extra cities, channels</text>
+<rect x="1533.9999999999998" y="911" width="362" height="98" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="945" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Delivery checks</text>
+<text x="1714.9999999999998" y="969" text-anchor="middle" font-size="16.5" fill="#5B6675">Email confirmed (double opt-in)</text>
+<text x="1714.9999999999998" y="992" text-anchor="middle" font-size="16.5" fill="#5B6675">Telegram chat linked</text>
+<rect x="1946.8571428571427" y="899.5" width="362" height="121" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="933.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">decide()</text>
+<text x="2127.8571428571427" y="957.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Chosen cities only (saved: always)</text>
+<text x="2127.8571428571427" y="980.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Verified info only</text>
+<text x="2127.8571428571427" y="1003.5" text-anchor="middle" font-size="16.5" fill="#5B6675">One digest per artist</text>
+<rect x="2772.5714285714284" y="822.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="856.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">In-app Inbox</text>
+<text x="2953.5714285714284" y="880.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Every alert, grouped</text>
+<rect x="2772.5714285714284" y="922.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="956.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Email</text>
+<text x="2953.5714285714284" y="980.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Resend or SMTP · confirmed only</text>
+<rect x="2772.5714285714284" y="1022.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="1056.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Telegram</text>
+<text x="2953.5714285714284" y="1080.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Bot message to linked chat</text>
+<rect x="295.42857142857144" y="1222.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="476.42857142857144" y="1256.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Fan</text>
+<text x="476.42857142857144" y="1280.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Discover · Radar · event page</text>
+<rect x="708.2857142857143" y="1163.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="889.2857142857143" y="1197.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Opens the radar</text>
+<text x="889.2857142857143" y="1221.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Show every city (toggle)</text>
+<rect x="708.2857142857143" y="1281.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="889.2857142857143" y="1315.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Taps “I’ve booked”</text>
+<text x="889.2857142857143" y="1339.5" text-anchor="middle" font-size="16.5" fill="#5B6675">After buying elsewhere</text>
+<rect x="1121.142857142857" y="1163.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="1302.142857142857" y="1197.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/me/events</text>
+<text x="1302.142857142857" y="1221.5" text-anchor="middle" font-size="16.5" fill="#5B6675">+ /api/events/city (public)</text>
+<rect x="1121.142857142857" y="1281.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="1302.142857142857" y="1315.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/me/bookings</text>
+<text x="1302.142857142857" y="1339.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Event id · rate-limited</text>
+<rect x="1533.9999999999998" y="1163.5" width="362" height="75" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="1197.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Events store</text>
+<text x="1714.9999999999998" y="1221.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Read from lane 2 output</text>
+<rect x="1533.9999999999998" y="1281.5" width="362" height="75" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="1315.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Google OAuth tokens</text>
+<text x="1714.9999999999998" y="1339.5" text-anchor="middle" font-size="16.5" fill="#5B6675">calendar.events scope</text>
+<rect x="1946.8571428571427" y="1163.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="1197.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">City focus + cards</text>
+<text x="2127.8571428571427" y="1221.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Home → Bengaluru → others ≤60 d</text>
+<rect x="1946.8571428571427" y="1281.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="1315.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Record booking</text>
+<text x="2127.8571428571427" y="1339.5" text-anchor="middle" font-size="16.5" fill="#5B6675">status user_confirmed · idempotent</text>
+<rect x="2772.5714285714284" y="1163.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="1197.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Ticket link (external)</text>
+<text x="2953.5714285714284" y="1221.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Opens seller site; no in-app sale</text>
+<rect x="2772.5714285714284" y="1281.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="1315.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Google Calendar event</text>
+<text x="2953.5714285714284" y="1339.5" text-anchor="middle" font-size="16.5" fill="#5B6675">+ booking alert in Inbox</text>
+<rect x="295.42857142857144" y="1445.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="476.42857142857144" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Fan</text>
+<text x="476.42857142857144" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Pastes a tour post</text>
+<rect x="708.2857142857143" y="1445.5" width="362" height="75" rx="14" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2.5"/>
+<text x="889.2857142857143" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Import announcement</text>
+<text x="889.2857142857143" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Paste text</text>
+<rect x="1121.142857142857" y="1445.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="1302.142857142857" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">/api/me/announcements</text>
+<text x="1302.142857142857" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Text · rate-limited</text>
+<rect x="1533.9999999999998" y="1445.5" width="362" height="75" rx="14" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2.5"/>
+<text x="1714.9999999999998" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Extraction cache</text>
+<text x="1714.9999999999998" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">+ known Indian cities</text>
+<rect x="1946.8571428571427" y="1445.5" width="362" height="75" rx="14" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2.5"/>
+<text x="2127.8571428571427" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Ground &amp; save</text>
+<text x="2127.8571428571427" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">Quote + city + date must match</text>
+<rect x="2359.714285714286" y="1434.5" width="362" height="52" rx="14" fill="#F1E2F5" stroke="#AE72C4" stroke-width="2.5"/>
+<text x="2540.714285714286" y="1468.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Gemini Flash</text>
+<rect x="2772.5714285714284" y="1445.5" width="362" height="75" rx="14" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2.5"/>
+<text x="2953.5714285714284" y="1479.5" text-anchor="middle" font-size="21" font-weight="700" fill="#1F2A37">Private event</text>
+<text x="2953.5714285714284" y="1503.5" text-anchor="middle" font-size="16.5" fill="#5B6675">On the submitter’s radar only</text>
+<rect x="1828.9999999999998" y="417" width="192.00000000000003" height="30" rx="15" fill="#FFFFFF" stroke="#3B4756" stroke-width="1.2"/>
+<text x="1924.9999999999998" y="437" text-anchor="middle" font-size="15" font-weight="600" fill="#3B4756">read on the next run</text>
+<rect x="1782.7999999999997" y="779" width="284.40000000000003" height="30" rx="15" fill="#FFFFFF" stroke="#3B4756" stroke-width="1.2"/>
+<text x="1924.9999999999998" y="799" text-anchor="middle" font-size="15" font-weight="600" fill="#3B4756">same job, right after discovery</text>
+<rect x="40" y="1598" width="3120" height="178" rx="16" fill="#FFFFFF" stroke="#DCE1E7" stroke-width="1.5"/>
+<text x="64" y="1636" font-size="18" font-weight="800" fill="#1F2A37" letter-spacing="1">LEGEND</text>
+<rect x="64" y="1656" width="40" height="26" rx="6" fill="#DCEBFB" stroke="#5F93CF" stroke-width="2"/>
+<text x="116" y="1675" font-size="17" fill="#1F2A37">User / actor</text>
+<rect x="534" y="1656" width="40" height="26" rx="6" fill="#DCF1E0" stroke="#5DAE78" stroke-width="2"/>
+<text x="586" y="1675" font-size="17" fill="#1F2A37">External service</text>
+<rect x="1004" y="1656" width="40" height="26" rx="6" fill="#FFF5C7" stroke="#CFAA36" stroke-width="2"/>
+<text x="1056" y="1675" font-size="17" fill="#1F2A37">App processing (Next.js on Vercel)</text>
+<rect x="64" y="1696" width="40" height="26" rx="6" fill="#F1E2F5" stroke="#AE72C4" stroke-width="2"/>
+<text x="116" y="1715" font-size="17" fill="#1F2A37">AI (Gemini Flash)</text>
+<rect x="534" y="1696" width="40" height="26" rx="6" fill="#FDE2CF" stroke="#DE8F5C" stroke-width="2"/>
+<text x="586" y="1715" font-size="17" fill="#1F2A37">Output to the fan</text>
+<rect x="1004" y="1696" width="40" height="26" rx="6" fill="#E8EBEE" stroke="#8E98A3" stroke-width="2"/>
+<text x="1056" y="1715" font-size="17" fill="#1F2A37">Storage (Supabase Postgres, schema radar)</text>
+<line x1="1500" y1="1669" x2="1580" y2="1669" stroke="#3B4756" stroke-width="2.6" marker-end="url(#arrow)"/>
+<text x="1596" y="1675" font-size="17" fill="#1F2A37">Request / synchronous step</text>
+<line x1="1500" y1="1709" x2="1580" y2="1709" stroke="#3B4756" stroke-width="2.6" stroke-dasharray="11 8" marker-end="url(#arrow)"/>
+<text x="1596" y="1715" font-size="17" fill="#1F2A37">Scheduled / picked up later</text>
+<rect x="1500" y="1622" width="34" height="22" rx="6" fill="#FFFFFF" stroke="#3B4756" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="1546" y="1639" font-size="17" fill="#1F2A37">Dashed border = scheduled trigger</text>
+<text x="2010" y="1636" font-size="18" font-weight="800" fill="#1F2A37" letter-spacing="1">NOT SHOWN AS ACTIVE</text>
+<text x="2010" y="1668" font-size="16.5" fill="#5B6675">• Bandsintown — adapter exists, no API key configured</text>
+<text x="2010" y="1693" font-size="16.5" fill="#5B6675">• Spotify — “Coming soon” in the UI, no integration</text>
+<text x="2010" y="1718" font-size="16.5" fill="#5B6675">• Gmail — not used; email goes through Resend or SMTP</text>
+<text x="2010" y="1743" font-size="16.5" fill="#5B6675">• No background worker — only cron runs and requests</text>
+<text x="3136" y="1754" text-anchor="end" font-size="14" fill="#8A94A0">Generated by scripts/render-components-map.mjs</text>
+</svg>
