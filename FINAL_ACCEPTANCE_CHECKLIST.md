@@ -53,7 +53,7 @@
 | Requirement | Location | Verification | Actual result | Status |
 |---|---|---|---|---|
 | Scheduler configured correctly | `vercel.json`, `/api/cron/monitor` | `vercel crons ls` | `/api/cron/monitor` at `30 1 * * *` is registered on the production project (Hobby: daily) | PASS |
-| Scheduled execution verified | `server/monitoring.ts` | Production call with `CRON_SECRET` (same request Vercel Cron makes) | HTTP 200 in 1.2s; `job_runs` row `succeeded`; visible in `/api/admin/status`. **The first automatic Vercel-triggered run is due 2026-10-11 07:00 IST and hasn't happened yet** | PASS (manual) / pending (automatic) |
+| Scheduled execution verified | `server/monitoring.ts` | Production call with `CRON_SECRET` (same request Vercel Cron makes) | HTTP 200 in 1.2s; `job_runs` row `succeeded`. First automatic run at 07:00 IST on 2026-10-11 succeeded | PASS |
 | Repeated runs are safe | `guards.ts` leases, cursor | tests (overlap + expired-lease takeover) | A second concurrent run is refused; reprocessing creates nothing | PASS |
 | Event changes detected | `upsert.ts`, `classifyChange` | tests (Journey 6) | Date change detected and alerted once | PASS |
 | Duplicate notifications prevented | unique `(user_id, dedupe_key)` | tests (Journeys 5–6) | Re-ingesting and re-processing create 0 new notifications | PASS |
@@ -138,4 +138,8 @@
 | FAIL | 0 | — |
 | NOT IMPLEMENTED (deliberate) | 3 | Spotify import; Telegram, push and WhatsApp channels; user accounts (anonymous cookie identity instead) |
 
-**Pending observation (not counted above):** the first *automatic* Vercel Cron run, scheduled for 2026-10-11 01:30 UTC. Check `/api/admin/status` (`lastScheduledRun`) after that time.
+## Post-release fixes (2026-10-11)
+
+- **Onboarding crash (P0), fixed.** `/onboarding/alerts` threw "useToast must be used inside <ToastProvider>": the Part 4 channel list uses toasts, but the provider only wrapped the app pages. Toasts are now provided for the whole journey group. Verified on production in Chrome: full onboarding, then Radar, Artists, Saved, Inbox and Settings all load.
+- **Copy fixes.** Several lines said "not monitored yet" or "saved in this browser" even when monitoring was active and data was saved to the server profile.
+- **Automatic cron confirmed.** The first Vercel-triggered run happened at 07:00 IST (01:30 UTC) on 2026-10-11 and succeeded. Radar shows "Daily monitor last ran 11 Oct, 7:00 am (succeeded)".
