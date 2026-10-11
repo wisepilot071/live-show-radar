@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
 import { EventCard } from "@/components/events/EventCard";
+import { HeroBackdrop } from "@/components/media/HeroBackdrop";
+import { LiveOnStage } from "@/components/media/LiveOnStage";
 import { SaveEventButton } from "@/components/events/SaveEventButton";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -249,6 +251,8 @@ export function RadarDashboard() {
         </>
       )}
 
+      {hydrated && <LiveOnStage />}
+
       {hydrated && mode === "server" && state.selections.length > 0 && <AnnouncementIntake onExtracted={retry} />}
 
       {hydrated && <IllustrativePreview savedIds={savedIds} />}
@@ -364,8 +368,9 @@ function DiscoverHero({
 }) {
   const city = cityLabel(primaryCityId).split(",")[0];
   return (
-    <section aria-labelledby="discover-title" className="on-ink grain overflow-hidden rounded-2xl bg-ink text-on-ink">
-      <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+    <section aria-labelledby="discover-title" className="on-ink relative isolate overflow-hidden rounded-2xl bg-ink text-on-ink">
+      <HeroBackdrop />
+      <div className="grid gap-6 p-5 pt-12 sm:p-8 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:pt-24">
         <div className="space-y-3">
           <p className="text-xs font-semibold tracking-[0.12em] text-signal uppercase">Discover</p>
           <h1 id="discover-title" className="font-display text-[clamp(1.9rem,4.4vw,3.1rem)] leading-[1.02] font-semibold">
@@ -379,7 +384,7 @@ function DiscoverHero({
         </div>
         <div className="flex flex-wrap gap-2">{actions}</div>
       </div>
-      {status && <div className="border-t border-on-ink/10 bg-on-ink/[0.04] p-3 sm:p-4">{status}</div>}
+      {status && <div className="border-t border-on-ink/10 bg-ink/40 p-3 backdrop-blur-[2px] sm:p-4">{status}</div>}
     </section>
   );
 }
