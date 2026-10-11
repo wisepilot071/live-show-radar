@@ -10,6 +10,7 @@ import { TextField } from "@/components/ui/TextField";
 import type { LiveEvent } from "@/domain/types";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Outcome =
   | { status: "extracted"; event: LiveEvent; dropped: string[]; uncertainties: string[]; announcementType: string; cached: boolean }
@@ -59,11 +60,11 @@ export function AnnouncementIntake({ onExtracted }: { onExtracted: () => void })
     setOutcome(null);
     setBusy(true);
     try {
-      const res = await fetch("/api/me/announcements", {
+      const res = await clientFetch("/api/me/announcements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: trimmed, sourceUrl: link.trim() || undefined }),
-      });
+      }, 60_000); // the server may take up to ~45s reading the text with AI
       const body = (await res.json()) as { ok: true; data: Outcome } | { ok: false; error: { message: string } };
       if (!body.ok) setRequestError(body.error.message);
       else {

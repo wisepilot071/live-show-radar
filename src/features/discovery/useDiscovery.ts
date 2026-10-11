@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DiscoveryReport } from "@/domain/types";
 import type { ProfileMode } from "@/features/onboarding/OnboardingProvider";
+import { clientFetch } from "@/lib/client-fetch";
 
 export type DiscoveryState =
   | { phase: "idle" } // nothing to show yet (still loading the profile, or no artists)
@@ -37,7 +38,7 @@ export function useDiscovery(mode: ProfileMode, artistCount: number) {
   useEffect(() => {
     if (!shouldFetch) return;
     const controller = new AbortController();
-    fetch("/api/me/events", { signal: controller.signal, cache: "no-store" })
+    clientFetch("/api/me/events", { signal: controller.signal, cache: "no-store" })
       .then(async (res) => {
         const body = (await res.json()) as Envelope<{ report: DiscoveryReport }>;
         if (!body.ok) throw new Error(body.error.message);
@@ -69,7 +70,7 @@ export function useDiscovery(mode: ProfileMode, artistCount: number) {
   const checkNow = useCallback(async () => {
     setCheck({ phase: "running" });
     try {
-      const res = await fetch("/api/me/discovery", { method: "POST", cache: "no-store" });
+      const res = await clientFetch("/api/me/discovery", { method: "POST", cache: "no-store" }, 75_000);
       const body = (await res.json()) as Envelope<{
         run: { status: string; sources?: Array<{ sourceName: string; status: string; artistsChecked: number; eventsNew: number; eventsUpdated: number }> };
         report: DiscoveryReport;

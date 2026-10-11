@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/Switch";
 import { TextField } from "@/components/ui/TextField";
 import { useToast } from "@/components/ui/Toast";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface Channels {
   inApp: { available: boolean; enabled: boolean };
@@ -56,7 +57,7 @@ export function NotificationChannelList() {
   const confirmMsg = confirmMsgState ?? (outcome ? (OUTCOME_TEXT[outcome] ?? null) : null);
 
   async function reload() {
-    const fresh = (await (await fetch("/api/me/channels", { cache: "no-store" })).json()) as Envelope<Channels>;
+    const fresh = (await (await clientFetch("/api/me/channels", { cache: "no-store" })).json()) as Envelope<Channels>;
     if (fresh.ok) setChannels(fresh.data);
   }
 
@@ -65,7 +66,7 @@ export function NotificationChannelList() {
     setSending(true);
     setConfirmMsg(null);
     try {
-      const res = await fetch("/api/me/channels/email-confirm", { method: "POST" });
+      const res = await clientFetch("/api/me/channels/email-confirm", { method: "POST" });
       const body = (await res.json()) as Envelope<{ sentTo?: string; alreadyConfirmed?: boolean }>;
       if (!body.ok) setConfirmMsg({ tone: "error", text: body.error.message });
       else if (body.data.alreadyConfirmed) setConfirmMsg({ tone: "success", text: "This address is already confirmed." });
@@ -80,7 +81,7 @@ export function NotificationChannelList() {
 
   useEffect(() => {
     if (mode !== "server") return;
-    fetch("/api/me/channels", { cache: "no-store" })
+    clientFetch("/api/me/channels", { cache: "no-store" })
       .then(async (r) => {
         const body = (await r.json()) as Envelope<Channels>;
         if (!body.ok) throw new Error(body.error.message);
@@ -94,7 +95,7 @@ export function NotificationChannelList() {
     setSaving(true);
     setFieldError(null);
     try {
-      const res = await fetch("/api/me/channels", {
+      const res = await clientFetch("/api/me/channels", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),

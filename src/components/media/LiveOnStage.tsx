@@ -12,6 +12,7 @@ import { Atmosphere } from "./Atmosphere";
 import { CrowdLights } from "./CrowdLights";
 import { Equalizer } from "./Equalizer";
 import { YouTubePlayer, type Playback } from "./YouTubePlayer";
+import { clientFetch } from "@/lib/client-fetch";
 
 const INITIAL = 5;
 
@@ -80,7 +81,7 @@ export function LiveOnStage({
   useEffect(() => {
     if (!visible) return;
     const controller = new AbortController();
-    fetch("/api/media/videos", { signal: controller.signal })
+    clientFetch("/api/media/videos", { signal: controller.signal })
       .then(async (res) => {
         const body = (await res.json()) as { ok: boolean; data?: { videos: LiveVideo[] } };
         if (!res.ok || !body.ok || !body.data) throw new Error("bad response");

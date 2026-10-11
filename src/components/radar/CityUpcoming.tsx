@@ -11,6 +11,7 @@ import { findCity } from "@/domain/cities";
 import type { LiveEvent } from "@/domain/types";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { pluralize } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Load = { phase: "loading" } | { phase: "ready"; events: LiveEvent[] } | { phase: "error" };
 const DAYS = 60;
@@ -41,7 +42,7 @@ function CitySection({ cityId }: { cityId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/events/city?city=${encodeURIComponent(cityId)}&days=${DAYS}`, { signal: controller.signal, cache: "no-store" })
+    clientFetch(`/api/events/city?city=${encodeURIComponent(cityId)}&days=${DAYS}`, { signal: controller.signal, cache: "no-store" })
       .then(async (r) => {
         const body = (await r.json()) as { ok: boolean; data?: { events: LiveEvent[] } };
         if (!r.ok || !body.ok || !body.data) throw new Error("bad response");

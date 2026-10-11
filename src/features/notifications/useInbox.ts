@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ProfileMode } from "@/features/onboarding/OnboardingProvider";
+import { clientFetch } from "@/lib/client-fetch";
 
 export interface InboxNotification {
   id: string;
@@ -42,7 +43,7 @@ export function useInbox(mode: ProfileMode) {
   useEffect(() => {
     if (mode !== "server") return;
     const controller = new AbortController();
-    fetch("/api/me/notifications", { cache: "no-store", signal: controller.signal })
+    clientFetch("/api/me/notifications", { cache: "no-store", signal: controller.signal })
       .then(async (res) => {
         const body = (await res.json()) as Envelope<{ notifications: InboxNotification[]; unread: number }>;
         if (!body.ok) throw new Error(body.error.message);
@@ -72,7 +73,7 @@ export function useInbox(mode: ProfileMode) {
   const mutate = useCallback(
     async (url: string, body: unknown): Promise<string | null> => {
       try {
-        const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const res = await clientFetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         const json = (await res.json()) as Envelope<unknown>;
         return json.ok ? null : json.error.message;
       } catch {
@@ -110,7 +111,7 @@ export function useUnreadCount(mode: ProfileMode, pathname: string): number | nu
   useEffect(() => {
     if (mode !== "server") return;
     const controller = new AbortController();
-    fetch("/api/me/notifications", { cache: "no-store", signal: controller.signal })
+    clientFetch("/api/me/notifications", { cache: "no-store", signal: controller.signal })
       .then(async (res) => {
         const body = (await res.json()) as Envelope<{ unread: number }>;
         setCount(body.ok ? body.data.unread : null);

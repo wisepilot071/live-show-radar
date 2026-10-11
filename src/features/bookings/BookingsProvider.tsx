@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { LiveEvent } from "@/domain/types";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
+import { clientFetch } from "@/lib/client-fetch";
 
 export type CalendarStatus = "not_connected" | "pending" | "synced" | "failed" | "needs_reauth";
 
@@ -34,7 +35,7 @@ const Ctx = createContext<BookingsValue | null>(null);
 
 async function call<T>(url: string, init?: RequestInit): Promise<{ ok: true; data: T } | { ok: false; message: string }> {
   try {
-    const res = await fetch(url, { cache: "no-store", ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
+    const res = await clientFetch(url, { cache: "no-store", ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
     const body = (await res.json()) as Envelope<T>;
     return body.ok ? { ok: true, data: body.data } : { ok: false, message: body.error.message };
   } catch {

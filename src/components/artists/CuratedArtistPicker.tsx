@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { normalizeArtistName } from "@/domain/artist-identity";
 import type { Artist } from "@/domain/types";
 import { cn } from "@/lib/cn";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Category = "all" | "international" | "indian";
 type Load = { phase: "loading" } | { phase: "ready"; entries: CatalogueEntry[] } | { phase: "error"; message: string };
@@ -43,7 +44,7 @@ export function CuratedArtistPicker({
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/artists/catalogue", { signal: controller.signal })
+    clientFetch("/api/artists/catalogue", { signal: controller.signal })
       .then(async (r) => {
         const body = (await r.json()) as Envelope<{ entries: CatalogueEntry[] }>;
         if (!body.ok) throw new Error(body.error.message);

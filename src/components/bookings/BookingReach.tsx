@@ -3,6 +3,7 @@
 import { CalendarDays, Check, Mail, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Envelope<T> = { ok: true; data: T } | { ok: false; error: { message: string } };
 interface Reach {
@@ -13,7 +14,7 @@ interface Reach {
 
 async function get<T>(url: string): Promise<T | null> {
   try {
-    const b = (await (await fetch(url, { cache: "no-store" })).json()) as Envelope<T>;
+    const b = (await (await clientFetch(url, { cache: "no-store" })).json()) as Envelope<T>;
     return b.ok ? b.data : null;
   } catch {
     return null;

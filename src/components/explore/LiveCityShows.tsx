@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { EventGridSkeleton } from "@/components/ui/Skeletons";
 import type { LiveEvent } from "@/domain/types";
 import { initialOnboardingState } from "@/features/onboarding/state";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Load = { phase: "loading" } | { phase: "ready"; events: LiveEvent[] } | { phase: "error" };
 
@@ -20,7 +21,7 @@ export function LiveCityShows() {
   const [nonce, setNonce] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/events/city?city=bengaluru&days=60", { signal: controller.signal, cache: "no-store" })
+    clientFetch("/api/events/city?city=bengaluru&days=60", { signal: controller.signal, cache: "no-store" })
       .then(async (r) => {
         const body = (await r.json()) as { ok: boolean; data?: { events: LiveEvent[] } };
         if (!r.ok || !body.ok || !body.data) throw new Error("bad response");

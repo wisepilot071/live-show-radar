@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Switch } from "@/components/ui/Switch";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { formatTimestamp } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface TelegramInfo {
   configured: boolean;
@@ -39,7 +40,7 @@ export function TelegramConnect() {
   useEffect(() => {
     if (mode !== "server") return;
     let cancelled = false;
-    fetch("/api/me/telegram", { cache: "no-store" })
+    clientFetch("/api/me/telegram", { cache: "no-store" })
       .then((r) => r.json() as Promise<Envelope<TelegramInfo>>)
       .then((b) => {
         if (cancelled) return;
@@ -69,7 +70,7 @@ export function TelegramConnect() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/me/telegram", {
+      const res = await clientFetch("/api/me/telegram", {
         method,
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,

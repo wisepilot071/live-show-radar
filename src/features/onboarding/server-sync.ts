@@ -1,5 +1,6 @@
 import { artistIdentityKey } from "@/domain/artist-identity";
 import type { OnboardingAction, OnboardingState } from "./state";
+import { clientFetch } from "@/lib/client-fetch";
 
 /**
  * Maps reducer actions to the server API (server mode only). Each action
@@ -12,7 +13,7 @@ export type SyncResult = { ok: true } | { ok: false; error: ApiFailure };
 async function call(method: string, url: string, body?: unknown): Promise<SyncResult> {
   let res: Response;
   try {
-    res = await fetch(url, {
+    res = await clientFetch(url, {
       method,
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
@@ -106,7 +107,7 @@ export type ProfileFetch =
 
 export async function fetchServerProfile(): Promise<ProfileFetch> {
   try {
-    const res = await fetch("/api/me/profile", { cache: "no-store" });
+    const res = await clientFetch("/api/me/profile", { cache: "no-store" });
     const json = (await res.json()) as { ok: boolean; data?: { profile: OnboardingState }; error?: ApiFailure };
     if (res.ok && json.ok && json.data) return { kind: "server", profile: json.data.profile };
     if (res.status === 503 && json.error?.code === "not_configured") return { kind: "not_configured" };
@@ -118,7 +119,7 @@ export async function fetchServerProfile(): Promise<ProfileFetch> {
 
 export async function importDraftToServer(draft: OnboardingState): Promise<OnboardingState | null> {
   try {
-    const res = await fetch("/api/me/import", {
+    const res = await clientFetch("/api/me/import", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ draft }),

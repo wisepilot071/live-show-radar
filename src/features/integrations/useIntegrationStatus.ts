@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { IntegrationStatusReport } from "@/integrations/status";
+import { clientFetch } from "@/lib/client-fetch";
 
 export type IntegrationStatusState =
   | { phase: "loading" }
@@ -15,7 +16,7 @@ export function useIntegrationStatus() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/integrations/status", { signal: controller.signal, cache: "no-store" })
+    clientFetch("/api/integrations/status", { signal: controller.signal, cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Status check returned ${res.status}`);
         const report = (await res.json()) as IntegrationStatusReport;

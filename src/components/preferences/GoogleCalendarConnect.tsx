@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useBookings } from "@/features/bookings/BookingsProvider";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { formatTimestamp } from "@/lib/format";
+import { clientFetch } from "@/lib/client-fetch";
 
 interface CalendarInfo {
   configured: boolean;
@@ -45,7 +46,7 @@ export function GoogleCalendarConnect() {
   useEffect(() => {
     if (mode !== "server") return;
     let cancelled = false;
-    fetch("/api/me/google-calendar", { cache: "no-store" })
+    clientFetch("/api/me/google-calendar", { cache: "no-store" })
       .then((r) => r.json() as Promise<Envelope<CalendarInfo>>)
       .then((b) => {
         if (cancelled) return;
@@ -61,7 +62,7 @@ export function GoogleCalendarConnect() {
   async function disconnect() {
     setBusy(true);
     try {
-      const res = await fetch("/api/me/google-calendar", { method: "DELETE" });
+      const res = await clientFetch("/api/me/google-calendar", { method: "DELETE" });
       const b = (await res.json()) as Envelope<{ revoked: boolean }>;
       if (!b.ok) setError(b.error.message);
     } catch {

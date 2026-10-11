@@ -21,6 +21,7 @@ import { cardVariant, relevanceLine, TICKET_STATUS_LABEL, VARIANT_TAG, VERIFICAT
 import { EventActions } from "./EventActions";
 import { SourcePanel } from "./SourcePanel";
 import { DetailSkeleton } from "@/components/ui/Skeletons";
+import { clientFetch } from "@/lib/client-fetch";
 
 type Canonical =
   | { phase: "skip" } // not a stored-event id
@@ -36,7 +37,7 @@ function useCanonicalEvent(id: string): Canonical {
   useEffect(() => {
     if (!isStored) return;
     const controller = new AbortController();
-    fetch(`/api/events/${id}`, { signal: controller.signal, cache: "no-store" })
+    clientFetch(`/api/events/${id}`, { signal: controller.signal, cache: "no-store" })
       .then(async (res) => {
         const body = (await res.json()) as { ok: true; data: { event: LiveEvent } } | { ok: false; error: { code: string; message: string } };
         if (body.ok) setResult({ phase: "ready", event: body.data.event });
