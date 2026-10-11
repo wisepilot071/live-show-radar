@@ -2,14 +2,23 @@ import { z } from "zod";
 import { getSql } from "@/server/db";
 import { fail, ok, readBody } from "@/server/http";
 import { meReadRoute, meRoute } from "@/server/me";
-import { emailChannelStatus, recipientAllowed, validateEmail } from "@/server/notifications/channels";
+import { addressConfirmed, emailChannelStatus, validateEmail } from "@/server/notifications/channels";
 
 /** Notification channel settings plus their REAL availability on this server. */
 export const GET = meReadRoute("api/me/channels", async (_req, userId) => {
   const email = emailChannelStatus();
   const [row] = userId
-    ? await getSql()<{ in_app_enabled: boolean; email_enabled: boolean; email_address: string | null }[]>`
-        select in_app_enabled, email_enabled, email_address from radar.user_preferences where user_id = ${userId}`
+    ? await getSql()<
+        {
+          in_app_enabled: boolean;
+          email_enabled: boolean;
+          email_address: string | null;
+          email_verified_address: string | null;
+          email_verify_sent_at: Date | null;
+        }[]
+      >`
+        select in_app_enabled, email_enabled, email_address, email_verified_address, email_verify_sent_at
+        from radar.user_preferences where user_id = ${userId}`
     : [];
   return ok({
     inApp: { available: true, enabled: row?.in_app_enabled ?? true },
@@ -18,7 +27,9 @@ export const GET = meReadRoute("api/me/channels", async (_req, userId) => {
       reason: email.reason ?? null,
       enabled: row?.email_enabled ?? false,
       address: row?.email_address ?? null,
-      addressAllowed: row?.email_address ? recipientAllowed(row.email_address) : null,
+      /** The owner clicked our confirmation link for this exact address (or the operator pre-verified it). */
+      confirmed: addressConfirmed(row?.email_address ?? null, row?.email_verified_address ?? null),
+      confirmationSentAt: row?.email_verify_sent_at?.toISOString() ?? null,
     },
   });
 });

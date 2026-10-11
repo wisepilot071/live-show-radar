@@ -1,0 +1,181 @@
+import { z } from "zod";
+import { normalizeArtistName } from "@/domain/artist-identity";
+import { matchIndianCity } from "@/domain/cities";
+import type { City } from "@/domain/types";
+
+/**
+ * Reading a FULL news article for a tour/concert schedule.
+ *
+ * News headlines and snippets rarely carry dates; the article body does
+ * ("January 9, 2027 – Ahmedabad … March 13 – Bengaluru …"). Gemini lists the
+ * dates it finds, but every date only survives grounding when:
+ * - its evidence quote appears verbatim in the article,
+ * - that quote names the city and contains the day number and month name,
+ * - the year is written in the article,
+ * - the date is today or later (IST) and the city is a known Indian city.
+ * Ticket links are NOT taken from the AI: they are picked deterministically
+ * from real <a href> links in the article, on known ticketing hosts, whose URL
+ * mentions the artist.
+ */
+export const TOUR_PROMPT_VERSION = "tour-v1";
+
+export const TOUR_SYSTEM_INSTRUCTION = `You read one news article about live music in India and list the concert dates it announces.
+Rules:
+- Only report what the article states. Never guess or infer dates, cities, venues or ticket details.
+- For each show, give the date as YYYY-MM-DD, the city, the venue if named, and "evidence": a short quote copied EXACTLY from the article that contains the city and the date.
+- If the article gives no specific dates, return an empty "dates" list.
+- "general_sale_opens": when general ticket sales open, as an ISO 8601 date-time with +05:30, only if the article states it; evidence must be an exact quote.
+- "ticket_platform": the ticketing platform named in the article (e.g. "thumpN", "District", "BookMyShow"), with an exact quote.
+- "artist": the headline performer exactly as written.`;
+
+const quoted = z.object({ value: z.string().nullable(), evidence: z.string().nullable() });
+
+export const tourSchema = z.object({
+  is_concert_announcement: z.boolean(),
+  artist: z.string().max(200),
+  tour_name: quoted,
+  dates: z
+    .array(z.object({ date: z.string(), city: z.string().max(80), venue: z.string().max(200).nullable(), evidence: z.string().max(400) }))
+    .max(40),
+  general_sale_opens: quoted,
+  ticket_platform: quoted,
+});
+export type TourExtraction = z.infer<typeof tourSchema>;
+
+const q = { type: "object", properties: { value: { type: ["string", "null"] }, evidence: { type: ["string", "null"] } }, required: ["value", "evidence"] };
+export const tourJsonSchema = {
+  type: "object",
+  properties: {
+    is_concert_announcement: { type: "boolean" },
+    artist: { type: "string" },
+    tour_name: q,
+    dates: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { date: { type: "string" }, city: { type: "string" }, venue: { type: ["string", "null"] }, evidence: { type: "string" } },
+        required: ["date", "city", "venue", "evidence"],
+      },
+    },
+    general_sale_opens: q,
+    ticket_platform: q,
+  },
+  required: ["is_concert_announcement", "artist", "tour_name", "dates", "general_sale_opens", "ticket_platform"],
+};
+
+const ENTITIES: Record<string, string> = { "&amp;": "&", "&nbsp;": " ", "&quot;": '"', "&#39;": "'", "&rsquo;": "’", "&lsquo;": "‘", "&ndash;": "–", "&mdash;": "—", "&lt;": "<", "&gt;": ">" };
+
+/** Visible text of an article page (scripts/styles dropped, blocks become new lines), capped. */
+export function articleText(html: string, maxChars = 14_000): string {
+  let h = html.replace(/<(script|style|noscript|svg|iframe|form|nav|footer|header)\b[\s\S]*?<\/\1>/gi, " ");
+  const article = h.match(/<article\b[\s\S]*?<\/article>/i)?.[0];
+  if (article && article.length > 2000) h = article;
+  return h
+    .replace(/<(br|\/p|\/li|\/h[1-6]|\/div|\/tr|li|p|h[1-6])\b[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z#0-9]+;/gi, (e) => ENTITIES[e.toLowerCase()] ?? " ")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/\n{2,}/g, "\n")
+    .trim()
+    .slice(0, maxChars);
+}
+
+/** Known ticketing hosts (and their subdomains). */
+const TICKET_HOSTS = ["thumpn.com", "district.in", "bookmyshow.com", "insider.in", "skillboxes.com", "ticketmaster.com", "eventbrite.com", "highape.com", "zomato.com"];
+
+/** Real ticket links found in the article's HTML: known ticketing host + the artist named in the URL. utm_* stripped. */
+export function pickTicketLinks(html: string, artistName: string): string[] {
+  const tokens = normalizeArtistName(artistName)
+    .split(" ")
+    .filter((t) => t.length >= 4);
+  if (tokens.length === 0) return [];
+  const out = new Set<string>();
+  for (const m of html.matchAll(/href\s*=\s*["']([^"']+)["']/gi)) {
+    let u: URL;
+    try {
+      u = new URL(m[1]!.replace(/&amp;/g, "&"));
+    } catch {
+      continue;
+    }
+    if (u.protocol !== "https:") continue;
+    const host = u.hostname.replace(/^www\./, "");
+    if (!TICKET_HOSTS.some((t) => host === t || host.endsWith(`.${t}`))) continue;
+    const path = decodeURIComponent(u.pathname).toLowerCase();
+    if (!tokens.some((t) => path.includes(t))) continue;
+    for (const k of [...u.searchParams.keys()]) if (/^utm_/i.test(k)) u.searchParams.delete(k);
+    u.hash = "";
+    out.add(u.toString());
+  }
+  return [...out].slice(0, 3);
+}
+
+const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+const squash = (s: string) => s.toLowerCase().replace(/[\s,]+/g, " ").trim();
+
+export interface GroundedShow {
+  date: string;
+  city: City;
+  venue?: string;
+  evidence: string;
+}
+
+export interface GroundedTour {
+  artistMatches: boolean;
+  tourName?: string;
+  shows: GroundedShow[];
+  generalSaleOpensAt?: string;
+  ticketPlatform?: string;
+  dropped: number;
+}
+
+function istToday(now: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+/** Keeps only what the article itself proves (see module comment). */
+export function groundTour(x: TourExtraction, text: string, artist: { name: string; aliases: string[] }, now: Date): GroundedTour {
+  const hay = squash(text);
+  const inText = (s: string | null | undefined) => !!s && s.trim().length > 0 && hay.includes(squash(s));
+  const artistMatches =
+    x.is_concert_announcement &&
+    [artist.name, ...artist.aliases].some((n) => normalizeArtistName(n) === normalizeArtistName(x.artist)) &&
+    hay.includes(squash(artist.name));
+  const today = istToday(now);
+  const seen = new Set<string>();
+  const shows: GroundedShow[] = [];
+  let dropped = 0;
+  for (const d of x.dates) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.date);
+    const city = matchIndianCity(d.city);
+    const ev = squash(d.evidence);
+    const ok =
+      m &&
+      city &&
+      inText(d.evidence) &&
+      text.includes(m[1]!) && // the year is written in the article
+      d.date >= today &&
+      // the quote itself names the city and the day + month
+      [city.name, city.id, d.city].some((c) => ev.includes(c.toLowerCase())) &&
+      new RegExp(`(^|\\D)${Number(m[3])}(\\D|$)`).test(ev) &&
+      (ev.includes(MONTHS[Number(m[2]) - 1]!) || ev.includes(MONTHS[Number(m[2]) - 1]!.slice(0, 3)));
+    if (!ok || !city) {
+      dropped++;
+      continue;
+    }
+    const key = `${d.date}|${city.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    shows.push({ date: d.date, city, venue: d.venue && inText(d.venue) ? d.venue : undefined, evidence: d.evidence });
+  }
+  const sale = x.general_sale_opens.value;
+  const saleOk = sale && inText(x.general_sale_opens.evidence) && !Number.isNaN(Date.parse(sale)) && text.includes(sale.slice(0, 4));
+  return {
+    artistMatches,
+    tourName: x.tour_name.value && inText(x.tour_name.evidence) ? x.tour_name.value : undefined,
+    shows: artistMatches ? shows : [],
+    generalSaleOpensAt: saleOk ? new Date(sale).toISOString() : undefined,
+    ticketPlatform: x.ticket_platform.value && inText(x.ticket_platform.evidence) ? x.ticket_platform.value : undefined,
+    dropped,
+  };
+}

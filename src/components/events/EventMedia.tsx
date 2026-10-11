@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useState } from "react";
 import { CrowdLights } from "@/components/media/CrowdLights";
 import { DoodleArt, NightSky, type Doodle } from "@/components/media/NightSky";
@@ -28,7 +29,7 @@ const WASHES = [
  * - Otherwise original night-sky doodle art (never a stand-in photo).
  * The date stays visible as a chip on the image.
  */
-export function EventMedia({ event, urgent }: { event: LiveEvent; urgent?: boolean }) {
+export function EventMedia({ event, urgent, booked }: { event: LiveEvent; urgent?: boolean; booked?: boolean }) {
   const headliner = event.artistNames[0] ?? "";
   // Fictional example artists never get a real person's face, even if a name collides.
   const photo = event.origin === "illustrative" ? null : photoForName(headliner);
@@ -79,6 +80,12 @@ export function EventMedia({ event, urgent }: { event: LiveEvent; urgent?: boole
           <span className="text-xs font-bold tracking-wide uppercase">Date TBA</span>
         )}
       </div>
+
+      {booked && (
+        <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-signal px-3 py-1.5 text-xs font-bold text-on-signal shadow-[0_8px_20px_-10px_rgb(0_0_0/0.6)]">
+          <Check aria-hidden className="size-3.5" strokeWidth={3} /> Booked by you
+        </span>
+      )}
 
       {showPhoto && (
         <a

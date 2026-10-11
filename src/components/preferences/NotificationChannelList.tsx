@@ -1,7 +1,7 @@
 "use client";
 
 import { TelegramConnect } from "./TelegramConnect";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { InlineAlert } from "@/components/ui/InlineAlert";
@@ -14,8 +14,26 @@ import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 
 interface Channels {
   inApp: { available: boolean; enabled: boolean };
-  email: { available: boolean; reason: string | null; enabled: boolean; address: string | null; addressAllowed: boolean | null };
+  email: {
+    available: boolean;
+    reason: string | null;
+    enabled: boolean;
+    address: string | null;
+    confirmed: boolean;
+    confirmationSentAt: string | null;
+  };
 }
+
+const noSubscribe = () => () => {};
+/** ?email=… set by the confirmation link (/api/email/confirm). */
+function useEmailOutcome(): string | null {
+  return useSyncExternalStore(noSubscribe, () => new URLSearchParams(window.location.search).get("email"), () => null);
+}
+const OUTCOME_TEXT: Record<string, { tone: "success" | "error"; text: string }> = {
+  confirmed: { tone: "success", text: "Email confirmed. Alerts will now be emailed to you too." },
+  "link-invalid": { tone: "error", text: "That confirmation link is invalid or expired. Send a new one below." },
+  error: { tone: "error", text: "Something went wrong confirming your email. Please try the link again." },
+};
 
 type Envelope<T> = { ok: true; data: T } | { ok: false; error: { message: string } };
 
@@ -32,6 +50,33 @@ export function NotificationChannelList() {
   const [saving, setSaving] = useState(false);
   const [address, setAddress] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const outcome = useEmailOutcome();
+  const [confirmMsgState, setConfirmMsg] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const confirmMsg = confirmMsgState ?? (outcome ? (OUTCOME_TEXT[outcome] ?? null) : null);
+
+  async function reload() {
+    const fresh = (await (await fetch("/api/me/channels", { cache: "no-store" })).json()) as Envelope<Channels>;
+    if (fresh.ok) setChannels(fresh.data);
+  }
+
+  /** Double opt-in: emails a confirmation link to the saved address. */
+  async function sendConfirmation() {
+    setSending(true);
+    setConfirmMsg(null);
+    try {
+      const res = await fetch("/api/me/channels/email-confirm", { method: "POST" });
+      const body = (await res.json()) as Envelope<{ sentTo?: string; alreadyConfirmed?: boolean }>;
+      if (!body.ok) setConfirmMsg({ tone: "error", text: body.error.message });
+      else if (body.data.alreadyConfirmed) setConfirmMsg({ tone: "success", text: "This address is already confirmed." });
+      else setConfirmMsg({ tone: "success", text: `Confirmation email sent to ${body.data.sentTo}. Open the link in it to start getting alerts there.` });
+      await reload();
+    } catch {
+      setConfirmMsg({ tone: "error", text: "Couldn't reach the server. No email was sent." });
+    } finally {
+      setSending(false);
+    }
+  }
 
   useEffect(() => {
     if (mode !== "server") return;
@@ -59,8 +104,7 @@ export function NotificationChannelList() {
         setFieldError(body.error.message);
         return;
       }
-      const fresh = (await (await fetch("/api/me/channels", { cache: "no-store" })).json()) as Envelope<Channels>;
-      if (fresh.ok) setChannels(fresh.data);
+      await reload();
       toast({ message: "Alert channels saved." });
     } catch {
       setFieldError("Couldn't reach the server. Nothing was changed.");
@@ -96,14 +140,14 @@ export function NotificationChannelList() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-semibold text-fg">Email</p>
           <StatusBadge
-            tone={!channels.email.available ? "unavailable" : channels.email.enabled && channels.email.addressAllowed ? "confirmed" : "pending"}
+            tone={!channels.email.available ? "unavailable" : channels.email.enabled && channels.email.confirmed ? "confirmed" : "pending"}
             label={
               !channels.email.available
                 ? "Not configured"
                 : channels.email.enabled
-                  ? channels.email.addressAllowed
+                  ? channels.email.confirmed
                     ? "On"
-                    : "Address not allowed"
+                    : "Waiting for confirmation"
                   : "Off"
             }
           />
@@ -115,7 +159,8 @@ export function NotificationChannelList() {
         ) : (
           <>
             <p className="text-sm text-fg-secondary">
-              Until address verification exists, email only goes to addresses the operator has allow-listed.
+              Get alerts at any email address. We send a confirmation link first, and only email addresses whose owner
+              clicked it.
             </p>
             <TextField
               label="Email address"
@@ -133,7 +178,25 @@ export function NotificationChannelList() {
               >
                 {channels.email.enabled ? "Turn off email" : "Turn on email"}
               </Button>
+              {channels.email.enabled && channels.email.address && !channels.email.confirmed && (
+                <Button loading={sending} onClick={() => void sendConfirmation()}>
+                  {channels.email.confirmationSentAt ? "Resend confirmation email" : "Send confirmation email"}
+                </Button>
+              )}
             </div>
+            {channels.email.enabled && channels.email.confirmed && (
+              <p className="text-sm font-semibold text-signal-ink">Confirmed — alerts go to {channels.email.address}.</p>
+            )}
+            {channels.email.enabled && !channels.email.confirmed && channels.email.confirmationSentAt && !confirmMsg && (
+              <p className="text-sm text-fg-secondary">
+                Confirmation email sent {new Date(channels.email.confirmationSentAt).toLocaleString("en-IN")}. Check your inbox (and spam).
+              </p>
+            )}
+            {confirmMsg && (
+              <p role="status" className={confirmMsg.tone === "error" ? "text-sm text-urgent-ink" : "text-sm text-signal-ink"}>
+                {confirmMsg.text}
+              </p>
+            )}
           </>
         )}
       </Card>

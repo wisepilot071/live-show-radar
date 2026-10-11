@@ -33,7 +33,16 @@ export interface ServerEnv {
   bandsintown: { appId?: string };
   /** Vercel Cron sends "Authorization: Bearer $CRON_SECRET". */
   cronSecret?: string;
-  email: { resendApiKey?: string; from?: string; allowedRecipients: string[] };
+  /**
+   * Email: SMTP (e.g. Gmail + app password) when SMTP_HOST is set, otherwise Resend.
+   * allowedRecipients: operator addresses treated as already confirmed (everyone else confirms via a link).
+   */
+  email: {
+    resendApiKey?: string;
+    from?: string;
+    allowedRecipients: string[];
+    smtp?: { host: string; port: number; user: string; pass: string };
+  };
   /** Deadline reminder windows in hours before an early-bird deadline. */
   reminderWindowsHours: number[];
   /** Telegram bot (notifications + account linking via webhook). */
@@ -77,6 +86,13 @@ export function getServerEnv(): ServerEnv {
         .split(",")
         .map((x) => x.trim().toLowerCase())
         .filter(Boolean),
+      smtp: (() => {
+        const host = read("SMTP_HOST");
+        const user = read("SMTP_USER");
+        const pass = read("SMTP_PASS");
+        if (!host || !user || !pass) return undefined;
+        return { host, port: Number(read("SMTP_PORT") ?? 465) || 465, user, pass };
+      })(),
     },
     reminderWindowsHours: (read("REMINDER_WINDOWS_HOURS") ?? "72,24")
       .split(",")

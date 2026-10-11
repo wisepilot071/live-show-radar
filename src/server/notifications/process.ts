@@ -1,12 +1,29 @@
 import { getServerEnv } from "@/config/server-env";
 import type { SourceClass } from "@/domain/freshness";
-import type { AlertTrigger, LiveEvent, LocationPreference } from "@/domain/types";
+import type {
+  AlertTrigger,
+  LiveEvent,
+  LocationPreference,
+} from "@/domain/types";
 import { getSql } from "@/server/db";
 import { withJobLock } from "@/server/guards";
 import { errorMessage, log } from "@/server/log";
 import { getEventById } from "@/server/repos/events";
-import { emailChannelStatus, recipientAllowed, sendEmail, validateEmail, type SendResult } from "./channels";
-import { activeReminderWindow, classifyChange, decide, type ChangeKind, type Decision, type NotificationCategory } from "./decide";
+import {
+  addressConfirmed,
+  emailChannelStatus,
+  sendEmail,
+  validateEmail,
+  type SendResult,
+} from "./channels";
+import {
+  activeReminderWindow,
+  classifyChange,
+  decide,
+  type ChangeKind,
+  type Decision,
+  type NotificationCategory,
+} from "./decide";
 import { renderNotification } from "./message";
 import { sendTelegram, telegramStatus } from "./telegram";
 
@@ -53,6 +70,7 @@ interface Follower {
   in_app_enabled: boolean | null;
   email_enabled: boolean | null;
   email_address: string | null;
+  email_verified_address: string | null;
   telegram_enabled: boolean | null;
   telegram_linked: boolean;
   saved: boolean;
@@ -63,7 +81,7 @@ async function followersOf(eventId: string): Promise<Follower[]> {
   const sql = getSql();
   return sql<Follower[]>`
     select ua.user_id, p.primary_city_id, p.additional_city_ids, p.include_nationwide, p.alert_triggers,
-           p.in_app_enabled, p.email_enabled, p.email_address, p.telegram_enabled,
+           p.in_app_enabled, p.email_enabled, p.email_address, p.email_verified_address, p.telegram_enabled,
            exists (select 1 from radar.telegram_links t where t.user_id = ua.user_id) as telegram_linked,
            exists (select 1 from radar.saved_shows s where s.user_id = ua.user_id and s.event_id = ${eventId}) as saved,
            exists (select 1 from radar.event_mutes m where m.user_id = ua.user_id and m.event_id = ${eventId}) as muted
@@ -87,6 +105,7 @@ export interface ChannelPrefs {
   in_app_enabled: boolean | null;
   email_enabled: boolean | null;
   email_address: string | null;
+  email_verified_address: string | null;
   telegram_enabled: boolean | null;
   telegram_linked: boolean;
 }
@@ -109,7 +128,10 @@ export interface NewNotification {
  * transaction. Returns the id, or null when the dedupe key already existed
  * (so retries and re-runs can never notify twice).
  */
-export async function createNotificationRecord(n: NewNotification, prefs: ChannelPrefs): Promise<string | null> {
+export async function createNotificationRecord(
+  n: NewNotification,
+  prefs: ChannelPrefs,
+): Promise<string | null> {
   const sql = getSql();
   return sql.begin(async (tx) => {
     const [row] = await tx<{ id: string }[]>`
@@ -130,8 +152,8 @@ export async function createNotificationRecord(n: NewNotification, prefs: Channe
         ? "no valid email address"
         : !status.configured
           ? status.reason
-          : !recipientAllowed(address)
-            ? "address not on EMAIL_ALLOWED_RECIPIENTS"
+          : !addressConfirmed(address, prefs.email_verified_address)
+            ? "email address not confirmed yet"
             : null;
       await tx`
         insert into radar.notification_deliveries (notification_id, channel, status, next_attempt_at, last_error)
@@ -139,7 +161,9 @@ export async function createNotificationRecord(n: NewNotification, prefs: Channe
     }
     if (prefs.telegram_linked && (prefs.telegram_enabled ?? true)) {
       const status = telegramStatus();
-      const reason = status.configured ? null : status.reason ?? "telegram not configured";
+      const reason = status.configured
+        ? null
+        : (status.reason ?? "telegram not configured");
       await tx`
         insert into radar.notification_deliveries (notification_id, channel, status, next_attempt_at, last_error)
         values (${row.id}, 'telegram', ${reason ? "unavailable" : "queued"}, ${reason ? null : tx`now()`}, ${reason})`;
@@ -151,10 +175,19 @@ export async function createNotificationRecord(n: NewNotification, prefs: Channe
 /** Loads a profile's channel preferences (defaults when the profile has none). */
 export async function channelPrefsOf(userId: string): Promise<ChannelPrefs> {
   const [row] = await getSql()<ChannelPrefs[]>`
-    select p.in_app_enabled, p.email_enabled, p.email_address, p.telegram_enabled,
+    select p.in_app_enabled, p.email_enabled, p.email_address, p.email_verified_address, p.telegram_enabled,
            exists (select 1 from radar.telegram_links t where t.user_id = ${userId}) as telegram_linked
     from (select 1) one left join radar.user_preferences p on p.user_id = ${userId}`;
-  return row ?? { in_app_enabled: true, email_enabled: false, email_address: null, telegram_enabled: true, telegram_linked: false };
+  return (
+    row ?? {
+      in_app_enabled: true,
+      email_enabled: false,
+      email_address: null,
+      email_verified_address: null,
+      telegram_enabled: true,
+      telegram_linked: false,
+    }
+  );
 }
 
 async function createNotification(
@@ -181,21 +214,43 @@ async function createNotification(
   return id !== null;
 }
 
-async function sourceClassOf(eventId: string, sourceId: string): Promise<{ sourceClass: SourceClass; sourceName: string }> {
+async function sourceClassOf(
+  eventId: string,
+  sourceId: string,
+): Promise<{ sourceClass: SourceClass; sourceName: string }> {
   const sql = getSql();
   const [row] = await sql<{ cls: SourceClass | null; source_name: string }[]>`
     select record->>'sourceClass' as cls, source_name from radar.event_sources
     where event_id = ${eventId} and source_id = ${sourceId} limit 1`;
-  return { sourceClass: row?.cls ?? "user_submitted", sourceName: row?.source_name ?? sourceId };
+  return {
+    sourceClass: row?.cls ?? "user_submitted",
+    sourceName: row?.source_name ?? sourceId,
+  };
 }
 
 /** Consume new event_changes (cursor) and create notifications for eligible users. */
-export async function processChanges(now = new Date(), summary = emptySummary(), batch = 500): Promise<NotificationSummary> {
+export async function processChanges(
+  now = new Date(),
+  summary = emptySummary(),
+  batch = 500,
+): Promise<NotificationSummary> {
   const sql = getSql();
   await sql`insert into radar.job_cursors (job) values ('notifications') on conflict do nothing`;
-  const [{ last_change_id: cursor } = { last_change_id: 0 }] = await sql<{ last_change_id: number }[]>`
+  const [{ last_change_id: cursor } = { last_change_id: 0 }] = await sql<
+    { last_change_id: number }[]
+  >`
     select last_change_id from radar.job_cursors where job = 'notifications'`;
-  const changes = await sql<{ id: number; event_id: string; change_type: string; field: string | null; old_value: unknown; new_value: unknown; source_id: string }[]>`
+  const changes = await sql<
+    {
+      id: number;
+      event_id: string;
+      change_type: string;
+      field: string | null;
+      old_value: unknown;
+      new_value: unknown;
+      source_id: string;
+    }[]
+  >`
     select id, event_id, change_type, field, old_value, new_value, source_id
     from radar.event_changes where id > ${cursor} order by id limit ${batch}`;
   summary.changesScanned += changes.length;
@@ -205,10 +260,22 @@ export async function processChanges(now = new Date(), summary = emptySummary(),
     if (kind) {
       summary.meaningfulChanges++;
       try {
-        await notifyFollowers(kind, c.event_id, Number(c.id), c.source_id, c.new_value, c.old_value, now, summary);
+        await notifyFollowers(
+          kind,
+          c.event_id,
+          Number(c.id),
+          c.source_id,
+          c.new_value,
+          c.old_value,
+          now,
+          summary,
+        );
       } catch (err) {
         // One bad change must not stall the batch; it is logged and skipped.
-        log.error("notifications", "change processing failed", { changeId: String(c.id), error: errorMessage(err) });
+        log.error("notifications", "change processing failed", {
+          changeId: String(c.id),
+          error: errorMessage(err),
+        });
       }
     }
     await sql`update radar.job_cursors set last_change_id = ${c.id}, updated_at = now() where job = 'notifications'`;
@@ -230,7 +297,8 @@ async function notifyFollowers(
   // Private (pasted) events load as null for an anonymous viewer → never broadcast.
   const event = await getEventById(eventId, null, now);
   if (!event) {
-    summary.skipReasons.private_or_missing_event = (summary.skipReasons.private_or_missing_event ?? 0) + 1;
+    summary.skipReasons.private_or_missing_event =
+      (summary.skipReasons.private_or_missing_event ?? 0) + 1;
     return;
   }
   const { sourceClass, sourceName } = await sourceClassOf(eventId, sourceId);
@@ -264,7 +332,10 @@ async function notifyFollowers(
 }
 
 /** Deadline reminders for verified early-bird deadlines inside a configured window. */
-export async function processDeadlineReminders(now = new Date(), summary = emptySummary()): Promise<NotificationSummary> {
+export async function processDeadlineReminders(
+  now = new Date(),
+  summary = emptySummary(),
+): Promise<NotificationSummary> {
   const windows = getServerEnv().reminderWindowsHours;
   if (windows.length === 0) return summary;
   const sql = getSql();
@@ -274,7 +345,11 @@ export async function processDeadlineReminders(now = new Date(), summary = empty
     where e.ticket_status = 'early_bird' and e.early_bird_ends_at > ${now}
       and e.early_bird_ends_at <= ${new Date(now.getTime() + maxHours * 3_600_000)}`;
   for (const e of due) {
-    const window = activeReminderWindow(e.early_bird_ends_at.toISOString(), now, windows);
+    const window = activeReminderWindow(
+      e.early_bird_ends_at.toISOString(),
+      now,
+      windows,
+    );
     if (!window) continue;
     // Use the strongest source that exposes ticket availability as the reminder's evidence.
     const [src] = await sql<{ source_id: string }[]>`
@@ -283,9 +358,22 @@ export async function processDeadlineReminders(now = new Date(), summary = empty
       order by case record->>'sourceClass' when 'ticketing' then 0 when 'listing' then 1 else 2 end limit 1`;
     if (!src) continue;
     try {
-      await notifyFollowers("deadline_reminder", e.id, null, src.source_id, e.early_bird_ends_at.toISOString(), null, now, summary, window);
+      await notifyFollowers(
+        "deadline_reminder",
+        e.id,
+        null,
+        src.source_id,
+        e.early_bird_ends_at.toISOString(),
+        null,
+        now,
+        summary,
+        window,
+      );
     } catch (err) {
-      log.error("notifications", "reminder failed", { eventId: e.id, error: errorMessage(err) });
+      log.error("notifications", "reminder failed", {
+        eventId: e.id,
+        error: errorMessage(err),
+      });
     }
   }
   return summary;
@@ -298,7 +386,11 @@ const MAX_ATTEMPTS = 4;
  * sending). Message text is rendered from the stored notification + event
  * snapshot. A delivery is "sent" only when the provider accepted it.
  */
-export async function deliverPending(summary = emptySummary(), limit = 25, onlyNotificationId?: string): Promise<NotificationSummary> {
+export async function deliverPending(
+  summary = emptySummary(),
+  limit = 25,
+  onlyNotificationId?: string,
+): Promise<NotificationSummary> {
   const sql = getSql();
   const { appBaseUrl } = getServerEnv();
   const pending = await sql<
@@ -307,6 +399,7 @@ export async function deliverPending(summary = emptySummary(), limit = 25, onlyN
       channel: "email" | "telegram";
       attempts: number;
       email_address: string | null;
+      email_verified_address: string | null;
       chat_id: string | null;
       category: string;
       title: string;
@@ -315,7 +408,7 @@ export async function deliverPending(summary = emptySummary(), limit = 25, onlyN
       event_snapshot: LiveEvent | null;
     }[]
   >`
-    select d.id, d.channel, d.attempts, p.email_address, t.chat_id::text as chat_id,
+    select d.id, d.channel, d.attempts, p.email_address, p.email_verified_address, t.chat_id::text as chat_id,
            n.category, n.title, n.body, n.reason, n.event_snapshot
     from radar.notification_deliveries d
     join radar.notifications n on n.id = d.notification_id
@@ -327,19 +420,32 @@ export async function deliverPending(summary = emptySummary(), limit = 25, onlyN
     order by d.created_at limit ${limit}`;
   for (const d of pending) {
     const message = renderNotification(
-      { category: d.category, title: d.title, body: d.body, reason: d.reason, event: d.event_snapshot },
+      {
+        category: d.category,
+        title: d.title,
+        body: d.body,
+        reason: d.reason,
+        event: d.event_snapshot,
+      },
       appBaseUrl,
     );
     let result: SendResult;
     if (d.channel === "email") {
       const to = validateEmail(d.email_address);
-      result = to
-        ? await sendEmail({ deliveryId: d.id, to, subject: message.subject, text: message.text })
-        : { ok: false, retryable: false, error: "no valid email address" };
+      // Re-checked at send time: the address may have changed since the alert was queued.
+      result = !to
+        ? { ok: false, retryable: false, error: "no valid email address" }
+        : !addressConfirmed(to, d.email_verified_address)
+          ? { ok: false, retryable: false, error: "email address not confirmed" }
+          : await sendEmail({ deliveryId: d.id, to, subject: message.subject, text: message.text });
     } else {
       result = d.chat_id
         ? await sendTelegram({ chatId: d.chat_id, text: message.text })
-        : { ok: false, retryable: false, error: "Telegram is no longer connected" };
+        : {
+            ok: false,
+            retryable: false,
+            error: "Telegram is no longer connected",
+          };
     }
     const attempts = d.attempts + 1;
     if (result.ok) {
@@ -350,7 +456,9 @@ export async function deliverPending(summary = emptySummary(), limit = 25, onlyN
       const permanent = !result.retryable || attempts >= MAX_ATTEMPTS;
       summary.deliveriesFailed++;
       // Exponential backoff: 5, 10, 20 minutes.
-      const next = permanent ? null : new Date(Date.now() + 5 * 60_000 * 2 ** (attempts - 1));
+      const next = permanent
+        ? null
+        : new Date(Date.now() + 5 * 60_000 * 2 ** (attempts - 1));
       await sql`update radar.notification_deliveries set status = ${permanent ? "failed_permanent" : "failed"}, attempts = ${attempts},
                 last_attempt_at = now(), next_attempt_at = ${next}, last_error = ${result.error} where id = ${d.id}`;
     }

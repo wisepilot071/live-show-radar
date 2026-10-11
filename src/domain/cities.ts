@@ -20,6 +20,7 @@ export const INITIAL_CITIES: readonly City[] = [
   { id: "ahmedabad", name: "Ahmedabad", region: "Gujarat", countryCode: "IN" },
   { id: "jaipur", name: "Jaipur", region: "Rajasthan", countryCode: "IN" },
   { id: "chandigarh", name: "Chandigarh", region: "Chandigarh", countryCode: "IN" },
+  { id: "indore", name: "Indore", region: "Madhya Pradesh", countryCode: "IN" },
 ];
 
 export const DEFAULT_PRIMARY_CITY_ID = "bengaluru";
@@ -48,7 +49,7 @@ const CITY_ALIASES: Record<string, string[]> = {
 };
 
 function norm(s: string): string {
-  return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/s+/g, " ").trim();
+  return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /**

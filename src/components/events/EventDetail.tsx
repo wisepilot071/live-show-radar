@@ -244,8 +244,11 @@ export function EventDetail({ id }: { id: string }) {
                 )}
               </DetailRow>
               <DetailRow icon={CalendarDays} label="General sale opens">
-                {ticketConfirmed && ticket.saleOpensAt ? (
-                  formatTimestamp(ticket.saleOpensAt, event.when.timeZone)
+                {ticket.saleOpensAt ? (
+                  <>
+                    {formatTimestamp(ticket.saleOpensAt, event.when.timeZone)}
+                    {!ticketConfirmed && <span className="text-fg-muted"> — reported by {event.source.name}, not verified</span>}
+                  </>
                 ) : (
                   <span className="text-fg-muted">Not stated by the source</span>
                 )}

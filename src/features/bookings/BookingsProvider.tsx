@@ -106,6 +106,11 @@ export function BookingsProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
+/** Like useBookings, but null outside the provider (e.g. the marketing pages). */
+export function useOptionalBookings(): BookingsValue | null {
+  return useContext(Ctx);
+}
+
 export function useBookings(): BookingsValue {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error("useBookings must be used inside <BookingsProvider>");

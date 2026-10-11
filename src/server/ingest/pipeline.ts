@@ -174,10 +174,13 @@ export async function runDiscovery(opts: {
   maxArtistsPerSource?: number;
   /** Check the artists on a curated list instead of followed artists (admin testing). */
   artistListKey?: string;
+  /** Only these artists (radar.artists ids) — admin: re-check specific artists now. */
+  artistIds?: string[];
 }): Promise<DiscoveryRunResult> {
   const sources = opts.sources ?? configuredSources();
   if (sources.length === 0) return { status: "no_sources" };
-  const artists = await loadArtists({ userId: opts.userId, artistListKey: opts.artistListKey });
+  const loaded = await loadArtists({ userId: opts.userId, artistListKey: opts.artistListKey });
+  const artists = opts.artistIds ? loaded.filter((a) => opts.artistIds!.includes(a.artistId)) : loaded;
   if (artists.length === 0) return { status: "no_artists" };
 
   const lockKey = opts.artistListKey ? `discovery:list:${opts.artistListKey}` : opts.userId ? `discovery:user:${opts.userId}` : "discovery:all";
@@ -185,7 +188,10 @@ export async function runDiscovery(opts: {
     const deadline = Date.now() + (opts.timeBudgetMs ?? TIME_BUDGET_MS);
     const summaries: SourceRunSummary[] = [];
     for (const source of sources) {
-      const due = await dueArtists(source, artists, opts.maxArtistsPerSource ?? MAX_ARTISTS_PER_SOURCE);
+      // A targeted admin re-check skips the recheck-interval throttle.
+      const due = opts.artistIds
+        ? artists.filter((a) => source.canLookUp(a))
+        : await dueArtists(source, artists, opts.maxArtistsPerSource ?? MAX_ARTISTS_PER_SOURCE);
       summaries.push(await runSource(source, due, opts.trigger, opts.userId, deadline));
     }
     const coverable = new Set(artists.filter((a) => sources.some((s) => s.canLookUp(a))).map((a) => a.artistId));

@@ -17,10 +17,19 @@ export class FetchError extends Error {
   }
 }
 
-export async function safeFetchJson(
-  url: string,
-  opts: { allowHosts: string[]; headers?: Record<string, string>; timeoutMs?: number; maxBytes?: number },
-): Promise<unknown> {
+type SafeFetchOpts = { allowHosts: string[]; headers?: Record<string, string>; timeoutMs?: number; maxBytes?: number };
+
+export async function safeFetchJson(url: string, opts: SafeFetchOpts): Promise<unknown> {
+  const text = await safeFetchText(url, { ...opts, headers: { Accept: "application/json", ...opts.headers } });
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new FetchError("Response was not JSON", "http");
+  }
+}
+
+/** Same guards as safeFetchJson, returning the body as text (e.g. an HTML page proxied by a scraping API). */
+export async function safeFetchText(url: string, opts: SafeFetchOpts): Promise<string> {
   const { allowHosts, headers, timeoutMs = 10_000, maxBytes = 2_000_000 } = opts;
   let target = new URL(url);
   for (let hop = 0; hop < 3; hop++) {
@@ -30,7 +39,7 @@ export async function safeFetchJson(
     let res: Response;
     try {
       res = await fetch(target, {
-        headers: { Accept: "application/json", ...headers },
+        headers: { ...headers },
         redirect: "manual",
         signal: AbortSignal.timeout(timeoutMs),
         cache: "no-store",
@@ -50,11 +59,7 @@ export async function safeFetchJson(
     if (declared > maxBytes) throw new FetchError("Response too large", "too_large");
     const text = await res.text();
     if (text.length > maxBytes) throw new FetchError("Response too large", "too_large");
-    try {
-      return JSON.parse(text) as unknown;
-    } catch {
-      throw new FetchError("Response was not JSON", "http", res.status);
-    }
+    return text;
   }
   throw new FetchError("Too many redirects", "blocked");
 }

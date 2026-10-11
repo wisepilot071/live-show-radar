@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Bookmark, Clock, MapPin, Ticket } from "lucid
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { useOptionalBookings } from "@/features/bookings/BookingsProvider";
 import { EventMedia } from "./EventMedia";
 import { deriveEventSignals } from "@/domain/event-signals";
 import type { LiveEvent, LocationPreference } from "@/domain/types";
@@ -59,6 +60,7 @@ export function EventCard({
   const isPrimary = signals?.locality === "primary";
   const muted = signals?.cancelled || signals?.isPast;
   const urgent = variant === "deadline";
+  const booked = useOptionalBookings()?.byEventId.get(event.id);
 
   return (
     <article
@@ -80,7 +82,7 @@ export function EventCard({
         className,
       )}
     >
-      <EventMedia event={event} urgent={urgent} />
+      <EventMedia event={event} urgent={urgent} booked={Boolean(booked)} />
       <div className={cn("flex flex-1 flex-col gap-4 p-4 sm:p-5", muted && "opacity-75")}>
         {/* 1. When + which artist */}
         <header className="flex min-w-0 gap-4">
@@ -154,8 +156,11 @@ export function EventCard({
               Early bird ends {formatTimestamp(ticket.earlyBirdEndsAt, event.when.timeZone)}
             </p>
           )}
-          {ticketConfirmed && ticket.saleOpensAt && (
-            <p className="text-sm text-fg">General sale opens {formatTimestamp(ticket.saleOpensAt, event.when.timeZone)}</p>
+          {ticket.saleOpensAt && (
+            <p className="text-sm text-fg">
+              General sale opens {formatTimestamp(ticket.saleOpensAt, event.when.timeZone)}
+              {!ticketConfirmed && <span className="text-fg-muted"> (reported by {event.source.name}, not verified)</span>}
+            </p>
           )}
           <p className="text-xs text-fg-muted">
             {ticket.verification.note ?? VERIFICATION_EXPLAINER[ticket.verification.state]}
