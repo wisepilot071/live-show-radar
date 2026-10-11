@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, BellOff, BellRing, CalendarClock, CalendarX2, CheckCheck, Mail, Megaphone, RotateCw, Ticket, type LucideIcon } from "lucide-react";
+import { ArrowRight, BellOff, BellRing, CalendarCheck2, CalendarClock, CalendarX2, CheckCheck, Mail, Megaphone, RotateCw, Ticket, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -22,7 +22,10 @@ const CATEGORY: Record<InboxNotification["category"], { icon: LucideIcon; label:
   deadline_reminder: { icon: CalendarClock, label: "Deadline" },
   event_changed: { icon: CalendarClock, label: "Changed" },
   cancelled: { icon: CalendarX2, label: "Cancelled" },
+  booking_confirmed: { icon: CalendarCheck2, label: "Booked" },
 };
+/** Any category this build doesn't know yet still renders (never crash the inbox). */
+const FALLBACK_CATEGORY = { icon: BellRing, label: "Alert" };
 
 const EMAIL_STATUS: Record<string, string> = {
   queued: "Email queued",
@@ -102,7 +105,7 @@ export function NotificationInbox() {
       {state.phase === "ready" && state.notifications.length > 0 && (
         <ul className="space-y-3" aria-label="Alerts">
           {state.notifications.map((n) => {
-            const cat = CATEGORY[n.category];
+            const cat = CATEGORY[n.category] ?? FALLBACK_CATEGORY;
             const Icon = cat.icon;
             const email = n.deliveries?.find((d) => d.channel === "email");
             const isUnread = !n.read_at;

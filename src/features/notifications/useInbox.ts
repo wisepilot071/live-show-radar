@@ -6,7 +6,7 @@ import type { ProfileMode } from "@/features/onboarding/OnboardingProvider";
 export interface InboxNotification {
   id: string;
   event_id: string | null;
-  category: "new_show" | "ticket_update" | "deadline_reminder" | "event_changed" | "cancelled";
+  category: "new_show" | "ticket_update" | "deadline_reminder" | "event_changed" | "cancelled" | "booking_confirmed";
   priority: "high" | "normal";
   title: string;
   body: string;
