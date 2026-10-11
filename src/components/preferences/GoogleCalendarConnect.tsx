@@ -19,6 +19,10 @@ type Envelope<T> = { ok: true; data: T } | { ok: false; error: { message: string
 
 const RESULT: Record<string, { tone: "success" | "error" | "warning"; text: string }> = {
   connected: { tone: "success", text: "Google Calendar connected. Your existing bookings are being added." },
+  linked: {
+    tone: "success",
+    text: "Welcome back — this device now uses your existing radar (same Google account). Artists, bookings and alerts from here were added to it.",
+  },
   denied: { tone: "warning", text: "Google Calendar wasn't connected — permission was declined." },
   scope_missing: { tone: "warning", text: "Calendar permission wasn't granted, so nothing was connected. Try again and allow calendar access." },
   state_mismatch: { tone: "error", text: "That sign-in couldn't be verified (it may have expired). Please try again." },
@@ -94,10 +98,10 @@ export function GoogleCalendarConnect() {
         <>
           <p className="text-sm text-fg-secondary">
             {conn?.status === "connected"
-              ? `Shows you book are added to your primary calendar (connected ${formatTimestamp(conn.connectedAt)}). We only ask for permission to manage events.`
+              ? `Shows you book are added to your primary calendar (connected ${formatTimestamp(conn.connectedAt)}). Using another phone or laptop? Connect Google there with the same account and your radar comes with you.`
               : conn
                 ? "Google no longer accepts our access (it was revoked or expired). Reconnect to keep adding bookings."
-                : "Add shows you book to your Google Calendar automatically. Optional — bookings work without it."}
+                : "Add shows you book to your Google Calendar automatically, and use the same radar on all your devices (connect with the same Google account on each). We ask for calendar events and your Google email only."}
           </p>
           <div className="flex flex-wrap gap-2">
             {conn?.status !== "connected" && (

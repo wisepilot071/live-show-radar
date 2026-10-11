@@ -56,10 +56,13 @@ export async function saveConnection(userId: string, t: TokenSet) {
   // Google only returns a refresh token on consent; keep the previous one otherwise.
   const refreshEnc = t.refreshToken ? encryptSecret(t.refreshToken) : (existing?.refresh_token_enc ?? null);
   await sql`
-    insert into radar.google_calendar_connections (user_id, refresh_token_enc, access_token_enc, access_expires_at, scope, status)
-    values (${userId}, ${refreshEnc}, ${encryptSecret(t.accessToken)}, ${t.expiresAt}, ${t.scope}, 'connected')
+    insert into radar.google_calendar_connections (user_id, refresh_token_enc, access_token_enc, access_expires_at, scope, status, google_sub, google_email)
+    values (${userId}, ${refreshEnc}, ${encryptSecret(t.accessToken)}, ${t.expiresAt}, ${t.scope}, 'connected',
+            ${t.identity?.sub ?? null}, ${t.identity?.email ?? null})
     on conflict (user_id) do update set refresh_token_enc = excluded.refresh_token_enc, access_token_enc = excluded.access_token_enc,
-      access_expires_at = excluded.access_expires_at, scope = excluded.scope, status = 'connected', updated_at = now()`;
+      access_expires_at = excluded.access_expires_at, scope = excluded.scope, status = 'connected',
+      google_sub = coalesce(excluded.google_sub, radar.google_calendar_connections.google_sub),
+      google_email = coalesce(excluded.google_email, radar.google_calendar_connections.google_email), updated_at = now()`;
 }
 
 export type AccessToken =

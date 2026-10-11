@@ -6,7 +6,8 @@ import { safeEqual } from "@/server/crypto";
 import { getSql } from "@/server/db";
 import { oauthClient, saveConnection } from "@/server/google-calendar";
 import { errorMessage, log } from "@/server/log";
-import { currentUserId } from "@/server/session";
+import { adoptGoogleEmail, findProfileForGoogle, mergeProfileInto } from "@/server/profile-link";
+import { currentUserId, switchSession } from "@/server/session";
 
 const STATE_COOKIE = "lsr_gcal_state";
 
@@ -45,16 +46,37 @@ export async function GET(req: Request) {
     return done("failed");
   }
   if (!tokens.value.scope.includes(CALENDAR_SCOPE)) return done("scope_missing");
-  await saveConnection(userId, tokens.value);
+
+  // Same Google account already owns another profile (e.g. your laptop)? This device
+  // switches to it, bringing along anything new from here. Nothing is deleted.
+  let profileId = userId;
+  let linked = false;
+  const identity = tokens.value.identity;
+  if (identity) {
+    try {
+      const existing = await findProfileForGoogle(identity, userId);
+      if (existing) {
+        await mergeProfileInto(userId, existing);
+        await switchSession(existing);
+        profileId = existing;
+        linked = true;
+      }
+    } catch (err) {
+      log.error("google.oauth", "profile link failed", { error: errorMessage(err) });
+    }
+  }
+  await saveConnection(profileId, tokens.value);
+  // No alert email yet? Use the Google-verified address (Google proved ownership).
+  if (identity) await adoptGoogleEmail(profileId, identity).catch(() => false);
 
   // Catch up bookings recorded before Calendar was connected (bounded; failures stay retryable).
   try {
     const pending = await getSql()<{ id: string }[]>`
-      select id from radar.bookings where user_id = ${userId} and calendar_status in ('not_connected', 'needs_reauth', 'failed')
+      select id from radar.bookings where user_id = ${profileId} and calendar_status in ('not_connected', 'needs_reauth', 'failed')
       order by confirmed_at desc limit 10`;
-    for (const b of pending) await syncBookingCalendar(userId, b.id);
+    for (const b of pending) await syncBookingCalendar(profileId, b.id);
   } catch (err) {
     log.error("google.oauth", "post-connect sync failed", { error: errorMessage(err) });
   }
-  return done("connected");
+  return done(linked ? "linked" : "connected");
 }

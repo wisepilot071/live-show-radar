@@ -8,6 +8,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import type { LiveEvent } from "@/domain/types";
 import { useBookings } from "@/features/bookings/BookingsProvider";
+import { BookingReach } from "./BookingReach";
 import { formatEventDate } from "@/lib/format";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -87,6 +88,7 @@ export function BookingButton({ event }: { event: LiveEvent }) {
             Only confirm after you&rsquo;ve bought a ticket on the seller&rsquo;s site. We&rsquo;ll add it to My Bookings
             {" "}and, if it&rsquo;s connected, to your Google Calendar — then send you a confirmation.
           </p>
+          {open && <BookingReach />}
           <p className="text-xs text-fg-muted">
             This records your own confirmation. Live Show Radar can&rsquo;t see or verify ticket purchases.
           </p>

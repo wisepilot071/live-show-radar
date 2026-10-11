@@ -78,6 +78,21 @@ export async function ensureUserId(): Promise<string> {
   return id;
 }
 
+/**
+ * Point this browser at an existing profile. Only called after the person proved
+ * they own it (signed in with the same Google account that profile connected).
+ */
+export async function switchSession(userId: string): Promise<void> {
+  if (!UUID.test(userId)) throw new Error("invalid profile id");
+  (await cookies()).set(COOKIE, `${userId}.${sign(userId)}`, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
+}
+
 /** Forget the profile cookie (used by "Reset everything"). */
 export async function clearSession(): Promise<void> {
   (await cookies()).delete(COOKIE);

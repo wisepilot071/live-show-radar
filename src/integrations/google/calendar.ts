@@ -29,7 +29,9 @@ export function authorizationUrl(client: OAuthClient, state: string): string {
   u.searchParams.set("client_id", client.clientId);
   u.searchParams.set("redirect_uri", client.redirectUri);
   u.searchParams.set("response_type", "code");
-  u.searchParams.set("scope", CALENDAR_SCOPE);
+  // openid + email: Google's account id and verified email, so the same Google
+  // account brings the person back to the same profile on any device.
+  u.searchParams.set("scope", `openid email ${CALENDAR_SCOPE}`);
   u.searchParams.set("access_type", "offline"); // refresh token
   u.searchParams.set("prompt", "consent"); // always return a refresh token
   u.searchParams.set("include_granted_scopes", "true");
@@ -42,6 +44,39 @@ export interface TokenSet {
   refreshToken?: string;
   expiresAt: Date;
   scope: string;
+  /** From the OpenID id_token (present when "openid email" was granted). */
+  identity?: GoogleIdentity;
+}
+
+export interface GoogleIdentity {
+  sub: string;
+  email?: string;
+  emailVerified: boolean;
+}
+
+/**
+ * Reads the id_token payload. The token came straight from Google's token
+ * endpoint over TLS in a server-to-server call, which OpenID Connect allows to
+ * be trusted without re-verifying the signature (OIDC Core §3.1.3.7). The
+ * issuer and audience are still checked.
+ */
+export function identityFromIdToken(idToken: unknown, clientId: string): GoogleIdentity | undefined {
+  if (typeof idToken !== "string") return undefined;
+  const part = idToken.split(".")[1];
+  if (!part) return undefined;
+  try {
+    const p = JSON.parse(Buffer.from(part, "base64url").toString("utf8")) as Record<string, unknown>;
+    const issOk = p.iss === "https://accounts.google.com" || p.iss === "accounts.google.com";
+    const audOk = p.aud === clientId || (Array.isArray(p.aud) && p.aud.includes(clientId));
+    if (!issOk || !audOk || typeof p.sub !== "string" || !p.sub) return undefined;
+    return {
+      sub: p.sub,
+      email: typeof p.email === "string" ? p.email.toLowerCase() : undefined,
+      emailVerified: p.email_verified === true || p.email_verified === "true",
+    };
+  } catch {
+    return undefined;
+  }
 }
 
 export type GoogleResult<T> =
@@ -84,7 +119,7 @@ export async function exchangeCode(client: OAuthClient, code: string, now = new 
   });
   if (!r) return { ok: false, kind: "retryable", status: 0, error: "network error or timeout" };
   const t = r.status === 200 ? tokensFrom(r.body, now) : null;
-  if (t) return { ok: true, value: t };
+  if (t) return { ok: true, value: { ...t, identity: identityFromIdToken(r.body.id_token, client.clientId) } };
   return { ok: false, kind: r.status >= 500 ? "retryable" : "rejected", status: r.status, error: String(r.body.error ?? "token exchange failed") };
 }
 
