@@ -116,7 +116,10 @@ async function generateWith(key: string, model: string, opts: GenerateOpts): Pro
           responseMimeType: "application/json",
           responseJsonSchema: opts.jsonSchema,
           temperature: 0,
-          maxOutputTokens: opts.maxOutputTokens ?? 2048,
+          // Extraction needs no hidden "thinking": with it on, thinking tokens could use up the
+          // whole budget and truncate the JSON (seen live: finishReason MAX_TOKENS).
+          maxOutputTokens: opts.maxOutputTokens ?? 8192,
+          thinkingConfig: { thinkingBudget: 0 },
           abortSignal: AbortSignal.timeout(TIMEOUT_MS),
         },
       });
