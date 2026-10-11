@@ -8,13 +8,14 @@ const motion = "transition-[opacity,transform] duration-[var(--duration-slow)] e
  * The perforation splits the stub; the coral dot is the "new signal".
  * Hover (via a parent `group`) brightens the lower arc and nudges the blip.
  */
-export function BrandGlyph({ className }: { className?: string }) {
+export function BrandGlyph({ className, onDark = false }: { className?: string; onDark?: boolean }) {
   return (
     <svg viewBox="4 10 40 28" width="40" height="28" aria-hidden className={cn("h-7 w-10", className)} fill="none">
       {/* Ink ticket so the lime ping reads on the light canvas. */}
       <path
         d="M5 12 H43 V20 A4 4 0 0 0 43 28 V36 H5 V28 A4 4 0 0 0 5 20 Z"
         fill="var(--background-ink)"
+        stroke={onDark ? "rgb(247 244 236 / 0.35)" : undefined}
         strokeLinejoin="round"
       />
       <path d="M31 14.5 V33.5" stroke="var(--text-on-ink)" strokeOpacity=".45" strokeDasharray="2 2.5" />
@@ -39,16 +40,16 @@ export function BrandGlyph({ className }: { className?: string }) {
 }
 
 /** Logo lockup. Always links home. */
-export function BrandMark({ className }: { className?: string }) {
+export function BrandMark({ className, onDark = false }: { className?: string; onDark?: boolean }) {
   return (
     <Link
       href="/"
       aria-label="Live Show Radar — home"
-      className={cn("group inline-flex min-h-11 items-center gap-2.5 text-fg", className)}
+      className={cn("group inline-flex min-h-11 items-center gap-2.5", onDark ? "text-on-ink" : "text-fg", className)}
     >
-      <BrandGlyph className={cn("-rotate-6 group-hover:rotate-0", motion)} />
+      <BrandGlyph onDark={onDark} className={cn("-rotate-6 group-hover:rotate-0", motion)} />
       <span className="font-display text-[1.05rem] leading-none font-extrabold tracking-tight">
-        Live Show <span className="text-signal-ink">Radar</span>
+        Live Show <span className={onDark ? "text-signal" : "text-signal-ink"}>Radar</span>
       </span>
     </Link>
   );

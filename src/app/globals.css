@@ -66,6 +66,16 @@
   --color-info: var(--status-info);
   --color-neutral: var(--status-neutral);
 
+  /* Landing "dusk" palette: plum night, marigold, sunset coral, stage violet. */
+  --color-dusk-950: #0e0a15;
+  --color-dusk-900: #140f1c;
+  --color-dusk-800: #1e162b;
+  --color-dusk-700: #2c2040;
+  --color-marigold: #ffc65c;
+  --color-sunset: #ff7a59;
+  --color-violet: #a98bff;
+  --color-rose: #ff7fc8;
+
   --color-line: var(--border-subtle);
   --color-line-strong: var(--border-strong);
 
@@ -98,6 +108,12 @@
   --animate-float: float 6s ease-in-out infinite;
   --animate-drift: drift 26s ease-in-out infinite alternate;
   --animate-xyloband: xyloband 4s linear infinite;
+  --animate-wave: wave 4s ease-in-out infinite;
+  --animate-marquee: marquee 60s linear infinite;
+  --animate-marquee-reverse: marquee 70s linear infinite reverse;
+  --animate-beam: beam 9s ease-in-out infinite alternate;
+  --animate-halo: halo 5s ease-in-out infinite;
+  --animate-dash: dash 1.6s linear infinite;
 
   @keyframes sweep {
     to {
@@ -182,6 +198,47 @@
     75% {
       fill: #c8f169;
       opacity: 0.95;
+    }
+  }
+  @keyframes wave {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    35% {
+      opacity: 1;
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes beam {
+    from {
+      transform: rotate(-18deg);
+    }
+    to {
+      transform: rotate(18deg);
+    }
+  }
+  @keyframes halo {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.98);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.04);
+    }
+  }
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -20;
     }
   }
   @keyframes drift {
@@ -273,6 +330,24 @@
 .on-ink .btn-ghost:hover {
   color: var(--text-on-ink);
   background: rgb(247 244 236 / 0.1);
+}
+
+/* Scroll reveal: animations inside a <Reveal> wait until it scrolls into view. */
+[data-inview="false"] .animate-draw,
+[data-inview="false"] .reveal {
+  animation-play-state: paused;
+}
+.reveal {
+  animation: rise 700ms var(--ease-out-soft) both;
+}
+/* Crowd lights pause while off screen (see CrowdLights). */
+.crowd-lights[data-playing="false"] circle {
+  animation-play-state: paused;
+}
+/* Marquee rows pause while hovered or focused. */
+.marquee-row:hover > *,
+.marquee-row:focus-within > * {
+  animation-play-state: paused;
 }
 
 /* Poster grain: a static noise texture for depth, not motion. */

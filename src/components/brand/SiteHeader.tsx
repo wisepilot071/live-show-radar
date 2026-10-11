@@ -23,9 +23,9 @@ export function SiteHeader() {
   const cta = useRadarCta();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/85 backdrop-blur-md">
+    <header className="on-ink sticky top-0 z-40 border-b border-on-ink/10 bg-dusk-900/80 text-on-ink backdrop-blur-md">
       <Container width="wide" className="flex min-h-16 items-center justify-between gap-4">
-        <BrandMark />
+        <BrandMark onDark />
 
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
           {NAV.map((item) => (
@@ -40,7 +40,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="grid size-11 place-items-center rounded-md text-fg hover:bg-surface md:hidden"
+          className="grid size-11 place-items-center rounded-md text-on-ink hover:bg-on-ink/10 md:hidden"
           aria-expanded={open}
           aria-controls={menuId}
           aria-label={open ? "Close menu" : "Open menu"}
@@ -50,7 +50,7 @@ export function SiteHeader() {
         </button>
       </Container>
 
-      <nav id={menuId} aria-label="Main" hidden={!open} className="border-t border-line/60 bg-canvas md:hidden">
+      <nav id={menuId} aria-label="Main" hidden={!open} className="border-t border-on-ink/10 bg-dusk-900 md:hidden">
         <Container width="wide" className="flex flex-col gap-1 py-3">
           {NAV.map((item) => (
             <NavLink key={item.href} href={item.href} active={pathname === item.href} onNavigate={() => setOpen(false)}>
@@ -84,7 +84,7 @@ function NavLink({
       onClick={onNavigate}
       className={cn(
         "inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors",
-        active ? "text-fg" : "text-fg-secondary hover:bg-surface hover:text-fg",
+        active ? "text-marigold" : "text-on-ink/75 hover:bg-on-ink/10 hover:text-on-ink",
       )}
     >
       {children}

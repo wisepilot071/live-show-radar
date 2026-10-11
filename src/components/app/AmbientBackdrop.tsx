@@ -22,11 +22,11 @@ export function AmbientBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div
-        className="absolute -top-[20%] -left-[15%] h-[70vh] w-[70vw] animate-drift rounded-full blur-3xl transition-[background] duration-1000"
+        className="absolute -top-[20%] -left-[15%] h-[70vh] w-[70vw] animate-drift rounded-full will-change-transform blur-3xl transition-[background] duration-1000"
         style={{ background: `radial-gradient(closest-side, ${tint.a}, transparent)` }}
       />
       <div
-        className="absolute -right-[20%] -bottom-[25%] h-[75vh] w-[65vw] animate-drift rounded-full blur-3xl transition-[background] duration-1000 [animation-delay:-13s]"
+        className="absolute -right-[20%] -bottom-[25%] h-[75vh] w-[65vw] animate-drift rounded-full will-change-transform blur-3xl transition-[background] duration-1000 [animation-delay:-13s]"
         style={{ background: `radial-gradient(closest-side, ${tint.b}, transparent)` }}
       />
     </div>
