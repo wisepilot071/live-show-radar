@@ -154,7 +154,7 @@ export function LiveOnStage({
         )}
       </div>
 
-      {load.phase === "waiting" && <StageSkeleton />}
+      {load.phase === "waiting" && <StageSkeleton loading={visible} />}
       {load.phase === "error" && (
         <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface p-4 text-sm text-fg-secondary">
           <span className="flex-1">Performance videos couldn&rsquo;t load right now. Everything else on your radar works as normal.</span>
@@ -345,10 +345,19 @@ function IconButton({ label, disabled, onClick, children }: { label: string; dis
   );
 }
 
-/** Same shape as the loaded stage, so nothing jumps when it arrives. */
-function StageSkeleton() {
+/**
+ * Same shape as the loaded stage, so nothing jumps when it arrives. Only says
+ * "Loading" while a request is actually running (the list loads when the
+ * section scrolls near; before that nothing has been requested).
+ */
+function StageSkeleton({ loading }: { loading: boolean }) {
   return (
-    <div role="status" aria-label="Loading performances…" className="rounded-[1.75rem] bg-ink p-3 sm:p-5 lg:p-6">
+    <div
+      role={loading ? "status" : undefined}
+      aria-label={loading ? "Loading performances…" : undefined}
+      aria-hidden={loading ? undefined : true}
+      className="rounded-[1.75rem] bg-ink p-3 sm:p-5 lg:p-6"
+    >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           <Skeleton tone="ink" className="aspect-video w-full rounded-xl" />
@@ -367,7 +376,7 @@ function StageSkeleton() {
           ))}
         </div>
       </div>
-      <span className="sr-only">Loading performances…</span>
+      {loading && <span className="sr-only">Loading performances…</span>}
     </div>
   );
 }

@@ -86,7 +86,7 @@ export function SavedShows() {
           title="Nothing saved yet"
           action={<ButtonLink href="/radar">Go to your radar</ButtonLink>}
         >
-          Tap <span className="font-semibold text-fg">Save</span> on any show to keep it here. Saved shows stay{" "}
+          Tap <span className="font-semibold text-on-ink">Save</span> on any show to keep it here. Saved shows stay{" "}
           {mode === "server" ? "in your profile." : "in this browser."}
         </EmptyState>
       ) : (
