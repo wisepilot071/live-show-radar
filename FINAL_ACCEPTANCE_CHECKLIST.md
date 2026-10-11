@@ -146,7 +146,7 @@
 
 ## Redesign release (2026-10-11)
 
-- **Onboarding.** Picking artists, then **Continue to Live Show Radar**, saves and opens `/radar`. There is no review step. Saving comes first: queued artist writes are flushed, then completion goes through the existing `PUT /api/me/preferences`. Navigation happens only if both succeed, otherwise the user sees an error and can retry. Covered by `tests/unit/redesign.test.ts` and verified on production in Chrome.
+- **Onboarding.** Artists, then cities, then alerts, then **Continue to Live Show Radar** opens `/radar`. There is no review step. (Cities and alerts were restored at the user's request after the first redesign deploy.) Saving comes first: queued artist writes are flushed, then completion goes through the existing `PUT /api/me/preferences`. Navigation happens only if both succeed, otherwise the user sees an error and can retry. Covered by `tests/unit/redesign.test.ts` and verified on production in Chrome.
 - **Returning users.** Completed users opening onboarding are sent to `/radar`. Verified on production.
 - **Discovery.** Sections and filters are built from real events only. Filters were verified to change results; unit-tested.
 - **Backend.** No changes to `src/server`, `src/app/api`, `db/`, `vercel.json` or env (checked with `git diff --name-only`). Production API journey passes 19/19 after the deploy, and the cron is still registered (`30 1 * * *`, 401 without its secret).

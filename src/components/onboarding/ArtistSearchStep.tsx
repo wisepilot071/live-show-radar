@@ -1,16 +1,16 @@
 "use client";
 
 import { Users } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { ArtistSearchPanel } from "@/components/artists/ArtistSearchPanel";
 import { Card } from "@/components/ui/Card";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 import { artistIdentityKey } from "@/domain/artist-identity";
 import type { Artist } from "@/domain/types";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
-import { finishOnboarding } from "@/features/onboarding/finish";
-import { ONBOARDING_DONE_PATH, previousStep } from "@/features/onboarding/steps";
+import { previousStep, STEPS } from "@/features/onboarding/steps";
+import { useOnboardingSubmit } from "@/features/onboarding/useOnboardingSubmit";
 import { pluralize } from "@/lib/format";
 import { SelectedArtistChips } from "./SelectedArtistList";
 import { StepLayout, StepNav } from "./StepLayout";
@@ -25,12 +25,9 @@ function syncQueryToUrl(query: string) {
 
 export function ArtistSearchStep() {
   const params = useSearchParams();
-  const router = useRouter();
-  const { state, dispatch, run, flush } = useOnboarding();
+  const { state, dispatch } = useOnboarding();
   const [announcement, setAnnouncement] = useState("");
-  const [finishing, setFinishing] = useState(false);
-  const [finishError, setFinishError] = useState<string | null>(null);
-  const inFlight = useRef(false);
+  const submit = useOnboardingSubmit();
 
   const selectedKeys = useMemo(() => new Set(state.selections.map((s) => artistIdentityKey(s.artist))), [state.selections]);
 
@@ -50,33 +47,12 @@ export function ArtistSearchStep() {
   const back = previousStep(state.method, "artists");
   const count = state.selections.length;
 
-  // Save first, navigate only after the server confirms; one submission at a time.
-  async function finish() {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setFinishing(true);
-    setFinishError(null);
-    const result = await finishOnboarding({
-      method: state.method,
-      artistCount: count,
-      run,
-      flush,
-      navigate: (path) => router.push(path),
-      donePath: ONBOARDING_DONE_PATH,
-    });
-    if (!result.ok) {
-      setFinishError(result.message);
-      setFinishing(false);
-      inFlight.current = false;
-    }
-  }
-
   return (
     <StepLayout
       width="default"
       eyebrow={state.method === "mix" ? "Mix both · Part 2 of 2" : "Choose artists"}
       title="Who would you hate to miss?"
-      description="Pick a few to start — you can add the rest any time. When you continue, we save them and open your radar."
+      description="Pick a few to start — you can add the rest any time. Next: your cities and what's worth an alert."
       footer={
         <StepNav
           backHref={back?.path ?? "/"}
@@ -88,10 +64,10 @@ export function ArtistSearchStep() {
           }
           next={{
             kind: "action",
-            label: finishing ? "Saving your artists…" : "Continue to Live Show Radar",
-            onClick: () => void finish(),
+            label: submit.busy ? "Saving your artists…" : "Continue",
+            onClick: () => void submit.advance(STEPS.location.path),
             disabled: count === 0,
-            loading: finishing,
+            loading: submit.busy,
           }}
         />
       }
@@ -100,9 +76,9 @@ export function ArtistSearchStep() {
         {announcement}
       </p>
 
-      {finishError && (
-        <InlineAlert tone="error" live title="We couldn't open your radar yet" className="mb-6">
-          {finishError} Your selected artists are still here.
+      {submit.error && (
+        <InlineAlert tone="error" live title="Your artists didn't all save" className="mb-6">
+          {submit.error} Your selected artists are still here.
         </InlineAlert>
       )}
 

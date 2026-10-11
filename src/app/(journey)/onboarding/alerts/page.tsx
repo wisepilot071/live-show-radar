@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import { AlertsStep } from "@/components/onboarding/AlertsStep";
 
-/** Alert choices are no longer an onboarding step; they're edited in Settings. */
 export default function AlertsPage() {
-  redirect("/settings#alerts");
+  return <AlertsStep />;
 }

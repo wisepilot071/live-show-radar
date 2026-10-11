@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import { LocationStep } from "@/components/onboarding/LocationStep";
 
-/** Cities are no longer an onboarding step; they're edited in Settings. */
 export default function LocationPage() {
-  redirect("/settings#location");
+  return <LocationStep />;
 }

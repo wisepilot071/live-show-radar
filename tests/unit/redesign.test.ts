@@ -10,18 +10,21 @@ import { nextStep, previousStep, stepSequence } from "@/features/onboarding/step
 /* Onboarding: no review step, save before navigating                  */
 /* ------------------------------------------------------------------ */
 
-describe("onboarding steps: artist selection is the last step", () => {
-  it("no path contains a review (or any post-selection) step", () => {
+describe("onboarding steps: artists → cities → alerts, no review step", () => {
+  it("no path contains a review step; every path ends with artists, cities, alerts", () => {
     for (const m of [null, "manual", "spotify", "mix"] as const) {
-      const seq = stepSequence(m);
-      expect(seq.at(-1)).toBe("artists");
+      const seq = stepSequence(m) as string[];
+      expect(seq.slice(-3)).toEqual(["artists", "location", "alerts"]);
       expect(seq).not.toContain("review");
+      expect(seq).not.toContain("status");
     }
-    expect(stepSequence(null)).toEqual(["artists"]);
+    expect(stepSequence(null)).toEqual(["artists", "location", "alerts"]);
   });
-  it("method → artists, and artists has nothing after it", () => {
+  it("artists goes straight to cities; alerts is the last step (then the radar)", () => {
     expect(nextStep("manual", "method")?.path).toBe("/onboarding/artists");
-    expect(nextStep("manual", "artists")).toBeNull();
+    expect(nextStep(null, "artists")?.path).toBe("/onboarding/location");
+    expect(nextStep(null, "location")?.path).toBe("/onboarding/alerts");
+    expect(nextStep(null, "alerts")).toBeNull();
     expect(previousStep(null, "artists")).toBeNull(); // entry step: back goes home
   });
 });
