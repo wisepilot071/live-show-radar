@@ -24,7 +24,8 @@ export interface ServerEnv {
   sessionSecret?: string;
   /** Bearer token for POST /api/admin/discovery (Part 4 scheduler uses it). */
   discoveryAdminToken?: string;
-  gemini: { apiKey?: string; model: string; fallbackModel?: string };
+  /** apiKeys: GEMINI_API_KEY first, then GEMINI_API_KEYS (comma-separated backups), de-duplicated. */
+  gemini: { apiKey?: string; apiKeys: string[]; model: string; fallbackModel?: string };
   musicbrainz: { enabled: boolean; contact?: string };
   ticketmaster: { apiKey?: string };
   /** ScrapingBee Google News search (announcement discovery); 10 credits per search. */
@@ -56,7 +57,8 @@ export function getServerEnv(): ServerEnv {
     sessionSecret: read("SESSION_SECRET"),
     discoveryAdminToken: read("DISCOVERY_ADMIN_TOKEN"),
     gemini: {
-      apiKey: read("GEMINI_API_KEY"),
+      apiKey: read("GEMINI_API_KEY") ?? (read("GEMINI_API_KEYS") ?? "").split(",").map((k) => k.trim()).find(Boolean),
+      apiKeys: [...new Set([read("GEMINI_API_KEY"), ...(read("GEMINI_API_KEYS") ?? "").split(",").map((k) => k.trim())].filter((k): k is string => Boolean(k)))],
       model: read("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL,
       fallbackModel: read("GEMINI_FALLBACK_MODEL"),
     },

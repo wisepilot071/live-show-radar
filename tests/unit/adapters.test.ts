@@ -22,7 +22,12 @@ vi.mock("@google/genai", async (orig) => {
   return {
     ...real,
     GoogleGenAI: class {
-      models = { generateContent: (...a: unknown[]) => generateContent(...a) };
+      private key: string;
+      constructor(o: { apiKey: string }) {
+        this.key = o.apiKey;
+      }
+      // The second argument records which API key served the call.
+      models = { generateContent: (req: unknown) => generateContent(req, this.key) };
     },
   };
 });
@@ -157,4 +162,31 @@ describe("Gemini client (mocked SDK)", () => {
     await expect(generateJson(opts)).rejects.toMatchObject({ category: "ai_unavailable" });
     expect(generateContent).toHaveBeenCalledTimes(1);
   });
+
+  it("key failover: a rejected key (401) moves to the next key; a later call skips the rejected one", async () => {
+    process.env.GEMINI_API_KEY = "TEST-KEY-A";
+    process.env.GEMINI_API_KEYS = "TEST-KEY-B,TEST-KEY-C";
+    process.env.GEMINI_FALLBACK_MODEL = "";
+    generateContent
+      .mockRejectedValueOnce(new ApiError({ message: "API key expired", status: 401 }))
+      .mockResolvedValueOnce({ text: '{"ok":1}' })
+      .mockResolvedValueOnce({ text: '{"ok":2}' });
+    expect((await generateJson(opts)).json).toEqual({ ok: 1 });
+    expect((await generateJson(opts)).json).toEqual({ ok: 2 });
+    expect(generateContent.mock.calls.map((c) => c[1])).toEqual(["TEST-KEY-A", "TEST-KEY-B", "TEST-KEY-B"]);
+  });
+
+  it("rate limits (429) do NOT rotate keys; all keys rejected → explicit error", async () => {
+    process.env.GEMINI_API_KEY = "TEST-KEY-D";
+    process.env.GEMINI_API_KEYS = "TEST-KEY-E";
+    process.env.GEMINI_FALLBACK_MODEL = "";
+    generateContent.mockRejectedValue(new ApiError({ message: "quota", status: 429 }));
+    await expect(generateJson(opts)).rejects.toMatchObject({ category: "ai_rate_limited" });
+    expect(new Set(generateContent.mock.calls.map((c) => c[1]))).toEqual(new Set(["TEST-KEY-D"]));
+    generateContent.mockReset();
+    generateContent.mockRejectedValue(new ApiError({ message: "API_KEY_INVALID", status: 400 }));
+    await expect(generateJson(opts)).rejects.toMatchObject({ category: "ai_unavailable", message: expect.stringContaining("Every configured") });
+    expect(generateContent.mock.calls.map((c) => c[1])).toEqual(["TEST-KEY-D", "TEST-KEY-E"]);
+    delete process.env.GEMINI_API_KEYS;
+  }, 20_000);
 });
