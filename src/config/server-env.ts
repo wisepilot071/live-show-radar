@@ -29,7 +29,7 @@ export interface ServerEnv {
   musicbrainz: { enabled: boolean; contact?: string };
   ticketmaster: { apiKey?: string };
   /** ScrapingBee Google News search (announcement discovery); 10 credits per search. */
-  scrapingbee: { apiKey?: string; maxArtistsPerRun: number };
+  scrapingbee: { apiKey?: string; maxArtistsPerRun: number; sweepCities: string[] };
   bandsintown: { appId?: string };
   /** Vercel Cron sends "Authorization: Bearer $CRON_SECRET". */
   cronSecret?: string;
@@ -75,7 +75,9 @@ export function getServerEnv(): ServerEnv {
     ticketmaster: { apiKey: read("TICKETMASTER_API_KEY") },
     scrapingbee: {
       apiKey: read("SCRAPINGBEE_API_KEY"),
-      maxArtistsPerRun: Math.min(50, Math.max(1, Number(read("SCRAPINGBEE_MAX_ARTISTS_PER_RUN") ?? 8) || 8)),
+      maxArtistsPerRun: Math.min(50, Math.max(1, Number(read("SCRAPINGBEE_MAX_ARTISTS_PER_RUN") ?? 3) || 3)),
+      // Cities swept daily for every target artist's shows (comma-separated).
+      sweepCities: (read("NEWS_SWEEP_CITIES") ?? "Bengaluru").split(",").map((c) => c.trim()).filter(Boolean),
     },
     bandsintown: { appId: read("BANDSINTOWN_APP_ID") },
     cronSecret: read("CRON_SECRET"),

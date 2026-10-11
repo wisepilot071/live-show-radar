@@ -9,7 +9,6 @@ import {
   Radio,
   RotateCw,
   SlidersHorizontal,
-  Sparkles,
   Ticket,
   Users,
   X,
@@ -20,13 +19,14 @@ import { EventCard } from "@/components/events/EventCard";
 import { HeroBackdrop } from "@/components/media/HeroBackdrop";
 import { CrowdLights } from "@/components/media/CrowdLights";
 import { DoodleArt, NightSky, type Doodle } from "@/components/media/NightSky";
+import { focusByCity } from "@/features/discovery/city-focus";
+import { CityUpcoming } from "./CityUpcoming";
 import { LiveOnStage } from "@/components/media/LiveOnStage";
 import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 import { StatusBadge, type StatusTone } from "@/components/ui/StatusBadge";
-import { ILLUSTRATIVE_EVENTS } from "@/data/illustrative-events";
 import { artistIdentityKey } from "@/domain/artist-identity";
 import { cityLabel, INITIAL_CITIES } from "@/domain/cities";
 import type { DiscoveryReport, LiveEvent } from "@/domain/types";
@@ -48,7 +48,6 @@ export function RadarDashboard() {
   const now = useNow();
   const situation: DashboardSituation =
     !hydrated || !now ? { kind: "loading" } : deriveDashboard(state, discovery, now);
-  const savedIds = new Set(state.savedEvents.map((s) => s.eventId));
   const report = "report" in situation ? situation.report : undefined;
   const failedSources = report?.sources.filter((s) => s.outcome === "failed") ?? [];
   const busy = discovery.phase === "loading";
@@ -165,7 +164,7 @@ export function RadarDashboard() {
           title="Your radar is saved in this browser. Live discovery needs server storage."
           body={`Your ${pluralize(state.selections.length, "artist")} and cities are saved here, but this server's database isn't configured or reachable, so discovered shows can't be stored or shown. Nothing has been checked — this is empty for that reason, not because your artists have no shows.`}
           action={
-            <ButtonLink href="#illustrative-preview" variant="ghost">
+            <ButtonLink href="/explore" variant="ghost">
               See how shows will look
             </ButtonLink>
           }
@@ -200,7 +199,7 @@ export function RadarDashboard() {
               <ButtonLink href="/settings" variant="secondary" leadingIcon={<SlidersHorizontal aria-hidden className="size-4" />}>
                 Adjust preferences
               </ButtonLink>
-              <ButtonLink href="#illustrative-preview" variant="ghost">
+              <ButtonLink href="/explore" variant="ghost">
                 See how shows will look
               </ButtonLink>
             </div>
@@ -269,11 +268,12 @@ export function RadarDashboard() {
         </>
       )}
 
+      {hydrated && mode === "server" && <CityUpcoming />}
+
       {hydrated && <LiveOnStage />}
 
       {hydrated && mode === "server" && state.selections.length > 0 && <AnnouncementIntake onExtracted={retry} />}
 
-      {hydrated && <IllustrativePreview savedIds={savedIds} />}
     </Container>
   );
 }
@@ -493,8 +493,12 @@ function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
   const { state } = useOnboarding();
   const now = useNow();
   const [filters, setFilters] = useState<DiscoveryFilters>(DEFAULT_FILTERS);
+  const [everyCity, setEveryCity] = useState(false);
   if (!now) return null;
-  const filtered = applyFilters(events, filters, { selections: state.selections, now });
+  // One city per artist: your home city, else Bengaluru, else other cities in the next 2 months.
+  const focus = focusByCity(events, state.location.primaryCityId, now);
+  const focused = everyCity ? events : focus.events;
+  const filtered = applyFilters(focused, filters, { selections: state.selections, now });
   const sections = buildSections(filtered, state.location, now);
   const savedIds = new Set(state.savedEvents.map((s) => s.eventId));
   const city = cityLabel(state.location.primaryCityId).split(",")[0];
@@ -503,6 +507,18 @@ function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
   return (
     <div className="space-y-12">
       <FilterBar filters={filters} onChange={setFilters} count={filtered.length} total={events.length} />
+      {focus.hidden > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/80 px-4 py-3 text-sm shadow-card backdrop-blur-sm">
+          <p className="text-fg-secondary">
+            {everyCity
+              ? `Showing every city (${pluralize(events.length, "show")}).`
+              : `One city per artist: ${city} first${state.location.primaryCityId === "bengaluru" ? "" : ", then Bengaluru"}, then other cities in the next 2 months. ${pluralize(focus.hidden, "other show")} hidden.`}
+          </p>
+          <Button variant="secondary" onClick={() => setEveryCity((v) => !v)}>
+            {everyCity ? "Show one city per artist" : "Show every city"}
+          </Button>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-line-strong p-6">
@@ -728,40 +744,3 @@ function EventSection({
   );
 }
 
-function IllustrativePreview({ savedIds }: { savedIds: Set<string> }) {
-  const { state } = useOnboarding();
-  return (
-    <section
-      id="illustrative-preview"
-      aria-labelledby="illustrative-title"
-      className="scroll-mt-20 space-y-5 rounded-xl border border-dashed border-line-strong p-4 sm:p-6"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <h2 id="illustrative-title" className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight">
-            <Sparkles aria-hidden className="size-5 text-fg-secondary" />
-            Illustrative preview — not live concert data
-          </h2>
-          <p className="max-w-2xl text-sm text-fg-secondary">
-            Fictional artists and venues showing every kind of card your radar can show. None of these shows exist and
-            none come from an event source. You can save them to try Saved shows; they stay labelled as examples.
-          </p>
-        </div>
-        <StatusBadge tone="example" label="Examples" className="self-start" />
-      </div>
-      <ul className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {ILLUSTRATIVE_EVENTS.map((e) => (
-          <li key={e.id}>
-            <EventCard
-              event={e}
-              location={state.location}
-              detailHref={`/radar/events/${e.id}`}
-              saved={savedIds.has(e.id)}
-              actions={<EventActions event={e} />}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}

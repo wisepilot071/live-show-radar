@@ -58,6 +58,18 @@ async function loadArtists(scope: { userId?: string; artistListKey?: string }): 
   return rows.map((r) => ({ artistId: r.id, name: r.name, aliases: r.aliases, musicbrainzId: r.musicbrainz_id ?? undefined }));
 }
 
+/** Adds the curated catalogue artists (deduplicated by id). */
+async function withCatalogue(artists: SourceArtistRef[]): Promise<SourceArtistRef[]> {
+  const rows = await getSql()<{ id: string; name: string; aliases: string[]; musicbrainz_id: string | null }[]>`
+    select distinct a.id, a.name, a.aliases, a.musicbrainz_id from radar.artists a
+    join radar.curated_artist_lists l on l.artist_id = a.id`;
+  const byId = new Map(artists.map((a) => [a.artistId, a]));
+  for (const r of rows) {
+    if (!byId.has(r.id)) byId.set(r.id, { artistId: r.id, name: r.name, aliases: r.aliases, musicbrainzId: r.musicbrainz_id ?? undefined });
+  }
+  return [...byId.values()];
+}
+
 async function dueArtists(source: EventSourceAdapter, artists: SourceArtistRef[], cap: number): Promise<SourceArtistRef[]> {
   const eligible = artists.filter((a) => source.canLookUp(a));
   if (eligible.length === 0) return [];
@@ -79,6 +91,7 @@ async function runSource(
   trigger: "user" | "admin" | "schedule",
   userId: string | undefined,
   deadline: number,
+  targeted = false,
 ): Promise<SourceRunSummary> {
   const sql = getSql();
   const summary: SourceRunSummary = {
@@ -102,7 +115,7 @@ async function runSource(
   } else {
     let outcome;
     try {
-      outcome = await source.fetchForArtists(artists, { deadline });
+      outcome = await source.fetchForArtists(artists, { deadline, targeted });
     } catch (err) {
       log.error("discovery", "adapter threw", { source: source.id, error: errorMessage(err) });
       outcome = { ok: false as const, category: "internal" as const, message: "Unexpected adapter error" };
@@ -188,11 +201,16 @@ export async function runDiscovery(opts: {
     const deadline = Date.now() + (opts.timeBudgetMs ?? TIME_BUDGET_MS);
     const summaries: SourceRunSummary[] = [];
     for (const source of sources) {
-      // A targeted admin re-check skips the recheck-interval throttle.
+      // A targeted re-check skips the recheck-interval throttle. Sources that pick their own
+      // artists (news: daily city sweep + a few per-artist searches) get every target,
+      // including the curated catalogue, so a catalogue artist's show is found even before
+      // anyone follows them.
       const due = opts.artistIds
         ? artists.filter((a) => source.canLookUp(a))
-        : await dueArtists(source, artists, opts.maxArtistsPerSource ?? MAX_ARTISTS_PER_SOURCE);
-      summaries.push(await runSource(source, due, opts.trigger, opts.userId, deadline));
+        : source.selectsOwnArtists
+          ? (await withCatalogue(artists)).filter((a) => source.canLookUp(a))
+          : await dueArtists(source, artists, opts.maxArtistsPerSource ?? MAX_ARTISTS_PER_SOURCE);
+      summaries.push(await runSource(source, due, opts.trigger, opts.userId, deadline, Boolean(opts.artistIds)));
     }
     const coverable = new Set(artists.filter((a) => sources.some((s) => s.canLookUp(a))).map((a) => a.artistId));
     return { status: "completed" as const, sources: summaries, artistsWithoutCoverage: artists.length - coverable.size };

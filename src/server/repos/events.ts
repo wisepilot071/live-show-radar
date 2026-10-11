@@ -205,3 +205,25 @@ export async function getEventById(id: string, viewerId: string | null, now = ne
   const [event] = await hydrate(rows, now);
   return event ?? null;
 }
+
+/**
+ * Upcoming shows in one city within the next `days` days, for ANY artist we track
+ * (the curated catalogue and everyone's follows) — not only the viewer's artists.
+ */
+export async function listCityEvents(cityId: string, days: number, viewerId: string | null, now = new Date()): Promise<LiveEvent[]> {
+  const sql = getSql();
+  const rows = await sql<EventRow[]>`
+    select ${EVENT_COLUMNS(sql)}
+    from radar.events e
+    join radar.event_artists ea on ea.event_id = e.id
+    join radar.artists a on a.id = ea.artist_id
+    where e.city_id = ${cityId}
+      and e.event_status <> 'cancelled'
+      and e.local_date >= (now() at time zone 'Asia/Kolkata')::date
+      and e.local_date <= (now() at time zone 'Asia/Kolkata')::date + ${days}::int
+      and ${visibleTo(sql, viewerId)}
+    group by e.id
+    order by e.local_date, e.starts_at nulls last
+    limit 60`;
+  return hydrate(rows, now);
+}

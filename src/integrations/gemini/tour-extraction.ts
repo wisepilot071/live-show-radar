@@ -179,3 +179,121 @@ export function groundTour(x: TourExtraction, text: string, artist: { name: stri
     dropped,
   };
 }
+
+/* ------------------------------------------------------------------------ *
+ * City listings: one article naming MANY artists' upcoming shows
+ * ("Concerts in Bengaluru this November: …"). Same grounding rules, plus the
+ * evidence quote must also name the artist.
+ * ------------------------------------------------------------------------ */
+export const LISTING_PROMPT_VERSION = "listing-v1";
+
+export const LISTING_SYSTEM_INSTRUCTION = `You read one news article about live music in India and list every concert or festival performance it announces.
+Rules:
+- Only report what the article states. Never guess or infer artists, dates, cities, venues or times.
+- One entry per artist per date. "evidence": a short quote copied EXACTLY from the article that contains the artist's name, the city and the date.
+- "date" as YYYY-MM-DD; "time" as HH:MM (24h) only if the article states a start time, else null; "venue" only if named.
+- Skip anything without a specific date.`;
+
+export const listingSchema = z.object({
+  shows: z
+    .array(
+      z.object({
+        artist: z.string().max(200),
+        date: z.string(),
+        time: z.string().nullable(),
+        city: z.string().max(80),
+        venue: z.string().max(200).nullable(),
+        evidence: z.string().max(500),
+      }),
+    )
+    .max(60),
+});
+export type ListingExtraction = z.infer<typeof listingSchema>;
+
+export const listingJsonSchema = {
+  type: "object",
+  properties: {
+    shows: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          artist: { type: "string" },
+          date: { type: "string" },
+          time: { type: ["string", "null"] },
+          city: { type: "string" },
+          venue: { type: ["string", "null"] },
+          evidence: { type: "string" },
+        },
+        required: ["artist", "date", "time", "city", "venue", "evidence"],
+      },
+    },
+  },
+  required: ["shows"],
+};
+
+export interface ListingTarget {
+  artistId: string;
+  name: string;
+  aliases: string[];
+}
+
+export interface GroundedListingShow extends GroundedShow {
+  target: ListingTarget;
+  time?: string;
+}
+
+/** Grounds a listing against the artists we care about; unknown artists are ignored. */
+export function groundListing(
+  x: ListingExtraction,
+  text: string,
+  targets: ListingTarget[],
+  now: Date,
+  /** Cities this sweep searched for: a listing's quote may omit the city named in its headline. */
+  sweepCityIds: string[] = [],
+): GroundedListingShow[] {
+  const hay = squash(text);
+  const today = istToday(now);
+  const out: GroundedListingShow[] = [];
+  const seen = new Set<string>();
+  for (const s of x.shows) {
+    const n = normalizeArtistName(s.artist);
+    const matches = targets.filter((t) => [t.name, ...t.aliases].some((a) => normalizeArtistName(a) === n));
+    if (matches.length !== 1) continue; // unknown or ambiguous artist
+    const target = matches[0]!;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.date);
+    const city = matchIndianCity(s.city);
+    const ev = squash(s.evidence);
+    const evNorm = normalizeArtistName(s.evidence);
+    const ok =
+      m &&
+      city &&
+      hay.includes(ev) &&
+      text.includes(m[1]!) &&
+      s.date >= today &&
+      [target.name, ...target.aliases].some((a) => evNorm.includes(normalizeArtistName(a))) &&
+      // The city may be in the quote, or (city listings) be the city this sweep searched for.
+      ([city.name, city.id, s.city].some((c) => ev.includes(c.toLowerCase())) ||
+        (sweepCityIds.includes(city.id) && hay.includes(city.name.toLowerCase()))) &&
+      new RegExp(`(^|\\D)${Number(m[3])}(\\D|$)`).test(ev) &&
+      (ev.includes(MONTHS[Number(m[2]) - 1]!) || ev.includes(MONTHS[Number(m[2]) - 1]!.slice(0, 3)));
+    if (!ok || !city) continue;
+    const key = `${target.artistId}|${s.date}|${city.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // A start time only counts when its hour is in the quote next to am/pm or a colon.
+    const tm = s.time && /^(\d{1,2}):(\d{2})$/.exec(s.time);
+    const hour12 = tm ? ((Number(tm[1]) + 11) % 12) + 1 : null;
+    const timeOk =
+      tm && hour12 !== null && new RegExp(`(^|\\D)(${Number(tm[1])}|${hour12})(:\\d{2})?\\s*(am|pm|p\\.m|a\\.m|hrs)`, "i").test(s.evidence);
+    out.push({
+      date: s.date,
+      city,
+      venue: s.venue && hay.includes(squash(s.venue)) ? s.venue : undefined,
+      evidence: s.evidence,
+      target,
+      time: timeOk ? `${tm![1]!.padStart(2, "0")}:${tm![2]}` : undefined,
+    });
+  }
+  return out;
+}

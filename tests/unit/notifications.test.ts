@@ -77,8 +77,11 @@ describe("decide: preferences, scope and verification", () => {
     expect(decide(input({}, { triggers: { new_announcement: false } }))).toEqual({ notify: false, skip: "trigger_disabled" });
   });
   it("city preferences: out-of-city allowed by default, suppressed when turned off or out of scope", () => {
-    const chennai = event({ cityId: "chennai", cityName: "Chennai" });
+    const soon = { date: "2026-12-10", startsAt: "2026-12-10T14:00:00.000Z", timeZone: "Asia/Kolkata" };
+    const chennai = event({ cityId: "chennai", cityName: "Chennai", when: soon });
     expect(decide(input({ event: chennai })).notify).toBe(true);
+    // Other city, more than 2 months away: skipped (Discover shows it under "every city" only).
+    expect(decide(input({ event: event({ cityId: "chennai", cityName: "Chennai" }) }))).toEqual({ notify: false, skip: "other_city_beyond_window" });
     expect(decide(input({ event: chennai }, { triggers: { outside_primary_city: false } }))).toEqual({ notify: false, skip: "outside_city_disabled" });
     expect(decide(input({ event: chennai }, { location: { primaryCityId: "bengaluru", additionalCityIds: [], includeNationwide: false } }))).toEqual({
       notify: false,

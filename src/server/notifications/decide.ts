@@ -1,3 +1,5 @@
+import { matchIndianCity } from "@/domain/cities";
+import { FALLBACK_CITY_ID, OTHER_CITY_WINDOW_DAYS } from "@/features/discovery/city-focus";
 import { deriveEventSignals, isInLocationScope } from "@/domain/event-signals";
 import type { SourceClass } from "@/domain/freshness";
 import type { AlertTrigger, LiveEvent, LocationPreference } from "@/domain/types";
@@ -138,6 +140,17 @@ export function decide(input: DecisionInput): Decision {
     return { notify: false, skip: "outside_city_disabled" };
   }
   if (user.triggers[TRIGGER_FOR[kind]] === false) return { notify: false, skip: "trigger_disabled" };
+  // Same focus as Discover: a new show outside your cities alerts only if it's in Bengaluru
+  // or within the next 2 months (a 9-city tour shouldn't send 9 alerts).
+  if (kind === "new_show" && !user.savedEvent) {
+    const cityId = e.cityId ?? matchIndianCity(e.cityName)?.id;
+    const start = e.when.startsAt ? Date.parse(e.when.startsAt) : e.when.date ? Date.parse(`${e.when.date}T12:00:00Z`) : NaN;
+    const farAway = Number.isFinite(start) && start > now.getTime() + OTHER_CITY_WINDOW_DAYS * 86_400_000;
+    const preferred = cityId === user.location.primaryCityId || cityId === FALLBACK_CITY_ID || (!!cityId && user.location.additionalCityIds.includes(cityId));
+    if (!preferred && farAway) {
+      return { notify: false, skip: "other_city_beyond_window" };
+    }
+  }
 
   // Only fresh, verified information may produce a notification.
   if (TICKET_KINDS.has(kind)) {

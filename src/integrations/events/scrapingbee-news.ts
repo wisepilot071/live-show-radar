@@ -3,7 +3,15 @@ import { getServerEnv } from "@/config/server-env";
 import { normalizeArtistName } from "@/domain/artist-identity";
 import { matchIndianCity } from "@/domain/cities";
 import type { Extraction } from "@/integrations/gemini/announcement-extraction";
-import { articleText, groundTour, pickTicketLinks, type GroundedShow, type TourExtraction } from "@/integrations/gemini/tour-extraction";
+import {
+  articleText,
+  groundListing,
+  groundTour,
+  pickTicketLinks,
+  type GroundedShow,
+  type ListingExtraction,
+  type TourExtraction,
+} from "@/integrations/gemini/tour-extraction";
 import { geminiStatus } from "@/integrations/gemini/client";
 import { FetchError, safeFetchJson, safeFetchText, sanitizeExternalUrl } from "@/server/safe-fetch";
 import type { AdapterOutcome, EventSourceAdapter, SourceArtistRef, SourceEventRecord } from "./contract";
@@ -47,6 +55,17 @@ export interface ScrapingBeeDeps {
   /** Full article HTML for a news link (optional: without it only snippets are read). */
   fetchArticle?: (url: string) => Promise<string>;
   extractTour?: (text: string) => Promise<TourExtraction>;
+  /** Multi-artist "concerts in <city>" articles (the daily city sweep). */
+  extractListing?: (text: string) => Promise<ListingExtraction>;
+  /**
+   * Cities to sweep THIS run (DB-gated: Bengaluru daily, users' other home cities in
+   * rotation), e.g. ["Bengaluru"]. Empty when nothing is due.
+   */
+  sweepCities?: () => Promise<string[]>;
+  /** Picks which artists get their own (more expensive) news search this run. */
+  dueForArtistScan?: (artists: SourceArtistRef[], cap: number) => Promise<SourceArtistRef[]>;
+  /** Remaining ScrapingBee credits, or null when unknown. */
+  creditsLeft?: () => Promise<number | null>;
   now: () => Date;
   /** Pause between AI calls (free Gemini tiers allow only a few requests per minute). */
   pauseMs?: number;
@@ -132,6 +151,104 @@ export function recordsFromShows(
   }));
 }
 
+/** Credits kept in reserve: below these, the sweep / per-artist searches stop (searches cost 10, articles 1). */
+export const SWEEP_MIN_CREDITS = 40;
+export const ARTIST_SCAN_MIN_CREDITS = 150;
+const SWEEP_MONTHS = 3; // this month + the next two (the "next 2 months" window)
+const SWEEP_ARTICLES = 4;
+
+function monthQueries(city: string, now: Date): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < SWEEP_MONTHS; i++) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
+    out.push(`concerts in ${city} ${d.toLocaleString("en-IN", { month: "long", timeZone: "UTC" })} ${d.getUTCFullYear()}`);
+  }
+  return out;
+}
+
+/**
+ * The daily city sweep: a few "concerts in <city> <month>" news searches, the best
+ * few articles read in full, and every grounded show matched against ALL target
+ * artists (everyone's follows + the catalogue) in one pass. Much cheaper than a
+ * search per artist on a small credit plan.
+ */
+export async function runCitySweep(
+  d: ScrapingBeeDeps,
+  cities: string[],
+  targets: SourceArtistRef[],
+  now: Date,
+  deadline: number,
+): Promise<{ records: SourceEventRecord[]; aiRateLimited: boolean }> {
+  const records = new Map<string, SourceEventRecord>();
+  if (!d.fetchArticle || !d.extractListing || cities.length === 0 || targets.length === 0) return { records: [], aiRateLimited: false };
+  const names = targets.flatMap((t) => [t.name, ...t.aliases]).map(normalizeArtistName).filter((n) => n.length >= 4);
+  const seen = new Set<string>();
+  const results: Array<{ r: NewsResult; score: number }> = [];
+  for (const city of cities) {
+    for (const q of monthQueries(city, now)) {
+      if (Date.now() > deadline) break;
+      let found: NewsResult[] = [];
+      try {
+        found = await d.search(q);
+      } catch {
+        continue;
+      }
+      for (const r of found) {
+        if (!r.link || seen.has(r.link)) continue;
+        seen.add(r.link);
+        const t = normalizeArtistName([r.title, r.snippet].filter(Boolean).join(" "));
+        const hits = names.filter((n) => t.includes(n)).length;
+        results.push({ r, score: hits * 3 + scheduleScore(`${r.title ?? ""} ${r.snippet ?? ""}`) + (/\b(upcoming|lineup|events|gigs|this (week|month))\b/i.test(t) ? 2 : 0) });
+      }
+    }
+  }
+  results.sort((a, b) => b.score - a.score);
+  const sweptCityIds = cities.map((c) => matchIndianCity(c)?.id).filter((id): id is string => Boolean(id));
+  let aiRateLimited = false;
+  let calls = 0;
+  for (const { r } of results.slice(0, SWEEP_ARTICLES)) {
+    if (Date.now() > deadline) break;
+    const link = sanitizeExternalUrl(r.link);
+    if (!link) continue;
+    let html: string;
+    try {
+      html = await d.fetchArticle(link);
+    } catch {
+      continue;
+    }
+    const text = articleText(html);
+    if (calls++ > 0 && d.pauseMs) await new Promise((res) => setTimeout(res, d.pauseMs));
+    try {
+      const shows = groundListing(await d.extractListing(text), text, targets, now, sweptCityIds);
+      for (const s of shows) {
+        const artist = targets.find((t) => t.artistId === s.target.artistId)!;
+        const [rec] = recordsFromShows(artist, [s], { articleUrl: link, ticketUrl: pickTicketLinks(html, artist.name)[0] }, now);
+        if (!rec) continue;
+        rec.kind = "concert";
+        if (s.time) rec.localTime = s.time;
+        if (!records.has(rec.sourceEventId)) records.set(rec.sourceEventId, rec);
+      }
+      // An article that is really about ONE artist's tour (named in the headline): read it
+      // again as a tour schedule — same article, so no extra ScrapingBee credit.
+      const title = normalizeArtistName(r.title ?? "");
+      const tourArtists = targets.filter((t) => [t.name, ...t.aliases].some((a) => normalizeArtistName(a).length >= 4 && title.includes(normalizeArtistName(a))));
+      if (d.extractTour && tourArtists.length === 1 && /\btour\b/i.test(r.title ?? "")) {
+        const artist = tourArtists[0]!;
+        if (d.pauseMs) await new Promise((res) => setTimeout(res, d.pauseMs));
+        const g = groundTour(await d.extractTour(text), text, artist, now);
+        const info = { articleUrl: link, tourName: g.tourName, ticketUrl: pickTicketLinks(html, artist.name)[0], generalSaleOpensAt: g.generalSaleOpensAt };
+        for (const rec of recordsFromShows(artist, g.shows, info, now)) records.set(rec.sourceEventId, rec);
+      }
+    } catch (err) {
+      if ((err as { category?: string }).category === "ai_rate_limited") {
+        aiRateLimited = true;
+        break;
+      }
+    }
+  }
+  return { records: [...records.values()], aiRateLimited };
+}
+
 /** Prefer results that look like a schedule announcement. */
 function scheduleScore(text: string): number {
   return (/\btour\b/i.test(text) ? 2 : 0) + (/\b(dates?|cities|schedule)\b/i.test(text) ? 2 : 0) + (/\btickets?\b/i.test(text) ? 1 : 0);
@@ -148,7 +265,10 @@ export function createScrapingBeeNewsAdapter(deps: () => ScrapingBeeDeps | null)
       return { configured: true };
     },
     canLookUp: (a) => a.name.trim().length >= 3,
-    async fetchForArtists(artists, ctx): Promise<AdapterOutcome> {
+    // Gets ALL target artists (follows + catalogue) and decides itself who gets a
+    // per-artist search; the daily city sweep covers everyone at once.
+    selectsOwnArtists: true,
+    async fetchForArtists(allArtists, ctx): Promise<AdapterOutcome> {
       const d = deps();
       if (!d) return { ok: false, category: "not_configured", message: "ScrapingBee news isn't configured" };
       const cap = getServerEnv().scrapingbee.maxArtistsPerRun;
@@ -158,7 +278,25 @@ export function createScrapingBeeNewsAdapter(deps: () => ScrapingBeeDeps | null)
       const now = d.now();
       let aiPaused = false;
       let aiCalls = 0;
-      for (const artist of artists.slice(0, cap)) {
+
+      const credits = d.creditsLeft ? await d.creditsLeft() : null;
+      // 1. Daily city sweep (all targets at once).
+      // Not on targeted re-checks: the daily sweep must see every target artist, not a few.
+      const cities = !ctx.targeted && (credits === null || credits >= SWEEP_MIN_CREDITS) && d.sweepCities ? await d.sweepCities() : [];
+      if (cities.length > 0) {
+        const sweep = await runCitySweep(d, cities, allArtists, now, ctx.deadline);
+        records.push(...sweep.records);
+        aiPaused = sweep.aiRateLimited;
+        aiCalls = 1;
+      }
+      // 2. Per-artist searches: only when credits allow, a few per run, least recently checked first.
+      const artists =
+        credits !== null && credits < ARTIST_SCAN_MIN_CREDITS
+          ? []
+          : d.dueForArtistScan && !ctx.targeted
+            ? await d.dueForArtistScan(allArtists, cap)
+            : allArtists.slice(0, cap);
+      for (const artist of artists) {
         if (Date.now() > ctx.deadline) break;
         let results: NewsResult[];
         try {

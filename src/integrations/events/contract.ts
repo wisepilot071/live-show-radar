@@ -78,5 +78,12 @@ export interface EventSourceAdapter {
   configStatus(): SourceConfigStatus;
   /** Whether this source can look an artist up at all (e.g. MusicBrainz needs an MBID). */
   canLookUp(artist: SourceArtistRef): boolean;
-  fetchForArtists(artists: SourceArtistRef[], ctx: { deadline: number }): Promise<AdapterOutcome>;
+  /**
+   * When true, the pipeline passes ALL target artists (everyone's follows plus the
+   * curated catalogue) without its own recheck throttle; the adapter picks whom to
+   * look up and reports only those in checkedArtistIds.
+   */
+  readonly selectsOwnArtists?: boolean;
+  /** ctx.targeted: an explicit re-check of these artists (admin, or a fresh follow): skip own throttles. */
+  fetchForArtists(artists: SourceArtistRef[], ctx: { deadline: number; targeted?: boolean }): Promise<AdapterOutcome>;
 }

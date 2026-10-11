@@ -2,17 +2,21 @@ import { bandsintownEvents } from "./bandsintown";
 import type { EventSourceAdapter } from "./contract";
 import { musicBrainzEvents } from "./musicbrainz";
 import { extractCached, ground } from "@/server/announcements";
-import { extractTourCached } from "@/server/tour-extraction";
+import { extractListingCached, extractTourCached, newsArtistsDue, newsSweepCitiesDue, scrapingBeeCreditsLeft } from "@/server/tour-extraction";
 import { createScrapingBeeNewsAdapter, scrapingBeeArticle, scrapingBeeNewsSearch } from "./scrapingbee-news";
 import { ticketmasterEvents } from "./ticketmaster";
 
-/** News-announcement discovery wired to the real ScrapingBee search + cached Gemini extraction. */
+/** News discovery: daily city sweep + per-artist article reading, all via ScrapingBee + cached Gemini. */
 export const scrapingBeeNewsEvents = createScrapingBeeNewsAdapter(() => ({
   search: scrapingBeeNewsSearch,
   extract: async (text) => (await extractCached(text)).x,
   ground,
   fetchArticle: scrapingBeeArticle,
   extractTour: extractTourCached,
+  extractListing: extractListingCached,
+  sweepCities: newsSweepCitiesDue,
+  dueForArtistScan: newsArtistsDue,
+  creditsLeft: scrapingBeeCreditsLeft,
   now: () => new Date(),
   pauseMs: 4000,
 }));

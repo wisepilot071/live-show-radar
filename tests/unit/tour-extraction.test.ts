@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { recordsFromShows } from "@/integrations/events/scrapingbee-news";
-import { articleText, groundTour, pickTicketLinks, type TourExtraction } from "@/integrations/gemini/tour-extraction";
+import { articleText, groundListing, groundTour, pickTicketLinks, type TourExtraction } from "@/integrations/gemini/tour-extraction";
 
 const NOW = new Date("2026-10-11T10:00:00Z");
 const ARTIST = { artistId: "a1", name: "Arijit Singh", aliases: [] as string[] };
@@ -101,5 +101,42 @@ describe("groundTour", () => {
     expect(a[0]!.sourceEventId).toBe(b[0]!.sourceEventId);
     expect(a[0]!.cityName).toBe("Bengaluru");
     expect(a[0]!.ticket).toMatchObject({ status: "announced_not_on_sale", sourceExposesAvailability: false, url: "https://thumpn.com/t" });
+  });
+});
+
+describe("groundListing (city sweep)", () => {
+  const text =
+    "Concerts in Bengaluru this November 2026\nPrateek Kuhad plays Phoenix Arena on November 21, 2026 at 7 pm.\nDiljit Dosanjh — Bengaluru, December 5, 2026.\nSome Band — Bengaluru, November 30, 2026.";
+  const targets = [
+    { artistId: "pk", name: "Prateek Kuhad", aliases: [] },
+    { artistId: "dd", name: "Diljit Dosanjh", aliases: [] },
+  ];
+  it("keeps grounded shows of target artists (with a stated time), ignores everyone else", () => {
+    const shows = groundListing(
+      {
+        shows: [
+          { artist: "Prateek Kuhad", date: "2026-11-21", time: "19:00", city: "Bengaluru", venue: "Phoenix Arena", evidence: "Prateek Kuhad plays Phoenix Arena on November 21, 2026 at 7 pm" },
+          { artist: "Diljit Dosanjh", date: "2026-12-05", time: "20:00", city: "Bengaluru", venue: null, evidence: "Diljit Dosanjh — Bengaluru, December 5, 2026" },
+          { artist: "Some Band", date: "2026-11-30", time: null, city: "Bengaluru", venue: null, evidence: "Some Band — Bengaluru, November 30, 2026" },
+        ],
+      },
+      text,
+      targets,
+      NOW,
+      ["bengaluru"], // swept city: the Prateek quote omits "Bengaluru" (it's in the headline)
+    );
+    expect(shows.map((s) => [s.target.artistId, s.date, s.city.id, s.time ?? null, s.venue ?? null])).toEqual([
+      ["pk", "2026-11-21", "bengaluru", "19:00", "Phoenix Arena"],
+      ["dd", "2026-12-05", "bengaluru", null, null], // time not stated in the quote → dropped
+    ]);
+  });
+  it("drops a show whose quote doesn't name the artist", () => {
+    const shows = groundListing(
+      { shows: [{ artist: "Diljit Dosanjh", date: "2026-11-30", time: null, city: "Bengaluru", venue: null, evidence: "Some Band — Bengaluru, November 30, 2026" }] },
+      text,
+      targets,
+      NOW,
+    );
+    expect(shows).toEqual([]);
   });
 });
