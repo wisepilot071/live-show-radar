@@ -32,15 +32,35 @@ const WASHES = [
 export function EventMedia({ event, urgent, booked }: { event: LiveEvent; urgent?: boolean; booked?: boolean }) {
   const headliner = event.artistNames[0] ?? "";
   // Fictional example artists never get a real person's face, even if a name collides.
-  const photo = event.origin === "illustrative" ? null : photoForName(headliner);
+  // 1. The ticketing source's own image for THIS event; 2. the headliner's licensed photo.
+  const eventImage = event.origin === "illustrative" ? undefined : event.imageUrl;
+  const photo = event.origin === "illustrative" || eventImage ? null : photoForName(headliner);
   const [failed, setFailed] = useState(false);
   const tile = dateTile(event);
   const doodle: Doodle = event.kind === "festival" ? "guitar" : event.kind === "tour_stop" ? "ticket" : "mic";
   const showPhoto = photo && !failed;
+  const showEventImage = Boolean(eventImage) && !failed;
 
   return (
     <div className="on-ink relative isolate h-40 overflow-hidden bg-[#16201c] sm:h-44">
-      {showPhoto ? (
+      {showEventImage ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- the ticketing source's own event image (its CDN) */}
+          <img
+            src={eventImage}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={() => setFailed(true)}
+            className="absolute inset-0 -z-10 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:group-hover:scale-100"
+          />
+          <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-[#16201c] via-[#16201c]/25 to-transparent" />
+          <span className="absolute right-2 bottom-2 rounded-full bg-ink/55 px-2 py-0.5 text-[0.62rem] text-on-ink/80">
+            Image: {event.source.name}
+          </span>
+        </>
+      ) : showPhoto ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- self-hosted 320px artist photo */}
           <img

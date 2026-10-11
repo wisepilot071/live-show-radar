@@ -186,4 +186,22 @@ describe.skipIf(!HAS_DB)("database integration (isolated TEST records)", () => {
     const resumed = await runDiscovery({ trigger: "user", userId: userA, sources: [adapter("test_fixture", () => ({ ok: true, records: [], checkedArtistIds: [], artistFailures: [] }))] });
     expect(resumed.status).toBe("completed");
   });
+
+  it("stores the source's own image + stated price; rejects a tracking ticket link before saving", async () => {
+    const raw = rec({
+      sourceEventId: `TEST-${RUN}-IMG`,
+      localDate: "2027-03-20",
+      imageUrl: "https://s1.ticketm.net/dam/TEST.jpg",
+      price: { min: 1499, max: 4999, currency: "INR" },
+      ticket: { status: "on_sale", sourceExposesAvailability: true, url: "https://on.fgtix.com/trk/TEST" },
+    });
+    const norm = normalizeRecord(raw, SRC2, [ref]);
+    if (!norm.ok) throw new Error(norm.reason);
+    expect(norm.record.fields.ticketUrl).toBeNull();
+    const { eventId } = await upsertRecord(getSql(), norm.record);
+    const ev = await getEventById(eventId, userA);
+    expect(ev?.imageUrl).toBe("https://s1.ticketm.net/dam/TEST.jpg");
+    expect(ev?.ticket.price).toEqual({ min: 1499, max: 4999, currency: "INR" });
+    expect(ev?.ticket.bookingUrl).toBeUndefined();
+  });
 });

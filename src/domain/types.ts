@@ -193,6 +193,8 @@ export interface TicketStatus {
   earlyBirdEndsAt?: IsoTimestamp;
   /** Real booking URL from the source. Absent ⇒ no ticket action is offered. */
   bookingUrl?: string;
+  /** Price range exactly as the source states it (never estimated). */
+  price?: { min: number; max: number; currency: string };
 }
 
 export interface EventDateTime {
@@ -227,6 +229,8 @@ export interface LiveEvent {
   sources?: EventSourceEvidence[];
   /** Set when another record might be the same show; never auto-merged. */
   possibleDuplicate?: boolean;
+  /** The ticketing source's own image for this event (not an artist photo, not a stand-in). */
+  imageUrl?: string;
 }
 
 export interface EventSourceEvidence {

@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { InlineAlert } from "@/components/ui/InlineAlert";
+import { LiveCityShows } from "@/components/explore/LiveCityShows";
 import { ILLUSTRATIVE_EVENTS } from "@/data/illustrative-events";
 import { initialOnboardingState } from "@/features/onboarding/state";
 
@@ -39,9 +40,11 @@ export default function ExplorePage() {
           </p>
         </header>
 
+        <LiveCityShows />
+
         <InlineAlert tone="warning" title="These are illustrative examples, not live listings">
-          The artists, venues, dates and ticket details below are invented to show the layout. Live event discovery
-          isn&rsquo;t connected yet, so nothing here is being monitored and none of these shows exist.
+          The artists, venues, dates and ticket details below are invented to show every kind of card. None of these
+          shows exist — the live shows above come from real sources.
         </InlineAlert>
 
         <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

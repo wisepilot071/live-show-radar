@@ -112,6 +112,8 @@ async function writeCanonical(tx: Tx, eventId: string, f: CanonicalFields, needs
       location_confidence = ${f.locationConfidence}, event_status = ${f.eventStatus},
       ticket_status = ${f.ticketStatus}, ticket_url = ${f.ticketUrl}, sale_opens_at = ${f.saleOpensAt},
       early_bird_starts_at = ${f.earlyBirdStartsAt}, early_bird_ends_at = ${f.earlyBirdEndsAt},
+      image_url = ${f.imageUrl ?? null}, price_min = ${f.priceMin ?? null}, price_max = ${f.priceMax ?? null},
+      price_currency = ${f.priceCurrency ?? null},
       needs_review = needs_review or ${needsReview},
       match_key = coalesce(${matchKey}, match_key),
       last_checked_at = now(), last_verified_at = ${lastVerified}, updated_at = now()

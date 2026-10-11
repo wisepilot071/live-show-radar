@@ -32,6 +32,12 @@ import {
  * - imagery is the headliner's real licensed photo (credited) or clearly abstract
  *   doodle art — never a fake event poster; the date stays visible as a chip
  */
+/** "₹1,999 – ₹7,999" in the source's own currency; one value when min = max. */
+export function formatPrice(p: { min: number; max: number; currency: string }): string {
+  const f = new Intl.NumberFormat("en-IN", { style: "currency", currency: p.currency, maximumFractionDigits: 0 });
+  return p.min === p.max ? f.format(p.min) : `${f.format(p.min)} – ${f.format(p.max)}`;
+}
+
 export function EventCard({
   event,
   location,
@@ -154,6 +160,11 @@ export function EventCard({
           {ticketConfirmed && ticket.earlyBirdEndsAt && ticket.kind === "early_bird" && (
             <p className={cn("text-sm", urgent ? "font-semibold text-urgent-ink" : "text-fg")}>
               Early bird ends {formatTimestamp(ticket.earlyBirdEndsAt, event.when.timeZone)}
+            </p>
+          )}
+          {ticket.price && (
+            <p className="text-sm text-fg">
+              Price {formatPrice(ticket.price)} <span className="text-fg-muted">(as listed by {event.source.name})</span>
             </p>
           )}
           {ticket.saleOpensAt && (

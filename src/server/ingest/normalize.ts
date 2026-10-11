@@ -6,6 +6,7 @@ import type { SourceClass } from "@/domain/freshness";
 import type { SourceArtistRef, SourceEventRecord } from "@/integrations/events/contract";
 import { isValidTimeZone, zonedToUtcIso } from "@/lib/zoned-time";
 import { sanitizeExternalUrl } from "@/server/safe-fetch";
+import { safeTicketUrl } from "@/lib/ticket-url";
 
 /**
  * Deterministic normalisation: one source record → one canonical candidate.
@@ -47,6 +48,10 @@ export const sourceEventRecordSchema = z.object({
     earlyBirdEndsAt: isoInstant.optional(),
   }),
   sourceUpdatedAt: isoInstant.optional(),
+  imageUrl: z.string().max(2000).optional(),
+  price: z
+    .object({ min: z.number().nonnegative().optional(), max: z.number().nonnegative().optional(), currency: z.string().regex(/^[A-Z]{3}$/) })
+    .optional(),
 });
 
 /** Canonical fields one source contributes for an event. */
@@ -70,6 +75,10 @@ export interface CanonicalFields {
   saleOpensAt: string | null;
   earlyBirdStartsAt: string | null;
   earlyBirdEndsAt: string | null;
+  imageUrl: string | null;
+  priceMin: number | null;
+  priceMax: number | null;
+  priceCurrency: string | null;
 }
 
 export interface NormalizedRecord {
@@ -153,10 +162,15 @@ export function normalizeRecord(
     eventStatus: r.eventStatus,
     ticketStatus: r.ticket.sourceExposesAvailability ? r.ticket.status : "unknown",
     ticketExposed: r.ticket.sourceExposesAvailability,
-    ticketUrl: sanitizeExternalUrl(r.ticket.url) ?? null,
+    // Ticket links: https only, no credentials, no tracking/redirect hops (src/lib/ticket-url.ts).
+    ticketUrl: safeTicketUrl(r.ticket.url) ?? null,
     saleOpensAt: r.ticket.saleOpensAt ?? null,
     earlyBirdStartsAt: r.ticket.earlyBirdStartsAt ?? null,
     earlyBirdEndsAt: r.ticket.earlyBirdEndsAt ?? null,
+    imageUrl: r.imageUrl && /^https:\/\//.test(r.imageUrl) ? (sanitizeExternalUrl(r.imageUrl) ?? null) : null,
+    priceMin: r.price?.min ?? null,
+    priceMax: r.price?.max ?? r.price?.min ?? null,
+    priceCurrency: r.price && (r.price.min !== undefined || r.price.max !== undefined) ? r.price.currency : null,
   };
 
   const cityKey = fields.cityId ?? (fields.cityName ? normalizeArtistName(fields.cityName) : null);

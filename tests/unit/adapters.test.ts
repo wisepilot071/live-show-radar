@@ -132,6 +132,84 @@ describe("Ticketmaster adapter (mocked HTTP)", () => {
   });
 });
 
+describe("Ticketmaster adapter: pagination, missing fields, images, prices, links", () => {
+  const ev = (id: string, extra: object = {}) => ({
+    id,
+    name: `TEST ${id}`,
+    url: "https://www.ticketmaster.com/event/TEST",
+    dates: { start: { localDate: "2027-02-13" }, status: { code: "onsale" } },
+    _embedded: { venues: [{ city: { name: "Bengaluru" } }], attractions: [{ name: "TEST Band" }] },
+    ...extra,
+  });
+
+  it("follows pagination up to the last page (bounded), one request per page", async () => {
+    safeFetchJson
+      .mockResolvedValueOnce({ _embedded: { events: [ev("P0")] }, page: { totalPages: 2 } })
+      .mockResolvedValueOnce({ _embedded: { events: [ev("P1")] }, page: { totalPages: 2 } });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    expect(out.ok && out.records.map((r) => r.sourceEventId)).toEqual(["P0", "P1"]);
+    expect(safeFetchJson).toHaveBeenCalledTimes(2);
+    expect(String(safeFetchJson.mock.calls[1]![0])).toContain("page=1");
+  });
+
+  it("empty results are an honest empty success", async () => {
+    safeFetchJson.mockResolvedValue({ page: { totalPages: 0 } });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    expect(out).toMatchObject({ ok: true, records: [], checkedArtistIds: ["TEST-A"] });
+  });
+
+  it("missing fields stay missing (no venue, time, image, price invented)", async () => {
+    safeFetchJson.mockResolvedValue({ _embedded: { events: [ev("BARE")] }, page: { totalPages: 1 } });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    const r = out.ok ? out.records[0]! : null;
+    expect(r).toMatchObject({ venueName: undefined, localTime: undefined, imageUrl: undefined, price: undefined });
+  });
+
+  it("keeps Ticketmaster's own 16:9 image and the stated standard price range", async () => {
+    safeFetchJson.mockResolvedValue({
+      _embedded: {
+        events: [
+          ev("RICH", {
+            images: [
+              { url: "https://s1.ticketm.net/dam/a/small.jpg", ratio: "16_9", width: 640 },
+              { url: "https://s1.ticketm.net/dam/a/big.jpg", ratio: "16_9", width: 2048 },
+              { url: "https://evil.example.test/x.jpg", ratio: "16_9", width: 4000 },
+            ],
+            priceRanges: [{ type: "standard", currency: "inr", min: 1999, max: 7999 }],
+          }),
+        ],
+      },
+      page: { totalPages: 1 },
+    });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    const r = out.ok ? out.records[0]! : null;
+    expect(r?.imageUrl).toBe("https://s1.ticketm.net/dam/a/big.jpg");
+    expect(r?.price).toEqual({ min: 1999, max: 7999, currency: "INR" });
+  });
+
+  it("rejects unsafe or tracking ticket links instead of exposing them", async () => {
+    safeFetchJson.mockResolvedValue({
+      _embedded: { events: [ev("TRK", { url: "https://on.fgtix.com/trk/v1yW" }), ev("HTTP", { url: "http://tickets.example.test/e" })] },
+      page: { totalPages: 1 },
+    });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    expect(out.ok && out.records.map((r) => r.ticket.url)).toEqual([undefined, undefined]);
+  });
+
+  it("retries once after a 429, then succeeds", async () => {
+    safeFetchJson
+      .mockRejectedValueOnce(new FetchError("HTTP 429", "http", 429))
+      .mockResolvedValueOnce({ _embedded: { events: [ev("AFTER")] }, page: { totalPages: 1 } });
+    const out = await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() });
+    expect(out.ok && out.records.map((r) => r.sourceEventId)).toEqual(["AFTER"]);
+  });
+
+  it("timeouts are reported per artist, not as a crash", async () => {
+    safeFetchJson.mockRejectedValue(new FetchError("Request timed out", "timeout"));
+    expect(await ticketmasterEvents.fetchForArtists([ARTIST], { deadline: deadline() })).toMatchObject({ ok: false, category: "timeout" });
+  });
+});
+
 describe("Gemini client (mocked SDK)", () => {
   const opts = { systemInstruction: "TEST", userText: "TEST", jsonSchema: {} };
 

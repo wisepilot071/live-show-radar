@@ -2,6 +2,7 @@ import { verificationFor, SOURCE_STRENGTH, type SourceClass } from "@/domain/fre
 import type { EventSourceEvidence, LiveEvent, TicketStatusKind, VerificationState } from "@/domain/types";
 import { getSql } from "@/server/db";
 import type { CanonicalFields } from "@/server/ingest/normalize";
+import { safeTicketUrl } from "@/lib/ticket-url";
 
 /**
  * Read side: canonical events → the LiveEvent contract the UI already uses.
@@ -26,6 +27,10 @@ interface EventRow {
   ticket_status: string;
   sale_opens_at: Date | null;
   early_bird_ends_at: Date | null;
+  image_url: string | null;
+  price_min: string | null;
+  price_max: string | null;
+  price_currency: string | null;
   event_status: "scheduled" | "cancelled" | "rescheduled" | "unknown";
   announced_at: Date | null;
   needs_review: boolean;
@@ -115,7 +120,11 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
       },
       saleOpensAt: iso(e.sale_opens_at),
       earlyBirdEndsAt: iso(e.early_bird_ends_at),
-      bookingUrl: e.ticket_url ?? undefined,
+      bookingUrl: safeTicketUrl(e.ticket_url) ?? undefined,
+      price:
+        e.price_currency && e.price_min !== null
+          ? { min: Number(e.price_min), max: Number(e.price_max ?? e.price_min), currency: e.price_currency }
+          : undefined,
     },
     source: {
       id: primary?.source_id ?? "unknown",
@@ -132,6 +141,7 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
     locationConfidence: e.location_confidence,
     sources: evidence,
     possibleDuplicate: e.needs_review,
+    imageUrl: e.image_url ?? undefined,
   };
 }
 
@@ -149,6 +159,7 @@ async function hydrate(rows: EventRow[], now: Date): Promise<LiveEvent[]> {
 const EVENT_COLUMNS = (sql: ReturnType<typeof getSql>) => sql`
   e.id, e.title, e.kind, e.starts_at, e.local_date, e.time_zone, e.venue_name, e.city_name, e.city_id,
   e.country_code, e.location_confidence, e.ticket_url, e.ticket_status, e.sale_opens_at, e.early_bird_ends_at,
+  e.image_url, e.price_min, e.price_max, e.price_currency,
   e.event_status, e.announced_at, e.needs_review,
   coalesce(array_agg(a.catalogue_key order by ea.billing_order) filter (where a.id is not null), '{}') as artist_keys,
   coalesce(array_agg(a.name order by ea.billing_order) filter (where a.id is not null), '{}') as artist_names`;

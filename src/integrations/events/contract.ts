@@ -52,6 +52,10 @@ export interface SourceEventRecord {
     earlyBirdEndsAt?: string;
   };
   sourceUpdatedAt?: string;
+  /** The source's OWN image for this event (e.g. Ticketmaster event images); never a stand-in. */
+  imageUrl?: string;
+  /** Price range exactly as the source states it. */
+  price?: { min?: number; max?: number; currency: string };
 }
 
 export type AdapterOutcome =
