@@ -26,10 +26,14 @@ const FILTERS: Array<{ id: Category; label: string }> = [
 export function CuratedArtistPicker({
   isSelected,
   onToggle,
+  onAddMany,
 }: {
   isSelected: (artist: Artist) => boolean;
   onToggle: (artist: Artist) => void;
+  /** Adds every shown artist that isn't selected yet (respects search + category). */
+  onAddMany?: (artists: Artist[]) => Promise<void> | void;
 }) {
+  const [adding, setAdding] = useState(false);
   const [load, setLoad] = useState<Load>({ phase: "loading" });
   const [nonce, setNonce] = useState(0);
   const [query, setQuery] = useState("");
@@ -110,6 +114,27 @@ export function CuratedArtistPicker({
         <p className="rounded-xl border border-dashed border-line-strong p-4 text-sm text-fg-secondary">
           No catalogue artists match &ldquo;{query}&rdquo;{category !== "all" ? ` in ${category === "indian" ? "Indian" : "International"}` : ""}. Try the full search below.
         </p>
+      )}
+      {load.phase === "ready" && shown.length > 0 && onAddMany && shown.some((e) => !isSelected(e.artist)) && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="secondary"
+            loading={adding}
+            leadingIcon={<Plus aria-hidden className="size-4" />}
+            onClick={async () => {
+              setAdding(true);
+              try {
+                await onAddMany(shown.filter((e) => !isSelected(e.artist)).map((e) => e.artist));
+              } finally {
+                setAdding(false);
+              }
+            }}
+          >
+            Add all {shown.filter((e) => !isSelected(e.artist)).length}
+            {category === "all" && !query ? "" : category === "indian" ? " Indian" : category === "international" ? " international" : " shown"}
+          </Button>
+          <span className="text-xs text-fg-muted">You can remove any of them afterwards.</span>
+        </div>
       )}
       {load.phase === "ready" && shown.length > 0 && (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-3">

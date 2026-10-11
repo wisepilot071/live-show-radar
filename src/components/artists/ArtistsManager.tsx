@@ -157,7 +157,15 @@ export function ArtistsManager() {
             </Button>
           </div>
         </div>
-        <CuratedArtistPicker isSelected={(a) => selectedKeys.has(artistIdentityKey(a))} onToggle={(a) => void toggle(a)} />
+        <CuratedArtistPicker
+          isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
+          onToggle={(a) => void toggle(a)}
+          onAddMany={async (artists) => {
+            const at = new Date().toISOString();
+            const r = await run({ type: "import_artists", selections: artists.map((artist) => ({ artist, addedVia: "manual", selectedAt: at })) });
+            if (r.ok) toast({ message: `Added ${pluralize(artists.length, "artist")} to your watchlist.` });
+          }}
+        />
       </section>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">

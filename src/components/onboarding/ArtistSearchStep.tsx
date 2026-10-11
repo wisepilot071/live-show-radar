@@ -94,7 +94,15 @@ export function ArtistSearchStep() {
           </p>
         </div>
         <p className="text-sm text-fg-muted">Suggestions only — nothing is followed until you add it.</p>
-        <CuratedArtistPicker isSelected={(a) => selectedKeys.has(artistIdentityKey(a))} onToggle={toggle} />
+        <CuratedArtistPicker
+          isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
+          onToggle={toggle}
+          onAddMany={(artists) => {
+            const at = new Date().toISOString();
+            dispatch({ type: "import_artists", selections: artists.map((artist) => ({ artist, addedVia: "manual", selectedAt: at })) });
+            setAnnouncement(`Added ${pluralize(artists.length, "artist")}. ${pluralize(count + artists.length, "artist")} selected.`);
+          }}
+        />
       </div>
 
       <h2 className="mt-10 font-display text-xl font-semibold">Can&rsquo;t find an artist? Search everyone</h2>
