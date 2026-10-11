@@ -6,6 +6,8 @@ import type { IntegrationStatusReport } from "@/integrations/status";
 import { getSql, isDatabaseConfigured, pingDatabase } from "@/server/db";
 import { log, errorMessage } from "@/server/log";
 import { emailChannelStatus } from "@/server/notifications/channels";
+import { telegramStatus } from "@/server/notifications/telegram";
+import { googleCalendarStatus } from "@/server/google-calendar";
 import { isSessionConfigured } from "@/server/session";
 import { getServerEnv } from "@/config/server-env";
 import { getActiveArtistSearch } from "@/services/artist-search/active";
@@ -80,9 +82,19 @@ export async function GET() {
       in_app: serverPersistence ? "active" : "not_available",
       // Email needs a user address on top of server config, hence "setup_required".
       email: email.configured && serverPersistence ? "setup_required" : "not_available",
-      telegram: "not_available",
+      // Telegram needs the user to link a chat on top of the bot config.
+      telegram: telegramStatus().configured && serverPersistence ? "setup_required" : "not_available",
     },
     emailReason: email.configured ? null : (email.reason ?? "not configured"),
+    telegramReason: telegramStatus().configured ? null : (telegramStatus().reason ?? "not configured"),
+    googleCalendar: { configured: googleCalendarStatus().configured, reason: googleCalendarStatus().reason ?? null },
+    unavailableSources: [
+      {
+        id: "beescraper",
+        name: "Beescraper",
+        reason: "Not integrated: no Beescraper API, documentation or credentials were found, so no endpoints were assumed.",
+      },
+    ],
     scheduler: {
       configured: Boolean(getServerEnv().cronSecret),
       cadence: "Daily at 07:00 IST (Vercel Hobby cron: at most once a day, timing within the hour)",

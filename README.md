@@ -18,6 +18,9 @@ Its core rule is **trust**. Every date, venue and ticket detail is labelled with
   - You get an in-app inbox with read/unread, mute-this-show and a real unread badge.
   - Early-bird reminders go out 72h and 24h before **verified** deadlines only.
 - **Email channel** (Resend). Built, with retries, backoff and idempotency. It is limited to an allow-list and is **not configured** in this deployment because no Resend key is set.
+- **Bookings.** After buying a ticket on the seller's site, press **I've booked my ticket**. The show appears in **My Bookings** as *confirmed by you* (purchases can't be verified), gets added to **Google Calendar** if connected, and you receive a booking confirmation in-app, by email and by Telegram. All of it is idempotent and owner-only.
+- **Telegram alerts** via `@liveshow101bot`. You link your chat with a single-use, 15-minute link and press Start; you can disconnect from Settings or with `/stop`.
+- **Spotify:** a frontend-only "Coming soon" card. No Spotify login, API or import exists.
 - **Operator view.** `GET /api/admin/status` (bearer token) shows the last runs, per-source outcomes and delivery counts.
 
 ## Architecture
@@ -119,6 +122,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the Vercel setup, environment v
 ## Docs
 
 - [Architecture and Components Map](docs/ARCHITECTURE.md)
+- [Integrations setup (credentials still to add)](docs/INTEGRATIONS-SETUP.md)
 - [Deployment and submission checklist](docs/DEPLOYMENT.md)
 - [Final acceptance checklist](FINAL_ACCEPTANCE_CHECKLIST.md)
 - [Parts 4–5 checkpoint](docs/PART4-5-CHECKPOINT.md)

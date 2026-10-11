@@ -3,8 +3,8 @@
 import { ArrowRight, Bell, Database, HardDrive, Link2, MapPin, RotateCcw, Users, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
-import { SPOTIFY_STATUS_COPY } from "@/components/onboarding/spotify-status-copy";
 import { AlertPreferenceSelector } from "@/components/preferences/AlertPreferenceSelector";
+import { GoogleCalendarConnect } from "@/components/preferences/GoogleCalendarConnect";
 import { LocationPreferenceSelector } from "@/components/preferences/LocationPreferenceSelector";
 import { NotificationChannelList } from "@/components/preferences/NotificationChannelList";
 import { Button, ButtonLink } from "@/components/ui/Button";
@@ -42,8 +42,6 @@ export function SettingsPage() {
   }
 
   const report = status.phase === "ready" ? status.report : null;
-  const spotifyShown = report && !report.spotify.available ? "unavailable" : state.spotify;
-  const spotifyCopy = SPOTIFY_STATUS_COPY[spotifyShown];
   const typedCount = state.selections.filter((s) => s.artist.origin === "user_entered").length;
 
   return (
@@ -110,14 +108,18 @@ export function SettingsPage() {
             {status.message}
           </InlineAlert>
         )}
+        <GoogleCalendarConnect />
         {report && (
           <ul className="divide-y divide-line/60 overflow-hidden rounded-lg border border-line bg-surface">
             <ConnectionRow
               name="Spotify"
-              tone={spotifyCopy.tone}
-              label={spotifyCopy.label}
-              detail={`${spotifyCopy.message} Your artist list works without it.`}
+              tone="unavailable"
+              label="Coming soon"
+              detail="Importing the artists you follow on Spotify is planned for a future update. Nothing connects to Spotify today — your artist list works without it."
             />
+            {report.unavailableSources.map((s) => (
+              <ConnectionRow key={s.id} name={`Event source · ${s.name}`} tone="unavailable" label="Not integrated" detail={s.reason} />
+            ))}
             {report.eventSources.all.map((s) => (
               <ConnectionRow
                 key={s.id}

@@ -115,6 +115,12 @@ flowchart LR
 | `/api/events/[id]` | GET | private events only visible to their owner | Canonical event + evidence |
 | `/api/artists/search` | GET | 60/min/IP | MusicBrainz search |
 | `/api/integrations/status` | GET | public, no secrets | Configured vs last success for every integration + scheduler |
+| `/api/me/bookings` | GET/POST | read/write, owner-only, 30/hour | List bookings; "I've booked my ticket" (saves, then calendar, then notifications) |
+| `/api/me/bookings/[id]`, `/calendar` | GET/DELETE, POST | owner-only | Remove a booking; retry the calendar sync (deterministic Google event id) |
+| `/api/me/telegram` | GET/POST/PUT/DELETE | read/write | Link status; single-use 15-min link; on/off; unlink |
+| `/api/telegram/webhook` | POST | `X-Telegram-Bot-Api-Secret-Token` | Bot updates: `/start <token>` links, `/stop` unlinks |
+| `/api/me/google-calendar` | GET/DELETE | read/write | Connection state; disconnect (revokes at Google) |
+| `/api/integrations/google/start`, `/callback` | GET | state cookie bound to profile | OAuth (scope calendar.events); tokens encrypted with AES-256-GCM |
 | `/api/cron/monitor` | GET | `Bearer CRON_SECRET` (constant-time); 503 if unset | Scheduled monitoring |
 | `/api/admin/discovery` | POST | `Bearer DISCOVERY_ADMIN_TOKEN` | Manual monitoring run |
 | `/api/admin/status` | GET | `Bearer DISCOVERY_ADMIN_TOKEN` | Operator status (aggregates only) |
@@ -135,6 +141,7 @@ Migrations live in `db/migrations/` and are applied in order, recorded in `publi
 | `0001_init.sql` | Base schema |
 | `0002_app_role.sql` | Grants and RLS policies for `lsr_app` |
 | `0003_private_submissions.sql` | Pasted events stay private to their submitter |
+| `0005_bookings_telegram_calendar.sql` | `bookings`, `telegram_links`, `telegram_link_tokens`, `google_calendar_connections`; telegram channel and booking_confirmed category |
 | `0004_notifications.sql` | Notifications, deliveries, mutes, job runs, cursors, channel preferences |
 
 ```mermaid

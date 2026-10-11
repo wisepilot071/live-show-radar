@@ -19,7 +19,7 @@ import { cn } from "@/lib/cn";
 import { formatEventDate, formatTimestamp, hostLabel } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
 import { cardVariant, relevanceLine, TICKET_STATUS_LABEL, VARIANT_TAG, VERIFICATION_TONE } from "./event-labels";
-import { SaveEventButton } from "./SaveEventButton";
+import { EventActions } from "./EventActions";
 import { SourcePanel } from "./SourcePanel";
 
 type Canonical =
@@ -163,7 +163,7 @@ export function EventDetail({ id }: { id: string }) {
           </p>
         )}
         <div className="flex flex-wrap gap-2 pt-1">
-          <SaveEventButton event={event} />
+          <EventActions event={event} />
           {canBook && ticket.bookingUrl && (
             <a
               href={ticket.bookingUrl}

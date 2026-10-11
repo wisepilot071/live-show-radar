@@ -4,7 +4,7 @@ import { Bookmark, Info } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EventCard } from "@/components/events/EventCard";
-import { SaveEventButton } from "@/components/events/SaveEventButton";
+import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -161,7 +161,7 @@ export function SavedShows() {
                     location={state.location}
                     detailHref={`/radar/events/${encodeURIComponent(saved.eventId)}`}
                     saved
-                    actions={<SaveEventButton event={saved.snapshot} />}
+                    actions={<EventActions event={saved.snapshot} />}
                   />
                 </li>
               ))}

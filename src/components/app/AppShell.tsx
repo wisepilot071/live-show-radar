@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Bookmark, ChevronDown, Compass, MapPin, Search, Settings, Users, type LucideIcon } from "lucide-react";
+import { Bell, Bookmark, ChevronDown, Compass, MapPin, Search, Settings, Ticket, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useId, useState, type FormEvent, type ReactNode } from "react";
@@ -30,6 +30,7 @@ export const APP_NAV: NavItem[] = [
   { href: "/artists", label: "My artists", short: "Artists", icon: Users, count: (s) => s.selections.length },
   { href: "/inbox", label: "Alerts", icon: Bell, unread: true },
   { href: "/saved", label: "Saved", icon: Bookmark, count: (s) => s.savedEvents.length },
+  { href: "/bookings", label: "Bookings", icon: Ticket },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -105,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Main"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
       >
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {APP_NAV.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
@@ -115,12 +116,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.72rem] font-semibold transition-colors",
+                    "flex min-h-16 flex-col items-center justify-center gap-1 text-[0.68rem] font-semibold transition-colors",
                     active ? "text-fg" : "text-fg-muted hover:text-fg",
                   )}
                 >
                   <span
-                    className={cn("relative grid h-7 w-12 place-items-center rounded-full transition-colors", active && "bg-signal")}
+                    className={cn("relative grid h-7 w-11 place-items-center rounded-full transition-colors", active && "bg-signal")}
                   >
                     <Icon aria-hidden className="size-5" />
                     {item.unread && unread !== null && unread > 0 && (

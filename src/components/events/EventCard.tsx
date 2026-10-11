@@ -187,7 +187,7 @@ export function EventCard({
                 rel="noopener noreferrer"
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-signal px-4 text-sm font-semibold text-on-signal transition-colors hover:bg-signal-hover"
               >
-                Tickets on {hostLabel(ticket.bookingUrl)}
+                Get tickets on {hostLabel(ticket.bookingUrl)}
                 <ArrowUpRight aria-hidden className="size-4" />
                 <span className="sr-only">(opens in a new tab)</span>
               </a>

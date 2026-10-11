@@ -28,6 +28,12 @@ export interface IntegrationStatusReport {
   notifications: Record<NotificationChannelKind, NotificationChannelStatus>;
   /** Why email isn't available (null when it is). */
   emailReason: string | null;
+  /** Why Telegram isn't available (null when the bot is configured). */
+  telegramReason: string | null;
+  /** Google Calendar OAuth client (per-user connection is separate). */
+  googleCalendar: { configured: boolean; reason: string | null };
+  /** Event sources requested but not integrated, with the reason (never shown as working). */
+  unavailableSources: Array<{ id: string; name: string; reason: string }>;
   /** Scheduled monitoring: configured ≠ running. lastRun is the last real execution. */
   scheduler: {
     configured: boolean;

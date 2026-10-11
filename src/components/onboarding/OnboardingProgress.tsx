@@ -11,8 +11,8 @@ import { cn } from "@/lib/cn";
  */
 export function OnboardingProgress() {
   const pathname = usePathname();
-  const { state, hydrated } = useOnboarding();
-  const seq = stepSequence(state.method);
+  const { hydrated } = useOnboarding();
+  const seq = stepSequence();
   const currentIndex = seq.findIndex((id) => STEPS[id].path === pathname);
   const current = currentIndex >= 0 ? seq[currentIndex] : undefined;
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ToastProvider } from "@/components/ui/Toast";
+import { BookingsProvider } from "@/features/bookings/BookingsProvider";
 import { OnboardingProvider } from "@/features/onboarding/OnboardingProvider";
 
 /**
@@ -10,7 +11,9 @@ import { OnboardingProvider } from "@/features/onboarding/OnboardingProvider";
 export default function JourneyLayout({ children }: { children: ReactNode }) {
   return (
     <OnboardingProvider>
-      <ToastProvider>{children}</ToastProvider>
+      <BookingsProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </BookingsProvider>
     </OnboardingProvider>
   );
 }

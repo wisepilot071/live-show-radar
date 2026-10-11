@@ -1,16 +1,10 @@
-import { getServerEnv } from "@/config/server-env";
 import type { SpotifyAvailability } from "./contract";
 
 /**
- * Flip to true only when the authorise → callback (state-validated, PKCE) →
- * token storage → import flow exists. Credentials alone do not make Spotify
- * available.
+ * Spotify is a FRONTEND-ONLY future-feature card in this version: there is no
+ * OAuth, token exchange, API call or artist import, and no Spotify
+ * credentials are read. The app reports it honestly as not implemented.
  */
-const OAUTH_FLOW_IMPLEMENTED = false;
-
 export function getSpotifyAvailability(): SpotifyAvailability {
-  if (!OAUTH_FLOW_IMPLEMENTED) return { available: false, reason: "not_implemented" };
-  const { clientId, clientSecret, redirectUri } = getServerEnv().spotify;
-  if (!clientId || !clientSecret || !redirectUri) return { available: false, reason: "credentials_missing" };
-  return { available: true, reason: "ready" };
+  return { available: false, reason: "not_implemented" };
 }

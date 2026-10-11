@@ -1,5 +1,6 @@
-import { MethodStep } from "@/components/onboarding/MethodStep";
+import { redirect } from "next/navigation";
 
-export default function OnboardingMethodPage() {
-  return <MethodStep />;
+/** Onboarding starts at artist selection (Spotify is a "coming soon" card there). */
+export default function OnboardingStartPage() {
+  redirect("/onboarding/artists");
 }

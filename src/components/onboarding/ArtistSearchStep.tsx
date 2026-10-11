@@ -13,6 +13,7 @@ import { previousStep, STEPS } from "@/features/onboarding/steps";
 import { useOnboardingSubmit } from "@/features/onboarding/useOnboardingSubmit";
 import { pluralize } from "@/lib/format";
 import { SelectedArtistChips } from "./SelectedArtistList";
+import { SpotifyComingSoonCard } from "./SpotifyComingSoonCard";
 import { StepLayout, StepNav } from "./StepLayout";
 
 /** Mirror the query into the URL so refresh and back/forward keep it. */
@@ -50,7 +51,7 @@ export function ArtistSearchStep() {
   return (
     <StepLayout
       width="default"
-      eyebrow={state.method === "mix" ? "Mix both · Part 2 of 2" : "Choose artists"}
+      eyebrow="Choose artists"
       title="Who would you hate to miss?"
       description="Pick a few to start — you can add the rest any time. Next: your cities and what's worth an alert."
       footer={
@@ -82,7 +83,9 @@ export function ArtistSearchStep() {
         </InlineAlert>
       )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <SpotifyComingSoonCard />
+
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <ArtistSearchPanel
           isSelected={(a) => selectedKeys.has(artistIdentityKey(a))}
           onToggle={toggle}

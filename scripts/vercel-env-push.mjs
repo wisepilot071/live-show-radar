@@ -11,6 +11,8 @@ import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const target = process.argv[2] ?? "production";
+// Optional: only push these keys (comma-separated), e.g. TELEGRAM_BOT_TOKEN,TELEGRAM_WEBHOOK_SECRET
+const only = process.argv[3]?.split(",").map((k) => k.trim()).filter(Boolean);
 const KEYS = [
   "DATABASE_URL",
   "SESSION_SECRET",
@@ -24,6 +26,13 @@ const KEYS = [
   "RESEND_API_KEY",
   "EMAIL_FROM",
   "REMINDER_WINDOWS_HOURS",
+  "APP_BASE_URL",
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_BOT_USERNAME",
+  "TELEGRAM_WEBHOOK_SECRET",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "TOKEN_ENCRYPTION_KEY",
 ];
 
 const env = Object.fromEntries(
@@ -38,7 +47,7 @@ const env = Object.fromEntries(
 
 if (env.DATABASE_URL) env.DATABASE_URL = env.DATABASE_URL.replace(/:5432\//, ":6543/");
 
-for (const key of KEYS) {
+for (const key of only ?? KEYS) {
   const value = env[key];
   if (!value) {
     console.log(`skip  ${key} (not set locally)`);

@@ -3,7 +3,7 @@
 import { Sparkles, Wand2 } from "lucide-react";
 import { useId, useState } from "react";
 import { EventCard } from "@/components/events/EventCard";
-import { SaveEventButton } from "@/components/events/SaveEventButton";
+import { EventActions } from "@/components/events/EventActions";
 import { Button } from "@/components/ui/Button";
 import { InlineAlert } from "@/components/ui/InlineAlert";
 import { TextField } from "@/components/ui/TextField";
@@ -155,7 +155,7 @@ export function AnnouncementIntake({ onExtracted }: { onExtracted: () => void })
               event={outcome.event}
               location={state.location}
               detailHref={`/radar/events/${outcome.event.id}`}
-              actions={<SaveEventButton event={outcome.event} />}
+              actions={<EventActions event={outcome.event} />}
             />
           </div>
         </div>

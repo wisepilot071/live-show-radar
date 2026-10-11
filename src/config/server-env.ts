@@ -28,19 +28,28 @@ export interface ServerEnv {
   musicbrainz: { enabled: boolean; contact?: string };
   ticketmaster: { apiKey?: string };
   bandsintown: { appId?: string };
-  spotify: { clientId?: string; clientSecret?: string; redirectUri?: string };
   /** Vercel Cron sends "Authorization: Bearer $CRON_SECRET". */
   cronSecret?: string;
   email: { resendApiKey?: string; from?: string; allowedRecipients: string[] };
   /** Deadline reminder windows in hours before an early-bird deadline. */
   reminderWindowsHours: number[];
+  /** Telegram bot (notifications + account linking via webhook). */
+  telegram: { botToken?: string; botUsername?: string; webhookSecret?: string };
+  /** Google Calendar OAuth client (scope: calendar.events). */
+  google: { clientId?: string; clientSecret?: string };
+  /** 32-byte key (base64url) for OAuth tokens at rest; derived from SESSION_SECRET when unset. */
+  tokenEncryptionKey?: string;
 }
 
 export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 
 export function getServerEnv(): ServerEnv {
   return {
-    appBaseUrl: read("APP_BASE_URL"),
+    // Public URL used in emails/Telegram links and OAuth redirects. On Vercel the
+    // production domain is provided automatically if APP_BASE_URL isn't set.
+    appBaseUrl:
+      read("APP_BASE_URL")?.replace(/\/+$/, "") ??
+      (read("VERCEL_PROJECT_PRODUCTION_URL") ? `https://${read("VERCEL_PROJECT_PRODUCTION_URL")}` : undefined),
     databaseUrl: read("DATABASE_URL"),
     sessionSecret: read("SESSION_SECRET"),
     discoveryAdminToken: read("DISCOVERY_ADMIN_TOKEN"),
@@ -66,10 +75,12 @@ export function getServerEnv(): ServerEnv {
       .map(Number)
       .filter((n) => Number.isFinite(n) && n > 0 && n <= 24 * 14)
       .sort((a, b) => b - a),
-    spotify: {
-      clientId: read("SPOTIFY_CLIENT_ID"),
-      clientSecret: read("SPOTIFY_CLIENT_SECRET"),
-      redirectUri: read("SPOTIFY_REDIRECT_URI"),
+    telegram: {
+      botToken: read("TELEGRAM_BOT_TOKEN"),
+      botUsername: read("TELEGRAM_BOT_USERNAME")?.replace(/^@/, ""),
+      webhookSecret: read("TELEGRAM_WEBHOOK_SECRET"),
     },
+    google: { clientId: read("GOOGLE_CLIENT_ID"), clientSecret: read("GOOGLE_CLIENT_SECRET") },
+    tokenEncryptionKey: read("TOKEN_ENCRYPTION_KEY"),
   };
 }

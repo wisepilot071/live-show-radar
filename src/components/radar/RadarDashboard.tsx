@@ -10,6 +10,7 @@ import {
   RotateCw,
   SlidersHorizontal,
   Sparkles,
+  Ticket,
   Users,
   X,
   type LucideIcon,
@@ -18,7 +19,7 @@ import { useId, useState, type ReactNode } from "react";
 import { EventCard } from "@/components/events/EventCard";
 import { HeroBackdrop } from "@/components/media/HeroBackdrop";
 import { LiveOnStage } from "@/components/media/LiveOnStage";
-import { SaveEventButton } from "@/components/events/SaveEventButton";
+import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { InlineAlert } from "@/components/ui/InlineAlert";
@@ -32,6 +33,7 @@ import { deriveDashboard, type DashboardSituation } from "@/features/discovery/d
 import { applyFilters, buildSections, DEFAULT_FILTERS, genreOptions, type DiscoveryFilters } from "@/features/discovery/sections";
 import { useDiscovery } from "@/features/discovery/useDiscovery";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
+import { useBookings } from "@/features/bookings/BookingsProvider";
 import { cn } from "@/lib/cn";
 import { formatTimestamp, pluralize } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
@@ -49,6 +51,19 @@ export function RadarDashboard() {
   const failedSources = report?.sources.filter((s) => s.outcome === "failed") ?? [];
   const busy = discovery.phase === "loading";
   const { status: integrations } = useIntegrationStatus();
+  const bookings = useBookings();
+  const bookingsCell: { tone: StatusTone; label: string; detail: string } =
+    bookings.phase === "storage_off"
+      ? { tone: "unavailable", label: "Unavailable", detail: "Bookings need server storage." }
+      : bookings.phase !== "ready"
+        ? { tone: "in_progress", label: "Loading", detail: "Loading your bookings…" }
+        : bookings.bookings.length === 0
+          ? { tone: "unknown", label: "None yet", detail: "Bought a ticket? Press “I’ve booked my ticket” on the show." }
+          : {
+              tone: "completed",
+              label: `${bookings.bookings.length} booked`,
+              detail: `${bookings.bookings.filter((b) => b.calendar.status === "synced").length} in Google Calendar · confirmed by you.`,
+            };
   const alertsCell: { tone: StatusTone; label: string; detail: string } =
     integrations.phase !== "ready"
       ? { tone: "in_progress", label: "Checking", detail: "Checking alert delivery…" }
@@ -104,6 +119,7 @@ export function RadarDashboard() {
               situation={situation}
               busy={busy}
               alerts={alertsCell}
+              bookings={bookingsCell}
             />
           ) : null
         }
@@ -271,8 +287,10 @@ function StatusPanel({
   situation,
   busy,
   alerts,
+  bookings,
 }: {
   alerts: { tone: StatusTone; label: string; detail: string };
+  bookings: { tone: StatusTone; label: string; detail: string };
   savedWhere: string;
   artistCount: number;
   primaryCityId: string;
@@ -304,7 +322,7 @@ function StatusPanel({
               : { tone: "unknown", label: "Unknown", detail: "No successful check recorded." };
 
   return (
-    <section aria-label="Radar status" className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3">
+    <section aria-label="Radar status" className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatusCell
         label="Your artists"
         badge={
@@ -330,14 +348,34 @@ function StatusPanel({
         icon={Radio}
       />
       <StatusCell label="Alerts" badge={<StatusBadge tone={alerts.tone} label={alerts.label} />} detail={alerts.detail} icon={Bell} />
+      <StatusCell
+        label="My bookings"
+        badge={<StatusBadge tone={bookings.tone} label={bookings.label} />}
+        detail={bookings.detail}
+        icon={Ticket}
+        href="/bookings"
+      />
     </section>
   );
 }
 
 /** Status cells sit on the ink hero, so each one is a light card. */
-function StatusCell({ label, badge, detail, icon: Icon }: { label: string; badge: ReactNode; detail: string; icon: LucideIcon }) {
+function StatusCell({
+  label,
+  badge,
+  detail,
+  icon: Icon,
+  href,
+}: {
+  label: string;
+  badge: ReactNode;
+  detail: string;
+  icon: LucideIcon;
+  href?: string;
+}) {
+  const Tag = href ? "a" : "div";
   return (
-    <div className="space-y-2 rounded-lg bg-surface p-4 text-fg">
+    <Tag {...(href ? { href } : {})} className={cn("block space-y-2 rounded-lg bg-surface p-4 text-fg", href && "transition-shadow hover:shadow-raised")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-fg">
           <Icon aria-hidden className="size-4 text-fg-muted" />
@@ -346,7 +384,7 @@ function StatusCell({ label, badge, detail, icon: Icon }: { label: string; badge
         {badge}
       </div>
       <p className="text-sm text-fg-secondary">{detail}</p>
-    </div>
+    </Tag>
   );
 }
 
@@ -668,7 +706,7 @@ function EventSection({
                 location={state.location}
                 detailHref={`/radar/events/${encodeURIComponent(e.id)}`}
                 saved={savedIds.has(e.id)}
-                actions={<SaveEventButton event={e} />}
+                actions={<EventActions event={e} />}
               />
             </li>
           ))}
@@ -707,7 +745,7 @@ function IllustrativePreview({ savedIds }: { savedIds: Set<string> }) {
               location={state.location}
               detailHref={`/radar/events/${e.id}`}
               saved={savedIds.has(e.id)}
-              actions={<SaveEventButton event={e} />}
+              actions={<EventActions event={e} />}
             />
           </li>
         ))}

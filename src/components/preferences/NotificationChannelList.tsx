@@ -1,5 +1,6 @@
 "use client";
 
+import { TelegramConnect } from "./TelegramConnect";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -137,13 +138,7 @@ export function NotificationChannelList() {
         )}
       </Card>
 
-      <Card className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-semibold text-fg">Telegram</p>
-          <p className="text-sm text-fg-secondary">Not built. Nothing is sent.</p>
-        </div>
-        <StatusBadge tone="unavailable" />
-      </Card>
+      <TelegramConnect />
     </div>
   );
 }

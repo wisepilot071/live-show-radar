@@ -1,5 +1,6 @@
-import { SpotifyStep } from "@/components/onboarding/SpotifyStep";
+import { redirect } from "next/navigation";
 
+/** Spotify import isn't built yet; its "coming soon" card lives on the artists step. */
 export default function SpotifyPage() {
-  return <SpotifyStep />;
+  redirect("/onboarding/artists");
 }
