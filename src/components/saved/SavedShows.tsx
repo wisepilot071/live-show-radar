@@ -8,7 +8,6 @@ import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { SelectField } from "@/components/ui/SelectField";
 import { findCity } from "@/domain/cities";
 import { deriveEventSignals, type EventSignals } from "@/domain/event-signals";
@@ -17,6 +16,7 @@ import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
 import { pluralize } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
+import { PageSkeleton } from "@/components/ui/Skeletons";
 
 type FilterId = "all" | "primary" | "elsewhere" | "upcoming" | "verify";
 type SortId = "show_date" | "recently_saved";
@@ -67,16 +67,13 @@ export function SavedShows() {
   const exampleCount = state.savedEvents.filter((s) => s.snapshot.origin === "illustrative").length;
 
   if (!hydrated || !now) {
-    return (
-      <Container className="py-12">
-        <LoadingIndicator label="Loading saved shows…" />
-      </Container>
-    );
+    return <PageSkeleton label="Loading saved shows…" body="cards" />;
   }
 
   return (
     <Container width="wide" className="space-y-8 py-8 sm:py-12">
       <PageHeader
+        atmosphere="festival-sunset"
         eyebrow="Saved shows"
         title={state.savedEvents.length ? `${pluralize(state.savedEvents.length, "show")} you're keeping an eye on` : "Saved shows"}
         description="Shows you want to come back to."

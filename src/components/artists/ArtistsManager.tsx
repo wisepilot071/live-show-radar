@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { TextField } from "@/components/ui/TextField";
 import { useToast } from "@/components/ui/Toast";
 import { artistIdentityKey, normalizeArtistName } from "@/domain/artist-identity";
@@ -19,6 +18,7 @@ import { pluralize } from "@/lib/format";
 import { ArtistRow } from "./ArtistRow";
 import { ArtistSearchPanel } from "./ArtistSearchPanel";
 import { CuratedArtistPicker } from "./CuratedArtistPicker";
+import { PageSkeleton } from "@/components/ui/Skeletons";
 
 export function ArtistsManager() {
   const params = useSearchParams();
@@ -116,16 +116,13 @@ export function ArtistsManager() {
   }
 
   if (!hydrated) {
-    return (
-      <Container className="py-12">
-        <LoadingIndicator label="Loading your artists…" />
-      </Container>
-    );
+    return <PageSkeleton label="Loading your artists…" body="rows" />;
   }
 
   return (
     <Container width="wide" className="space-y-8 py-8 sm:py-12">
       <PageHeader
+        atmosphere="gold-stage"
         eyebrow="Artists"
         title={state.selections.length ? `${pluralize(state.selections.length, "artist")} on your radar` : "Your artists"}
         description="Add, remove and check the artists your radar is built around."
@@ -231,7 +228,7 @@ export function ArtistsManager() {
               ) : (
                 <ul
                   aria-label="Followed artists"
-                  className="divide-y divide-line/60 overflow-hidden rounded-lg border border-line bg-surface"
+                  className="divide-y divide-line/60 overflow-hidden rounded-xl border border-line bg-surface shadow-card"
                 >
                   {visible.map((s) => {
                     const key = artistIdentityKey(s.artist);

@@ -5,7 +5,8 @@ import type { ReactNode } from "react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
+import { Atmosphere } from "@/components/media/Atmosphere";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 
 /**
@@ -35,17 +36,29 @@ export function StepLayout({
         {hydrated ? (
           <>
             {/* Titles can depend on saved state, so they wait for hydration too. */}
-            <header className="animate-rise space-y-4">
-              <Eyebrow>{eyebrow}</Eyebrow>
-              <h1 className="font-display text-[clamp(2.1rem,5.5vw,3.5rem)] leading-[1] font-extrabold tracking-tight text-balance">
+            <header className="on-ink relative isolate animate-rise space-y-4 overflow-hidden rounded-[1.75rem] bg-ink px-5 pt-12 pb-7 text-on-ink shadow-[0_30px_60px_-35px_rgb(32_40_32/0.6)] sm:px-8 sm:pt-16 sm:pb-9">
+              <Atmosphere asset="festival-sunset" priority />
+              <Eyebrow className="flex items-center gap-2 text-signal">
+                <span aria-hidden className="inline-block h-px w-6 bg-signal" />
+                {eyebrow}
+              </Eyebrow>
+              <h1 className="max-w-3xl font-display text-[clamp(2.1rem,5.5vw,3.5rem)] leading-[1] font-extrabold tracking-tight text-balance drop-shadow-[0_2px_18px_rgb(0_0_0/0.35)]">
                 {title}
               </h1>
-              {description && <div className="max-w-2xl text-lg leading-relaxed text-fg-secondary">{description}</div>}
+              {description && <div className="max-w-2xl text-lg leading-relaxed text-on-ink/85">{description}</div>}
             </header>
             <div className="animate-rise [animation-delay:60ms]">{children}</div>
           </>
         ) : (
-          <LoadingIndicator label="Loading your saved choices…" className="min-h-40" />
+          <div role="status" className="space-y-8">
+            <span className="sr-only">Loading your saved choices…</span>
+            <div aria-hidden className="space-y-3 rounded-[1.75rem] bg-ink px-5 pt-12 pb-7 sm:px-8 sm:pt-16 sm:pb-9">
+              <Skeleton tone="ink" className="h-3 w-24" />
+              <Skeleton tone="ink" className="h-10 w-2/3" />
+              <Skeleton tone="ink" className="h-5 w-1/2" />
+            </div>
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
         )}
       </Container>
       {footer && hydrated && (

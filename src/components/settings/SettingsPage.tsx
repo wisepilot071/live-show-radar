@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useIntegrationStatus } from "@/features/integrations/useIntegrationStatus";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { formatTimestamp, pluralize } from "@/lib/format";
+import { PageSkeleton } from "@/components/ui/Skeletons";
 
 const SECTIONS = [
   { id: "location", label: "Location" },
@@ -34,11 +35,7 @@ export function SettingsPage() {
   const [confirmReset, setConfirmReset] = useState(false);
 
   if (!hydrated) {
-    return (
-      <Container className="py-12">
-        <LoadingIndicator label="Loading settings…" />
-      </Container>
-    );
+    return <PageSkeleton label="Loading settings…" body="form" />;
   }
 
   const report = status.phase === "ready" ? status.report : null;
@@ -47,6 +44,7 @@ export function SettingsPage() {
   return (
     <Container width="default" className="space-y-10 py-8 sm:py-12">
       <PageHeader
+        atmosphere="panorama-band"
         eyebrow="Settings"
         title="Tune your radar."
         description={
@@ -110,7 +108,7 @@ export function SettingsPage() {
         )}
         <GoogleCalendarConnect />
         {report && (
-          <ul className="divide-y divide-line/60 overflow-hidden rounded-lg border border-line bg-surface">
+          <ul className="divide-y divide-line/60 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
             <ConnectionRow
               name="Spotify"
               tone="unavailable"

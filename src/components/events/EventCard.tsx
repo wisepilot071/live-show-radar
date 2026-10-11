@@ -64,20 +64,24 @@ export function EventCard({
     <article
       aria-labelledby={`ev-${event.id}-title`}
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-surface transition-[border-color,box-shadow] duration-[var(--duration-base)]",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-[var(--duration-base)] ease-[var(--ease-out-soft)]",
         isExample ? "border-dashed border-line-strong" : "border-line",
         urgent && "border-urgent/60",
-        "hover:shadow-raised",
+        "hover:-translate-y-0.5 hover:shadow-card-hover motion-reduce:hover:translate-y-0",
         className,
       )}
     >
+      {/* Accent edge: lime for your city, coral for a confirmed deadline. */}
+      {(urgent || isPrimary) && (
+        <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", urgent ? "bg-urgent" : "bg-signal")} />
+      )}
       <div className={cn("flex flex-1 flex-col gap-4 p-4 sm:p-5", muted && "opacity-75")}>
         {/* 1. When + which artist */}
         <header className="flex min-w-0 gap-4">
           <div
             aria-hidden
             className={cn(
-              "on-ink flex h-[4.75rem] w-16 shrink-0 flex-col items-center justify-center self-start rounded-lg text-center",
+              "on-ink flex h-[4.75rem] w-16 shrink-0 flex-col items-center justify-center self-start rounded-lg text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.1),0_10px_20px_-12px_rgb(32_40_32/0.7)]",
               urgent ? "bg-urgent text-ink" : "bg-ink text-on-ink",
             )}
           >
@@ -146,7 +150,7 @@ export function EventCard({
         )}
 
         {/* 4. Tickets */}
-        <div className={cn("space-y-1.5 rounded-lg p-3", urgent ? "bg-urgent/10" : "bg-surface-2/70")}>
+        <div className={cn("space-y-1.5 rounded-lg p-3 shadow-[inset_0_1px_2px_rgb(32_40_32/0.06)]", urgent ? "bg-urgent/10" : "bg-surface-2/70")}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-sm font-semibold text-fg">
               <Ticket aria-hidden className="size-4 shrink-0 text-fg-muted" />

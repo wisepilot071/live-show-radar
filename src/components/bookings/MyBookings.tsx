@@ -9,11 +9,11 @@ import { Container } from "@/components/ui/Container";
 import { Dialog } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineAlert } from "@/components/ui/InlineAlert";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { StatusBadge, type StatusTone } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
 import { useBookings, type CalendarStatus, type ClientBooking } from "@/features/bookings/BookingsProvider";
 import { formatEventDate, formatTimestamp, hostLabel } from "@/lib/format";
+import { RowListSkeleton } from "@/components/ui/Skeletons";
 
 const CALENDAR: Record<CalendarStatus, { tone: StatusTone; label: string; detail: string }> = {
   synced: { tone: "confirmed", label: "In Google Calendar", detail: "Added to your Google Calendar." },
@@ -29,12 +29,13 @@ export function MyBookings() {
   return (
     <Container width="wide" className="space-y-8 py-8 sm:py-12">
       <PageHeader
+        atmosphere="festival-sunset"
         eyebrow="My bookings"
         title="Shows you've booked."
         description="Bookings you've recorded after buying tickets on the seller's site. We can't see or verify purchases — these are confirmed by you."
       />
 
-      {phase === "loading" && <LoadingIndicator label="Loading your bookings…" />}
+      {phase === "loading" && <RowListSkeleton label="Loading your bookings…" count={3} />}
       {phase === "storage_off" && (
         <InlineAlert tone="info" title="Bookings need server storage">
           This server&rsquo;s database isn&rsquo;t configured or reachable, so bookings can&rsquo;t be saved here.
@@ -88,7 +89,7 @@ function BookingCard({ booking }: { booking: ClientBooking }) {
   }
 
   return (
-    <article className="flex h-full flex-col gap-4 rounded-xl border border-line bg-surface p-5">
+    <article className="flex h-full flex-col gap-4 rounded-xl border border-line bg-surface shadow-card p-5">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge tone="completed" label={booking.status === "provider_verified" ? "Verified by seller" : "Booked · confirmed by you"} />
         <StatusBadge tone={cal.tone} label={cal.label} />

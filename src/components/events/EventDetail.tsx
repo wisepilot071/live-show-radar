@@ -8,7 +8,6 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineAlert } from "@/components/ui/InlineAlert";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { findIllustrativeEvent } from "@/data/illustrative-events";
 import { artistIdentityKey } from "@/domain/artist-identity";
@@ -21,6 +20,7 @@ import { useNow } from "@/lib/useNow";
 import { cardVariant, relevanceLine, TICKET_STATUS_LABEL, VARIANT_TAG, VERIFICATION_TONE } from "./event-labels";
 import { EventActions } from "./EventActions";
 import { SourcePanel } from "./SourcePanel";
+import { DetailSkeleton } from "@/components/ui/Skeletons";
 
 type Canonical =
   | { phase: "skip" } // not a stored-event id
@@ -67,7 +67,7 @@ export function EventDetail({ id }: { id: string }) {
   if (!hydrated || canonical.phase === "loading") {
     return (
       <Container className="py-12">
-        <LoadingIndicator label="Loading show…" />
+        <DetailSkeleton label="Loading show…" />
       </Container>
     );
   }
@@ -181,7 +181,7 @@ export function EventDetail({ id }: { id: string }) {
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div className="space-y-6">
-          <section aria-labelledby="when-title" className="rounded-lg border border-line bg-surface p-5">
+          <section aria-labelledby="when-title" className="rounded-xl border border-line bg-surface shadow-card p-5">
             <h2 id="when-title" className="mb-3 font-display text-lg font-bold">
               When and where
             </h2>
@@ -261,7 +261,7 @@ export function EventDetail({ id }: { id: string }) {
 
         <div className="space-y-6">
           <SourcePanel event={event} />
-          <section aria-labelledby="artists-title" className="space-y-3 rounded-lg border border-line bg-surface p-5">
+          <section aria-labelledby="artists-title" className="space-y-3 rounded-xl border border-line bg-surface shadow-card p-5">
             <h2 id="artists-title" className="flex items-center gap-2 font-display text-lg font-bold">
               <Users aria-hidden className="size-4.5 text-fg-muted" />
               Artists

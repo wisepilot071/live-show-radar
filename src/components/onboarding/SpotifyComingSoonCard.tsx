@@ -15,7 +15,7 @@ import { Dialog } from "@/components/ui/Dialog";
 export function SpotifyComingSoonCard() {
   const [open, setOpen] = useState(false);
   return (
-    <section aria-labelledby="spotify-card-title" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-4 sm:flex-row sm:items-center sm:p-5">
+    <section aria-labelledby="spotify-card-title" className="flex flex-col gap-4 rounded-xl border border-line bg-surface shadow-card p-4 sm:flex-row sm:items-center sm:p-5">
       <span aria-hidden className="grid size-12 shrink-0 place-items-center rounded-full bg-[#1DB954] text-[#06140b]">
         <Music2 className="size-6" />
       </span>

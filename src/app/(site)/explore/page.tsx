@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
+import { Atmosphere } from "@/components/media/Atmosphere";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Eyebrow";
@@ -23,12 +24,16 @@ export default function ExplorePage() {
   return (
     <>
       <Container width="wide" className="space-y-10 pt-12 pb-16 lg:pt-16">
-        <header className="max-w-3xl space-y-5">
-          <Eyebrow>Explore before you commit</Eyebrow>
-          <h1 className="font-display text-[clamp(2.4rem,6vw,4.25rem)] leading-[0.98] font-extrabold tracking-tight text-balance">
+        <header className="on-ink relative isolate animate-rise space-y-5 overflow-hidden rounded-[1.75rem] bg-ink px-5 pt-16 pb-8 text-on-ink shadow-[0_30px_60px_-35px_rgb(32_40_32/0.6)] sm:px-10 sm:pt-24 sm:pb-10">
+          <Atmosphere asset="panorama-band" priority />
+          <Eyebrow className="flex items-center gap-2 text-signal">
+            <span aria-hidden className="inline-block h-px w-6 bg-signal" />
+            Explore before you commit
+          </Eyebrow>
+          <h1 className="max-w-3xl font-display text-[clamp(2.4rem,6vw,4.25rem)] leading-[0.98] font-extrabold tracking-tight text-balance drop-shadow-[0_2px_18px_rgb(0_0_0/0.35)]">
             Here&rsquo;s how your radar will read.
           </h1>
-          <p className="text-lg leading-relaxed text-fg-secondary">
+          <p className="max-w-3xl text-lg leading-relaxed text-on-ink/85">
             Each show gets one card. It tells you what&rsquo;s known, what isn&rsquo;t, and where the details came from —
             so you can decide quickly whether to act.
           </p>
@@ -47,7 +52,7 @@ export default function ExplorePage() {
           ))}
         </ul>
 
-        <section aria-labelledby="anatomy-title" className="rounded-lg border border-line bg-surface p-6 sm:p-8">
+        <section aria-labelledby="anatomy-title" className="rounded-xl border border-line bg-surface p-6 shadow-card sm:p-8">
           <h2 id="anatomy-title" className="mb-6 font-display text-2xl font-bold tracking-tight">
             What every card tells you
           </h2>

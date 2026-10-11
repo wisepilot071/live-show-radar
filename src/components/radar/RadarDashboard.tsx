@@ -23,7 +23,6 @@ import { EventActions } from "@/components/events/EventActions";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { InlineAlert } from "@/components/ui/InlineAlert";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { StatusBadge, type StatusTone } from "@/components/ui/StatusBadge";
 import { ILLUSTRATIVE_EVENTS } from "@/data/illustrative-events";
 import { artistIdentityKey } from "@/domain/artist-identity";
@@ -39,6 +38,7 @@ import { formatTimestamp, pluralize } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
 import { useIntegrationStatus } from "@/features/integrations/useIntegrationStatus";
 import { AnnouncementIntake } from "./AnnouncementIntake";
+import { EventGridSkeleton } from "@/components/ui/Skeletons";
 
 export function RadarDashboard() {
   const { state, hydrated, persistence, mode } = useOnboarding();
@@ -144,7 +144,7 @@ export function RadarDashboard() {
         </InlineAlert>
       )}
 
-      {situation.kind === "loading" && <LoadingIndicator label="Checking your radar…" />}
+      {situation.kind === "loading" && <EventGridSkeleton label="Checking your radar…" />}
 
       {situation.kind === "no_artists" && (
         <DashboardState
@@ -406,7 +406,7 @@ function DiscoverHero({
 }) {
   const city = cityLabel(primaryCityId).split(",")[0];
   return (
-    <section aria-labelledby="discover-title" className="on-ink relative isolate overflow-hidden rounded-2xl bg-ink text-on-ink">
+    <section aria-labelledby="discover-title" className="on-ink relative isolate animate-rise overflow-hidden rounded-[1.75rem] bg-ink text-on-ink shadow-[0_30px_60px_-35px_rgb(32_40_32/0.6)]">
       <HeroBackdrop />
       <div className="grid gap-6 p-5 pt-12 sm:p-8 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:pt-24">
         <div className="space-y-3">
@@ -452,13 +452,18 @@ function DashboardState({
         tone === "positive" && "border-line bg-surface",
       )}
     >
-      <span
-        className={cn(
-          "grid size-14 place-items-center rounded-full border",
-          tone === "error" ? "border-urgent/40 text-urgent-ink" : tone === "positive" ? "border-signal-ink/40 text-signal-ink" : "border-line text-fg-secondary",
-        )}
-      >
-        <Icon aria-hidden className="size-6" />
+      {/* Radar rings: the brand motif, static (no implied activity). */}
+      <span aria-hidden className="relative grid size-24 place-items-center">
+        <span className={cn("absolute inset-0 rounded-full border", tone === "error" ? "border-urgent/25" : "border-line")} />
+        <span className={cn("absolute inset-3.5 rounded-full border", tone === "error" ? "border-urgent/40" : "border-line-strong/70")} />
+        <span
+          className={cn(
+            "relative grid size-14 place-items-center rounded-full bg-surface shadow-card ring-1",
+            tone === "error" ? "text-urgent-ink ring-urgent/40" : tone === "positive" ? "text-signal-ink ring-signal-ink/40" : "text-fg-secondary ring-line",
+          )}
+        >
+          <Icon className="size-6" strokeWidth={1.75} />
+        </span>
       </span>
       <h2 className="max-w-xl font-display text-2xl font-bold tracking-tight text-balance">{title}</h2>
       <p className="max-w-xl text-fg-secondary">{body}</p>

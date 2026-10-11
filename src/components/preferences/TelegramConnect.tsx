@@ -92,7 +92,7 @@ export function TelegramConnect() {
   if (!info && !error) return <LoadingIndicator label="Checking Telegram…" />;
 
   return (
-    <div className="space-y-3 rounded-lg border border-line bg-surface p-4">
+    <div className="space-y-3 rounded-xl border border-line bg-surface shadow-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 font-semibold">
           <Send aria-hidden className="size-4 text-fg-muted" /> Telegram

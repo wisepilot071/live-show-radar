@@ -78,7 +78,7 @@ export function AnnouncementIntake({ onExtracted }: { onExtracted: () => void })
   }
 
   return (
-    <section aria-labelledby="intake-title" className="space-y-4 rounded-xl border border-line bg-surface p-4 sm:p-6">
+    <section aria-labelledby="intake-title" className="space-y-4 rounded-xl border border-line bg-surface shadow-card p-4 sm:p-6">
       <div className="space-y-1">
         <h2 id="intake-title" className="flex items-center gap-2 font-display text-2xl font-bold tracking-tight">
           <Wand2 aria-hidden className="size-5 text-signal-ink" />

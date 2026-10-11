@@ -50,7 +50,7 @@ export function SourcePanel({ event }: { event: LiveEvent }) {
   ];
 
   return (
-    <section aria-labelledby="source-title" className="space-y-4 rounded-lg border border-line bg-surface p-5">
+    <section aria-labelledby="source-title" className="space-y-4 rounded-xl border border-line bg-surface shadow-card p-5">
       <h2 id="source-title" className="flex items-center gap-2 font-display text-lg font-bold">
         <FileSearch aria-hidden className="size-4.5 text-fg-muted" />
         Where this comes from

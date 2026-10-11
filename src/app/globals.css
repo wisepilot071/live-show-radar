@@ -81,6 +81,9 @@
   --radius-xl: 24px;
 
   --shadow-raised: 0 1px 2px rgb(32 40 32 / 0.05), 0 10px 28px -18px rgb(32 40 32 / 0.25);
+  /* Layered card depth: a tight contact shadow plus a soft ambient one. */
+  --shadow-card: 0 1px 2px rgb(32 40 32 / 0.05), 0 12px 32px -22px rgb(32 40 32 / 0.35);
+  --shadow-card-hover: 0 2px 4px rgb(32 40 32 / 0.06), 0 26px 50px -26px rgb(32 40 32 / 0.5);
   --shadow-signal: 0 0 0 1px rgb(59 100 16 / 0.25), 0 6px 18px -10px rgb(59 100 16 / 0.35);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -88,6 +91,8 @@
   --animate-ping-soft: ping-soft 2.4s var(--ease-out-soft) infinite;
   --animate-rise: rise 420ms var(--ease-out-soft) both;
   --animate-pop: pop 260ms var(--ease-out-soft) both;
+  --animate-eq: eq 0.9s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
 
   @keyframes sweep {
     to {
@@ -113,6 +118,23 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes eq {
+    0%,
+    100% {
+      transform: scaleY(0.3);
+    }
+    35% {
+      transform: scaleY(1);
+    }
+    65% {
+      transform: scaleY(0.55);
+    }
+  }
+  @keyframes shimmer {
+    to {
+      transform: translateX(100%);
     }
   }
   @keyframes pop {

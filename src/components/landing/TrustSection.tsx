@@ -32,7 +32,7 @@ export function TrustSection() {
             ))}
           </ul>
         </div>
-        <dl className="divide-y divide-line/60 rounded-lg border border-line bg-surface">
+        <dl className="divide-y divide-line/60 rounded-xl border border-line bg-surface shadow-card">
           {STATES.map((s) => (
             <div key={s} className="grid gap-2 p-4 sm:grid-cols-[9.5rem_1fr] sm:items-center sm:gap-4 sm:p-5">
               <dt>

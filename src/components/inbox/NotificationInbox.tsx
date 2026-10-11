@@ -8,13 +8,13 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineAlert } from "@/components/ui/InlineAlert";
-import { LoadingIndicator } from "@/components/ui/LoadingIndicator";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
 import { useInbox, type InboxNotification } from "@/features/notifications/useInbox";
 import { useOnboarding } from "@/features/onboarding/OnboardingProvider";
 import { cn } from "@/lib/cn";
 import { formatTimestamp, pluralize } from "@/lib/format";
+import { RowListSkeleton } from "@/components/ui/Skeletons";
 
 const CATEGORY: Record<InboxNotification["category"], { icon: LucideIcon; label: string }> = {
   new_show: { icon: Megaphone, label: "New show" },
@@ -55,6 +55,7 @@ export function NotificationInbox() {
   return (
     <Container width="default" className="space-y-8 py-8 sm:py-12">
       <PageHeader
+        atmosphere="panorama-band"
         eyebrow="Inbox"
         title={unread ? `${pluralize(unread, "unread alert")}` : "Your alerts"}
         description="Every alert says why you're seeing it and where the information came from."
@@ -67,7 +68,7 @@ export function NotificationInbox() {
         }
       />
 
-      {state.phase === "loading" && <LoadingIndicator label="Loading your inbox…" />}
+      {state.phase === "loading" && <RowListSkeleton label="Loading your inbox…" />}
 
       {state.phase === "storage_off" && (
         <EmptyState icon={BellOff} title="The inbox needs server storage">
