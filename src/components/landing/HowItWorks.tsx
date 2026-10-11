@@ -52,7 +52,7 @@ export function HowItWorks() {
     <section
       id="how-it-works"
       aria-labelledby="how-title"
-      className="on-ink relative isolate scroll-mt-20 overflow-hidden bg-dusk-950 text-on-ink"
+      className="offscreen-lazy on-ink relative isolate scroll-mt-20 overflow-hidden bg-dusk-950 text-on-ink"
     >
       {/* Light show */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -60,7 +60,7 @@ export function HowItWorks() {
         {BEAMS.map((b) => (
           <div
             key={b.left}
-            className="absolute -top-[10%] h-[130%] w-[22rem] origin-top animate-beam mix-blend-screen will-change-transform"
+            className="absolute -top-[10%] h-[130%] w-[22rem] origin-top animate-beam will-change-transform"
             style={{
               left: b.left,
               background: `linear-gradient(180deg, ${b.color}, transparent 75%)`,
@@ -95,7 +95,7 @@ export function HowItWorks() {
             >
               <div
                 className={cn(
-                  "group relative flex h-full flex-col gap-4 overflow-hidden rounded-3xl bg-on-ink/[0.05] p-6 ring-1 ring-on-ink/10 backdrop-blur-md transition-[transform,box-shadow] duration-[var(--duration-base)] hover:-translate-y-1 motion-reduce:hover:translate-y-0 sm:p-8",
+                  "group relative flex h-full flex-col gap-4 overflow-hidden rounded-3xl bg-on-ink/[0.05] p-6 ring-1 ring-on-ink/10 transition-[transform,box-shadow] duration-[var(--duration-base)] hover:-translate-y-1 motion-reduce:hover:translate-y-0 sm:p-8",
                   step.accent,
                 )}
               >

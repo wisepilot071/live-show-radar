@@ -23,7 +23,7 @@ export function SiteHeader() {
   const cta = useRadarCta();
 
   return (
-    <header className="on-ink sticky top-0 z-40 border-b border-on-ink/10 bg-dusk-900/80 text-on-ink backdrop-blur-md">
+    <header className="on-ink sticky top-0 z-40 border-b border-on-ink/10 bg-dusk-900/[0.96] text-on-ink">
       <Container width="wide" className="flex min-h-16 items-center justify-between gap-4">
         <BrandMark onDark />
 

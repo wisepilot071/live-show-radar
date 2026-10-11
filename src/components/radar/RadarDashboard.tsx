@@ -424,7 +424,7 @@ function DiscoverHero({
         </div>
         <div className="flex flex-wrap gap-2">{actions}</div>
       </div>
-      {status && <div className="border-t border-on-ink/10 bg-ink/40 p-3 backdrop-blur-[2px] sm:p-4">{status}</div>}
+      {status && <div className="border-t border-on-ink/10 bg-ink/40 p-3 sm:p-4">{status}</div>}
     </section>
   );
 }
@@ -508,7 +508,7 @@ function DiscoverySectionsView({ events }: { events: LiveEvent[] }) {
     <div className="space-y-12">
       <FilterBar filters={filters} onChange={setFilters} count={filtered.length} total={events.length} />
       {focus.hidden > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/80 px-4 py-3 text-sm shadow-card backdrop-blur-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface/80 px-4 py-3 text-sm shadow-card">
           <p className="text-fg-secondary">
             {everyCity
               ? `Showing every city (${pluralize(events.length, "show")}).`

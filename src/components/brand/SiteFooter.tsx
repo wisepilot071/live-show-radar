@@ -8,7 +8,7 @@ import { BrandMark } from "./BrandMark";
 /** Footer as the end of the night: a crowd under the stars (decorative photo, stars, wristband lights). */
 export function SiteFooter() {
   return (
-    <footer className="on-ink relative isolate overflow-hidden bg-dusk-950 text-on-ink">
+    <footer className="offscreen-lazy on-ink relative isolate overflow-hidden bg-dusk-950 text-on-ink">
       <Atmosphere asset="panorama-band" tone="dusk" fade="bottom" className="opacity-45" />
       <NightSky dense className="opacity-70" />
       <CrowdLights className="h-20 opacity-70" />

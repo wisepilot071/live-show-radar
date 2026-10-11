@@ -80,7 +80,7 @@ export function ArtistTile({
         onClick={onRemove}
         aria-label={`Remove ${artist.name}`}
         title={`Remove ${artist.name}`}
-        className="on-ink absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-ink/70 text-on-ink opacity-100 backdrop-blur transition-[opacity,background-color] hover:bg-urgent hover:text-ink sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
+        className="on-ink absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-ink/70 text-on-ink opacity-100 transition-[opacity,background-color] hover:bg-urgent hover:text-ink sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
       >
         <X aria-hidden className="size-4" />
       </button>

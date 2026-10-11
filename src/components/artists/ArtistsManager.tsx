@@ -364,7 +364,7 @@ export function ArtistsManager() {
               );
             setAddOpen(!addOpen);
           }}
-          className="group flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-line-strong bg-surface/70 px-5 py-4 text-left backdrop-blur-sm transition-colors hover:border-signal-ink/50 hover:bg-surface"
+          className="group flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-line-strong bg-surface/70 px-5 py-4 text-left transition-colors hover:border-signal-ink/50 hover:bg-surface"
         >
           <span className="flex items-center gap-3">
             <span className="grid size-10 place-items-center rounded-full bg-signal text-on-signal">
@@ -398,7 +398,7 @@ export function ArtistsManager() {
           {/* Curated catalogue: Choose Your Artists */}
           <section
             aria-labelledby="choose-title"
-            className="space-y-4 rounded-2xl border border-line bg-surface/80 p-4 shadow-card backdrop-blur-sm sm:p-6"
+            className="space-y-4 rounded-2xl border border-line bg-surface/80 p-4 shadow-card sm:p-6"
           >
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="space-y-1">

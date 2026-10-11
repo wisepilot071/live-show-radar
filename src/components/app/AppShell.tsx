@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="relative isolate flex min-h-dvh flex-col">
       <AmbientBackdrop />
-      <header className="sticky top-0 z-40 border-b border-line bg-canvas/92 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-line bg-canvas/[0.97]">
         <div className="mx-auto flex min-h-16 w-full max-w-[90rem] items-center gap-3 px-4 sm:px-6 lg:gap-6 lg:px-8">
           <BrandMark className="shrink-0 max-sm:[&>span]:sr-only" />
 
@@ -106,7 +106,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom tabs */}
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <ul className="grid grid-cols-6">
           {APP_NAV.map((item) => {

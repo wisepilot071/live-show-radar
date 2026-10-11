@@ -16,7 +16,7 @@ const PROMISES = [
 
 export function TrustSection() {
   return (
-    <section id="transparency" aria-labelledby="trust-title" className="relative isolate scroll-mt-20 overflow-hidden">
+    <section id="transparency" aria-labelledby="trust-title" className="offscreen-lazy relative isolate scroll-mt-20 overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute -right-40 top-10 -z-10 size-[34rem] rounded-full bg-[radial-gradient(closest-side,rgb(200_241_105/0.25),transparent)] blur-2xl" />
       <Container width="wide" className="grid gap-12 py-16 lg:grid-cols-2 lg:py-24">
         <div className="space-y-5">
@@ -35,7 +35,7 @@ export function TrustSection() {
             ))}
           </ul>
         </div>
-        <dl className="divide-y divide-line/60 self-center rounded-[1.75rem] border border-line bg-surface/85 shadow-[0_40px_80px_-45px_rgb(32_40_32/0.45)] backdrop-blur-md">
+        <dl className="divide-y divide-line/60 self-center rounded-[1.75rem] border border-line bg-surface/85 shadow-[0_40px_80px_-45px_rgb(32_40_32/0.45)]">
           {STATES.map((s) => (
             <div key={s} className="grid gap-2 p-4 sm:grid-cols-[9.5rem_1fr] sm:items-center sm:gap-4 sm:p-5">
               <dt>

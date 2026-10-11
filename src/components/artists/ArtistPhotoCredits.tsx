@@ -9,7 +9,7 @@ export function ArtistPhotoCredits({ artists }: { artists: Artist[] }) {
     .filter((c): c is { artist: string; photo: NonNullable<typeof c.photo> } => Boolean(c.photo));
   if (credits.length === 0) return null;
   return (
-    <details className="rounded-xl border border-line bg-surface/70 px-4 py-3 text-sm backdrop-blur-sm">
+    <details className="rounded-xl border border-line bg-surface/70 px-4 py-3 text-sm">
       <summary className="cursor-pointer font-semibold text-fg-secondary">Artist photo credits ({credits.length})</summary>
       <ul className="mt-3 grid gap-1.5 text-xs text-fg-secondary sm:grid-cols-2">
         {credits.map(({ artist, photo }) => (

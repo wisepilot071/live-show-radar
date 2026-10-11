@@ -327,7 +327,7 @@ export function YouTubePlayer({
             player.current?.unMute();
             setSoundOff(false);
           }}
-          className="on-ink absolute top-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink/80 px-4 text-sm font-semibold text-on-ink shadow-raised backdrop-blur hover:bg-ink"
+          className="on-ink absolute top-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink/80 px-4 text-sm font-semibold text-on-ink shadow-raised hover:bg-ink"
         >
           <Volume2 aria-hidden className="size-4 text-signal" />
           Tap for sound

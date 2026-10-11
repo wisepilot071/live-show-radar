@@ -62,7 +62,7 @@ export function StepLayout({
         )}
       </Container>
       {footer && hydrated && (
-        <div className="sticky bottom-0 z-30 border-t border-line/70 bg-canvas/92 backdrop-blur-md">
+        <div className="sticky bottom-0 z-30 border-t border-line/70 bg-canvas/92">
           <Container width={width} className="flex min-h-18 items-center justify-between gap-3 py-3">
             {footer}
           </Container>

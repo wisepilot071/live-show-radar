@@ -340,8 +340,14 @@
 .reveal {
   animation: rise 700ms var(--ease-out-soft) both;
 }
+/* Big decorative sections: the browser skips rendering (and animating) them while off screen. */
+.offscreen-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* Crowd lights pause while off screen (see CrowdLights). */
-.crowd-lights[data-playing="false"] circle {
+.crowd-lights[data-playing="false"] g {
   animation-play-state: paused;
 }
 /* Marquee rows pause while hovered or focused. */

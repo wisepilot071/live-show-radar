@@ -73,7 +73,7 @@ export function RadarHero() {
             >
               Build my music radar
             </ButtonLink>
-            <ButtonLink href="/explore" size="lg" variant="onInk" className="backdrop-blur-sm">
+            <ButtonLink href="/explore" size="lg" variant="onInk">
               Explore first
             </ButtonLink>
           </div>

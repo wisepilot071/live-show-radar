@@ -13,13 +13,13 @@ const EXAMPLE_FOLLOWED = ["Northbound Saints", "Lowtide Radio", "Kite Season", "
 export function ProductPreview() {
   const featured = ILLUSTRATIVE_EVENTS[0];
   return (
-    <section aria-labelledby="preview-title" className="relative isolate overflow-hidden bg-canvas">
+    <section aria-labelledby="preview-title" className="offscreen-lazy relative isolate overflow-hidden bg-canvas">
       {/* Warm after-sunset glow: marigold and coral washes over the canvas */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#f3d7b6] to-transparent" />
-        <div className="absolute -top-32 left-[10%] size-[36rem] animate-drift rounded-full will-change-transform bg-[radial-gradient(closest-side,rgb(255_198_92/0.35),transparent)] blur-2xl" />
-        <div className="absolute right-[-10%] bottom-[-20%] size-[40rem] animate-drift rounded-full will-change-transform bg-[radial-gradient(closest-side,rgb(255_122_89/0.22),transparent)] blur-2xl [animation-delay:-13s]" />
-        <div className="absolute top-1/3 right-1/3 size-[22rem] animate-drift rounded-full will-change-transform bg-[radial-gradient(closest-side,rgb(169_139_255/0.16),transparent)] blur-2xl [animation-delay:-7s]" />
+        <div className="absolute -top-32 left-[10%] size-[36rem] rounded-full bg-[radial-gradient(closest-side,rgb(255_198_92/0.35),transparent)] blur-2xl" />
+        <div className="absolute right-[-10%] bottom-[-20%] size-[40rem] rounded-full bg-[radial-gradient(closest-side,rgb(255_122_89/0.22),transparent)] blur-2xl [animation-delay:-13s]" />
+        <div className="absolute top-1/3 right-1/3 size-[22rem] rounded-full bg-[radial-gradient(closest-side,rgb(169_139_255/0.16),transparent)] blur-2xl [animation-delay:-7s]" />
       </div>
       <Container width="wide" className="grid grid-cols-[minmax(0,1fr)] gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:items-center lg:py-24">
         <div className="space-y-5">
@@ -36,7 +36,7 @@ export function ProductPreview() {
           </ButtonLink>
         </div>
 
-        <div className="relative rotate-0 rounded-[1.75rem] border border-dashed border-line-strong bg-surface/60 p-3 shadow-[0_40px_80px_-40px_rgb(120_60_20/0.45)] backdrop-blur-md transition-transform duration-700 ease-[var(--ease-out-soft)] hover:-rotate-[0.6deg] motion-reduce:hover:rotate-0 sm:p-5">
+        <div className="relative rotate-0 rounded-[1.75rem] border border-dashed border-line-strong bg-surface/60 p-3 shadow-[0_40px_80px_-40px_rgb(120_60_20/0.45)] transition-transform duration-700 ease-[var(--ease-out-soft)] hover:-rotate-[0.6deg] motion-reduce:hover:rotate-0 sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 px-1">
             <StatusBadge tone="example" label="Example data · not live" />
             <span className="font-mono text-xs text-fg-muted">Fictional artists &amp; venues</span>

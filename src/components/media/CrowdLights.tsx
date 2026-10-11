@@ -59,6 +59,27 @@ function buildLights(): Light[] {
 
 const LIGHTS = buildLights();
 
+/**
+ * Performance: lights are animated in a handful of GROUPS (5 left-to-right bands
+ * for the wave, 2 for phone torches) — ~7 animations per crowd instead of ~190.
+ * The circles themselves are static.
+ */
+const BANDS = 5;
+const GROUPS = [
+  ...Array.from({ length: BANDS }, (_, b) => ({
+    key: `band-${b}`,
+    delay: -(b / BANDS) * 4,
+    duration: undefined as string | undefined,
+    lights: LIGHTS.filter((l) => !l.torch && Math.min(BANDS - 1, Math.floor((l.x / 100) * BANDS)) === b),
+  })),
+  ...[0, 1].map((t) => ({
+    key: `torch-${t}`,
+    delay: -t * 1.3,
+    duration: "2.6s",
+    lights: LIGHTS.filter((l, i) => l.torch && i % 2 === t),
+  })),
+];
+
 export function CrowdLights({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -80,16 +101,12 @@ export function CrowdLights({ className }: { className?: string }) {
     >
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[rgb(180_140_255/0.18)]" />
       <svg viewBox="0 0 100 40" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 size-full">
-        {LIGHTS.map((l, i) => (
-          <circle
-            key={i}
-            cx={l.x}
-            cy={l.y}
-            r={l.torch ? l.r * 0.32 : l.r * 0.26}
-            fill={l.torch ? "#fffbe8" : l.fill}
-            className="animate-wave"
-            style={{ animationDelay: `${l.torch ? l.delay * 1.7 : l.delay}s`, animationDuration: l.torch ? "2.6s" : undefined }}
-          />
+        {GROUPS.map((g) => (
+          <g key={g.key} className="animate-wave" style={{ animationDelay: `${g.delay}s`, animationDuration: g.duration }}>
+            {g.lights.map((l, i) => (
+              <circle key={i} cx={l.x} cy={l.y} r={l.torch ? l.r * 0.32 : l.r * 0.26} fill={l.torch ? "#fffbe8" : l.fill} />
+            ))}
+          </g>
         ))}
       </svg>
     </div>

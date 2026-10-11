@@ -34,7 +34,7 @@ export function OnboardingFrame({ children }: { children: ReactNode }) {
   useReturningUserRedirect();
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-line/60 bg-canvas/[0.97]">
         <Container width="wide" className="flex min-h-16 items-center justify-between gap-3">
           <BrandMark />
           <div className="flex items-center gap-1 sm:gap-3">

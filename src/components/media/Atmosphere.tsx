@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ATMOSPHERE, type AtmosphereKey } from "@/data/visual-assets";
 import { cn } from "@/lib/cn";
 
@@ -34,6 +34,12 @@ export function Atmosphere({
   const a = ATMOSPHERE[asset];
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  // Cached images can finish loading before React attaches onLoad: check once after mount.
+  useEffect(() => {
+    const el = imgRef.current;
+    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+  }, []);
 
   return (
     <div
@@ -59,10 +65,7 @@ export function Atmosphere({
             "absolute inset-0 size-full object-cover transition-opacity duration-700 ease-out",
             loaded ? "opacity-100" : "opacity-0",
           )}
-          ref={(el) => {
-            // Cached images can finish before React attaches onLoad.
-            if (el?.complete && el.naturalWidth > 0) setLoaded(true);
-          }}
+          ref={imgRef}
         />
       )}
       <div

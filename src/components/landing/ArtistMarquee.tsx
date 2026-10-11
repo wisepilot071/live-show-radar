@@ -19,7 +19,7 @@ function Row({ artists, reverse }: { artists: typeof WITH_PHOTOS; reverse?: bool
     <li
       key={`${hidden ? "b" : "a"}-${a.slug}`}
       aria-hidden={hidden || undefined}
-      className="flex shrink-0 items-center gap-3 rounded-full border border-on-ink/10 bg-on-ink/[0.06] py-1.5 pr-5 pl-1.5 backdrop-blur-sm"
+      className="flex shrink-0 items-center gap-3 rounded-full border border-on-ink/10 bg-on-ink/[0.06] py-1.5 pr-5 pl-1.5"
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- self-hosted 320px artist photo */}
       <img
@@ -48,7 +48,7 @@ function Row({ artists, reverse }: { artists: typeof WITH_PHOTOS; reverse?: bool
 
 export function ArtistMarquee() {
   return (
-    <section aria-labelledby="marquee-title" className="on-ink relative isolate overflow-hidden bg-dusk-900 pt-4 pb-24 text-on-ink">
+    <section aria-labelledby="marquee-title" className="offscreen-lazy on-ink relative isolate overflow-hidden bg-dusk-900 pt-4 pb-24 text-on-ink">
       <Container width="wide" className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-2">
           <Eyebrow className="text-marigold">On the radar</Eyebrow>
