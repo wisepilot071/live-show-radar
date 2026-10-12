@@ -134,18 +134,19 @@ export function decide(input: DecisionInput): Decision {
   if (input.sourceClass === "user_submitted") return { notify: false, skip: "unverified_source" };
   const signals = deriveEventSignals(e, now, user.location);
   if (signals.isPast) return { notify: false, skip: "past_event" };
-  if (!isInLocationScope(e, user.location)) return { notify: false, skip: "outside_location_scope" };
+  if (!user.savedEvent && !isInLocationScope(e, user.location)) return { notify: false, skip: "outside_location_scope" };
   if (signals.locality === "elsewhere" && user.triggers.outside_primary_city === false) {
     return { notify: false, skip: "outside_city_disabled" };
   }
   if (user.triggers[TRIGGER_FOR[kind]] === false) return { notify: false, skip: "trigger_disabled" };
-  // Alerts only for the cities this person chose (home city + any extra cities they
-  // added). Shows elsewhere stay visible on Discover but never send an alert —
-  // except changes to a show they saved.
+  // Where alerts reach: with "Include relevant shows anywhere in India" on (the
+  // default), any show in India; with it off, only the cities this person chose
+  // (home + extra cities). Changes to a show they saved always reach them.
   if (!user.savedEvent) {
     const cityId = e.cityId ?? matchIndianCity(e.cityName)?.id;
     const chosen = !!cityId && (cityId === user.location.primaryCityId || user.location.additionalCityIds.includes(cityId));
-    if (!chosen) return { notify: false, skip: "not_in_chosen_cities" };
+    const nationwide = user.location.includeNationwide && (e.countryCode === "IN" || !!matchIndianCity(e.cityName));
+    if (!chosen && !nationwide) return { notify: false, skip: "not_in_chosen_cities" };
   }
 
   // Only fresh, verified information may produce a notification.
