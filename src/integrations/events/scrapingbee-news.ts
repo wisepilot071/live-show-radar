@@ -9,6 +9,7 @@ import {
   groundTour,
   pickTicketLinks,
   type GroundedShow,
+  type GroundedTour,
   type ListingExtraction,
   type TourExtraction,
 } from "@/integrations/gemini/tour-extraction";
@@ -121,13 +122,29 @@ export function recordFrom(artist: SourceArtistRef, item: NewsResult, x: Extract
 }
 
 /** One record per grounded show; the id is stable per artist + date + city across articles and runs. */
+/** The ticket facts a grounded tour article stated. */
+function ticketFacts(g: GroundedTour) {
+  return { generalSaleOpensAt: g.generalSaleOpensAt, ticketStatus: g.ticketStatus, earlyBirdEndsAt: g.earlyBirdEndsAt, priceFrom: g.priceFrom };
+}
+
 export function recordsFromShows(
   artist: SourceArtistRef,
   shows: GroundedShow[],
-  info: { articleUrl: string; tourName?: string; ticketUrl?: string; generalSaleOpensAt?: string },
+  info: {
+    articleUrl: string;
+    tourName?: string;
+    ticketUrl?: string;
+    generalSaleOpensAt?: string;
+    ticketStatus?: GroundedTour["ticketStatus"];
+    earlyBirdEndsAt?: string;
+    priceFrom?: number;
+  },
   now: Date,
 ): SourceEventRecord[] {
-  const saleFuture = Boolean(info.generalSaleOpensAt && Date.parse(info.generalSaleOpensAt) > now.getTime());
+  // What the article states wins; otherwise a stated sale date means "announced". Once that
+  // date has passed the read side shows it as on sale (src/domain/ticket-timeline.ts).
+  const status: SourceEventRecord["ticket"]["status"] = info.ticketStatus ?? (info.generalSaleOpensAt ? "announced_not_on_sale" : "unknown");
+  const earlyBirdLive = info.ticketStatus === "early_bird" && (!info.earlyBirdEndsAt || Date.parse(info.earlyBirdEndsAt) > now.getTime());
   return shows.map((s) => ({
     sourceEventId: createHash("sha256").update(`news|${artist.artistId}|${s.date}|${s.city.id}`).digest("hex").slice(0, 32),
     sourceUrl: info.articleUrl,
@@ -143,11 +160,13 @@ export function recordsFromShows(
     eventStatus: "scheduled",
     // Stated in the article, never verified by a ticketing source.
     ticket: {
-      status: saleFuture ? "announced_not_on_sale" : "unknown",
+      status: info.ticketStatus === "early_bird" && !earlyBirdLive ? "on_sale" : status,
       sourceExposesAvailability: false,
       url: info.ticketUrl,
-      saleOpensAt: saleFuture ? info.generalSaleOpensAt : undefined,
+      saleOpensAt: info.generalSaleOpensAt,
+      earlyBirdEndsAt: earlyBirdLive ? info.earlyBirdEndsAt : undefined,
     },
+    price: info.priceFrom ? { min: info.priceFrom, currency: "INR" } : undefined,
   }));
 }
 
@@ -236,7 +255,7 @@ export async function runCitySweep(
         const artist = tourArtists[0]!;
         if (d.pauseMs) await new Promise((res) => setTimeout(res, d.pauseMs));
         const g = groundTour(await d.extractTour(text), text, artist, now);
-        const info = { articleUrl: link, tourName: g.tourName, ticketUrl: pickTicketLinks(html, artist.name)[0], generalSaleOpensAt: g.generalSaleOpensAt };
+        const info = { articleUrl: link, tourName: g.tourName, ticketUrl: pickTicketLinks(html, artist.name)[0], ...ticketFacts(g) };
         for (const rec of recordsFromShows(artist, g.shows, info, now)) records.set(rec.sourceEventId, rec);
       }
     } catch (err) {
@@ -340,7 +359,7 @@ export function createScrapingBeeNewsAdapter(deps: () => ScrapingBeeDeps | null)
             try {
               const g = groundTour(await d.extractTour(text), text, artist, now);
               ticketUrl ??= pickTicketLinks(html, artist.name)[0];
-              const info = { articleUrl: link, tourName: g.tourName, ticketUrl, generalSaleOpensAt: g.generalSaleOpensAt };
+              const info = { articleUrl: link, tourName: g.tourName, ticketUrl, ...ticketFacts(g) };
               for (const rec of recordsFromShows(artist, g.shows, info, now)) {
                 if (!shows.has(rec.sourceEventId)) shows.set(rec.sourceEventId, rec);
               }

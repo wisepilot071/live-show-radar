@@ -149,17 +149,19 @@ export function EventCard({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-sm font-semibold text-fg">
               <Ticket aria-hidden className="size-4 shrink-0 text-fg-muted" />
-              {ticket.verification.state === "unavailable"
-                ? "Ticket source couldn't be checked"
-                : ticketConfirmed || ticket.kind === "unknown"
-                  ? TICKET_STATUS_LABEL[ticket.kind]
-                  : `${TICKET_STATUS_LABEL[ticket.kind]} (not verified)`}
+              {ticketConfirmed || ticket.kind === "unknown"
+                ? ticket.kind === "unknown" && ticket.verification.state === "unavailable"
+                  ? "Ticket source couldn't be checked"
+                  : TICKET_STATUS_LABEL[ticket.kind]
+                : // A status a news report or announcement stated: shown, but labelled as reported.
+                  `${TICKET_STATUS_LABEL[ticket.kind]} (reported, not verified)`}
             </p>
             <StatusBadge tone={VERIFICATION_TONE[ticket.verification.state]} />
           </div>
-          {ticketConfirmed && ticket.earlyBirdEndsAt && ticket.kind === "early_bird" && (
+          {ticket.earlyBirdEndsAt && ticket.kind === "early_bird" && (
             <p className={cn("text-sm", urgent ? "font-semibold text-urgent-ink" : "text-fg")}>
               Early bird ends {formatTimestamp(ticket.earlyBirdEndsAt, event.when.timeZone)}
+              {!ticketConfirmed && <span className="font-normal text-fg-muted"> (reported by {event.source.name})</span>}
             </p>
           )}
           {ticket.price && (
@@ -170,6 +172,7 @@ export function EventCard({
           {ticket.saleOpensAt && (
             <p className="text-sm text-fg">
               General sale opens {formatTimestamp(ticket.saleOpensAt, event.when.timeZone)}
+              {ticket.kind === "on_sale" && <span className="text-fg-muted"> (now open)</span>}
               {!ticketConfirmed && <span className="text-fg-muted"> (reported by {event.source.name}, not verified)</span>}
             </p>
           )}

@@ -19,6 +19,7 @@ import { formatEventDate, formatTimestamp, hostLabel } from "@/lib/format";
 import { useNow } from "@/lib/useNow";
 import { cardVariant, relevanceLine, TICKET_STATUS_LABEL, VARIANT_TAG, VERIFICATION_TONE } from "./event-labels";
 import { EventActions } from "./EventActions";
+import { formatPrice } from "./EventCard";
 import { SourcePanel } from "./SourcePanel";
 import { DetailSkeleton } from "@/components/ui/Skeletons";
 import { clientFetch } from "@/lib/client-fetch";
@@ -228,17 +229,18 @@ export function EventDetail({ id }: { id: string }) {
             </div>
             <dl className="space-y-3 text-sm">
               <DetailRow icon={Ticket} label="Status">
-                {ticket.verification.state === "unavailable"
-                  ? "Ticket source couldn't be checked"
-                  : ticketConfirmed || ticket.kind === "unknown"
-                    ? TICKET_STATUS_LABEL[ticket.kind]
-                    : `${TICKET_STATUS_LABEL[ticket.kind]} — not verified`}
+                {ticketConfirmed || ticket.kind === "unknown"
+                  ? ticket.kind === "unknown" && ticket.verification.state === "unavailable"
+                    ? "Ticket source couldn't be checked"
+                    : TICKET_STATUS_LABEL[ticket.kind]
+                  : `${TICKET_STATUS_LABEL[ticket.kind]} — reported by ${event.source.name}, not verified`}
               </DetailRow>
               <DetailRow icon={Clock} label="Early-bird deadline">
-                {ticketConfirmed && ticket.earlyBirdEndsAt ? (
+                {ticket.earlyBirdEndsAt ? (
                   <span className={variant === "deadline" ? "font-semibold text-urgent-ink" : undefined}>
                     {formatTimestamp(ticket.earlyBirdEndsAt, event.when.timeZone)}
                     {signals?.deadlinePassed && " (passed)"}
+                    {!ticketConfirmed && <span className="font-normal text-fg-muted"> — reported by {event.source.name}, not verified</span>}
                   </span>
                 ) : (
                   <span className="text-fg-muted">No verified deadline</span>
@@ -248,12 +250,18 @@ export function EventDetail({ id }: { id: string }) {
                 {ticket.saleOpensAt ? (
                   <>
                     {formatTimestamp(ticket.saleOpensAt, event.when.timeZone)}
+                    {ticket.kind === "on_sale" && " (now open)"}
                     {!ticketConfirmed && <span className="text-fg-muted"> — reported by {event.source.name}, not verified</span>}
                   </>
                 ) : (
                   <span className="text-fg-muted">Not stated by the source</span>
                 )}
               </DetailRow>
+              {ticket.price && (
+                <DetailRow icon={Ticket} label="Price">
+                  {formatPrice(ticket.price)} <span className="text-fg-muted">— as listed by {event.source.name}</span>
+                </DetailRow>
+              )}
             </dl>
             {!canBook && (
               <p className="mt-4 border-t border-line/60 pt-3 text-sm text-fg-muted">

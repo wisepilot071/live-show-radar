@@ -1,4 +1,5 @@
 import { verificationFor, SOURCE_STRENGTH, type SourceClass } from "@/domain/freshness";
+import { effectiveTicketKind } from "@/domain/ticket-timeline";
 import type { EventSourceEvidence, LiveEvent, TicketStatusKind, VerificationState } from "@/domain/types";
 import { getSql } from "@/server/db";
 import type { CanonicalFields } from "@/server/ingest/normalize";
@@ -93,7 +94,11 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
   const verifyingPrimary = ordered.find(canVerify);
 
   const kind: TicketStatusKind =
-    e.event_status === "cancelled" ? "cancelled" : e.event_status === "rescheduled" ? "postponed" : (e.ticket_status as TicketStatusKind);
+    e.event_status === "cancelled"
+      ? "cancelled"
+      : e.event_status === "rescheduled"
+        ? "postponed"
+        : effectiveTicketKind(e.ticket_status as TicketStatusKind, { saleOpensAt: e.sale_opens_at, earlyBirdEndsAt: e.early_bird_ends_at }, new Date());
 
   return {
     id: e.id,

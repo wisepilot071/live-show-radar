@@ -17,7 +17,7 @@ import type { City } from "@/domain/types";
  * from real <a href> links in the article, on known ticketing hosts, whose URL
  * mentions the artist.
  */
-export const TOUR_PROMPT_VERSION = "tour-v1";
+export const TOUR_PROMPT_VERSION = "tour-v2";
 
 export const TOUR_SYSTEM_INSTRUCTION = `You read one news article about live music in India and list the concert dates it announces.
 Rules:
@@ -26,6 +26,9 @@ Rules:
 - If the article gives no specific dates, return an empty "dates" list.
 - "general_sale_opens": when general ticket sales open, as an ISO 8601 date-time with +05:30, only if the article states it; evidence must be an exact quote.
 - "ticket_platform": the ticketing platform named in the article (e.g. "thumpN", "District", "BookMyShow"), with an exact quote.
+- "ticket_status": "sold_out" if the article says tickets are sold out; "early_bird" if it says early-bird tickets are on sale now; "on_sale" if it says tickets are on sale, live or available to book now; otherwise null. Evidence must be an exact quote that says it.
+- "early_bird_ends": when the early-bird offer ends, as an ISO 8601 date-time with +05:30, only if the article states it; exact quote.
+- "price_from": the lowest ticket price in Indian rupees as digits only (e.g. "1499"), only if the article states a price; the exact quote must contain that price.
 - "artist": the headline performer exactly as written.`;
 
 const quoted = z.object({ value: z.string().nullable(), evidence: z.string().nullable() });
@@ -39,6 +42,10 @@ export const tourSchema = z.object({
     .max(40),
   general_sale_opens: quoted,
   ticket_platform: quoted,
+  // Optional so extractions cached under the old prompt still parse.
+  ticket_status: quoted.optional(),
+  early_bird_ends: quoted.optional(),
+  price_from: quoted.optional(),
 });
 export type TourExtraction = z.infer<typeof tourSchema>;
 
@@ -59,8 +66,11 @@ export const tourJsonSchema = {
     },
     general_sale_opens: q,
     ticket_platform: q,
+    ticket_status: q,
+    early_bird_ends: q,
+    price_from: q,
   },
-  required: ["is_concert_announcement", "artist", "tour_name", "dates", "general_sale_opens", "ticket_platform"],
+  required: ["is_concert_announcement", "artist", "tour_name", "dates", "general_sale_opens", "ticket_platform", "ticket_status", "early_bird_ends", "price_from"],
 };
 
 const ENTITIES: Record<string, string> = { "&amp;": "&", "&nbsp;": " ", "&quot;": '"', "&#39;": "'", "&rsquo;": "’", "&lsquo;": "‘", "&ndash;": "–", "&mdash;": "—", "&lt;": "<", "&gt;": ">" };
@@ -126,8 +136,20 @@ export interface GroundedTour {
   shows: GroundedShow[];
   generalSaleOpensAt?: string;
   ticketPlatform?: string;
+  /** Only what the article says in so many words. */
+  ticketStatus?: "on_sale" | "early_bird" | "sold_out";
+  earlyBirdEndsAt?: string;
+  /** Lowest stated price, in INR. */
+  priceFrom?: number;
   dropped: number;
 }
+
+/** The words a quote must contain for each stated ticket status. */
+const STATUS_WORDS: Record<NonNullable<GroundedTour["ticketStatus"]>, RegExp> = {
+  sold_out: /sold[\s-]?out/i,
+  early_bird: /early[\s-]?bird/i,
+  on_sale: /on sale|are live|now live|available|book now|bookings? (?:are |is )?(?:now )?open|grab your tickets/i,
+};
 
 function istToday(now: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
@@ -168,14 +190,29 @@ export function groundTour(x: TourExtraction, text: string, artist: { name: stri
     seen.add(key);
     shows.push({ date: d.date, city, venue: d.venue && inText(d.venue) ? d.venue : undefined, evidence: d.evidence });
   }
-  const sale = x.general_sale_opens.value;
-  const saleOk = sale && inText(x.general_sale_opens.evidence) && !Number.isNaN(Date.parse(sale)) && text.includes(sale.slice(0, 4));
+  // A stated instant counts only with a verbatim quote and its year written in the article.
+  const instant = (f: TourExtraction["general_sale_opens"] | undefined) =>
+    f?.value && inText(f.evidence) && !Number.isNaN(Date.parse(f.value)) && text.includes(f.value.slice(0, 4)) ? new Date(f.value).toISOString() : undefined;
+
+  const status = x.ticket_status?.value;
+  const statusOk =
+    (status === "on_sale" || status === "early_bird" || status === "sold_out") && inText(x.ticket_status?.evidence) && STATUS_WORDS[status].test(x.ticket_status!.evidence!);
+
+  // The price must be written in the quote (commas ignored) next to a rupee marker.
+  const price = x.price_from?.value?.replace(/[,\s]/g, "");
+  const priceQuote = x.price_from?.evidence ?? "";
+  const priceOk =
+    !!price && /^\d{2,6}$/.test(price) && inText(priceQuote) && priceQuote.replace(/,/g, "").includes(price) && /₹|\brs\.?|\binr\b|rupees/i.test(priceQuote);
+
   return {
     artistMatches,
     tourName: x.tour_name.value && inText(x.tour_name.evidence) ? x.tour_name.value : undefined,
     shows: artistMatches ? shows : [],
-    generalSaleOpensAt: saleOk ? new Date(sale).toISOString() : undefined,
+    generalSaleOpensAt: instant(x.general_sale_opens),
     ticketPlatform: x.ticket_platform.value && inText(x.ticket_platform.evidence) ? x.ticket_platform.value : undefined,
+    ticketStatus: statusOk ? status : undefined,
+    earlyBirdEndsAt: statusOk && status === "early_bird" ? instant(x.early_bird_ends) : undefined,
+    priceFrom: priceOk ? Number(price) : undefined,
     dropped,
   };
 }

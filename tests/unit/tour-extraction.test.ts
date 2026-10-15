@@ -140,3 +140,59 @@ describe("groundListing (city sweep)", () => {
     expect(shows).toEqual([]);
   });
 });
+
+describe("ticket facts stated in the article", () => {
+  const text =
+    "Diljit Dosanjh Aura Tour 2026: tickets are now live on District. Early bird tickets end on October 20, 2026. Tickets start at Rs 1,499.\nNovember 29, 2026 - Bengaluru";
+  const DILJIT = { artistId: "dd", name: "Diljit Dosanjh", aliases: [] as string[] };
+  const base = (over: Partial<TourExtraction>) =>
+    extraction([{ date: "2026-11-29", city: "Bengaluru", venue: null, evidence: "November 29, 2026 - Bengaluru" }], {
+      artist: "Diljit Dosanjh",
+      tour_name: { value: null, evidence: null },
+      general_sale_opens: { value: null, evidence: null },
+      ticket_platform: { value: "District", evidence: "on District" },
+      ...over,
+    });
+
+  it("keeps a status, early-bird end and price only when quoted and the quote says it", () => {
+    const g = groundTour(
+      base({
+        ticket_status: { value: "early_bird", evidence: "Early bird tickets end on October 20, 2026" },
+        early_bird_ends: { value: "2026-10-20T23:59:00+05:30", evidence: "Early bird tickets end on October 20, 2026" },
+        price_from: { value: "1499", evidence: "Tickets start at Rs 1,499" },
+      }),
+      text,
+      DILJIT,
+      NOW,
+    );
+    expect(g).toMatchObject({ ticketStatus: "early_bird", priceFrom: 1499 });
+    expect(g.earlyBirdEndsAt).toBe("2026-10-20T18:29:00.000Z");
+  });
+
+  it("drops invented or mismatched ticket facts", () => {
+    const g = groundTour(
+      base({
+        // quote exists but doesn't say "sold out"
+        ticket_status: { value: "sold_out", evidence: "tickets are now live on District" },
+        // price not in the quote
+        price_from: { value: "999", evidence: "Tickets start at Rs 1,499" },
+      }),
+      text,
+      DILJIT,
+      NOW,
+    );
+    expect(g.ticketStatus).toBeUndefined();
+    expect(g.priceFrom).toBeUndefined();
+    const invented = groundTour(base({ ticket_status: { value: "on_sale", evidence: "Tickets selling fast everywhere" } }), text, DILJIT, NOW);
+    expect(invented.ticketStatus).toBeUndefined();
+  });
+
+  it("records carry the stated status, early-bird end and INR price; an expired early bird is a normal sale", () => {
+    const shows = groundTour(base({}), text, DILJIT, NOW).shows;
+    const [live] = recordsFromShows(DILJIT, shows, { articleUrl: "https://a.example/d", ticketStatus: "early_bird", earlyBirdEndsAt: "2026-10-20T18:29:00.000Z", priceFrom: 1499 }, NOW);
+    expect(live!.ticket).toMatchObject({ status: "early_bird", earlyBirdEndsAt: "2026-10-20T18:29:00.000Z" });
+    expect(live!.price).toEqual({ min: 1499, currency: "INR" });
+    const [over] = recordsFromShows(DILJIT, shows, { articleUrl: "https://a.example/d", ticketStatus: "early_bird", earlyBirdEndsAt: "2026-10-01T00:00:00.000Z" }, NOW);
+    expect(over!.ticket).toMatchObject({ status: "on_sale", earlyBirdEndsAt: undefined });
+  });
+});
