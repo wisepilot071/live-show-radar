@@ -4,6 +4,7 @@ import { withJobLock } from "./guards";
 import { runDiscovery, type DiscoveryRunResult } from "./ingest/pipeline";
 import { errorMessage, log, type ErrorCategory } from "./log";
 import { runNotificationPipeline, type NotificationSummary } from "./notifications/process";
+import { findMissingTicketLinks, type TicketLinkSummary } from "./ticket-links";
 
 /**
  * The monitoring job — what Vercel Cron runs daily (and operators can run
@@ -20,6 +21,7 @@ export interface MonitoringResult {
   runId?: string;
   discovery?: DiscoveryRunResult;
   notifications?: NotificationSummary | "locked";
+  ticketLinks?: TicketLinkSummary;
   errorCategory?: ErrorCategory;
 }
 
@@ -31,6 +33,8 @@ export async function runMonitoringJob(trigger: "schedule" | "admin"): Promise<M
     let status: MonitoringResult["status"] = "succeeded";
     let discovery: DiscoveryRunResult | undefined;
     let notifications: NotificationSummary | "locked" | undefined;
+    let ticketLinks: TicketLinkSummary | undefined;
+    const startedAt = Date.now();
     let errorCategory: ErrorCategory | undefined;
     try {
       discovery = await runDiscovery({
@@ -45,6 +49,12 @@ export async function runMonitoringJob(trigger: "schedule" | "admin"): Promise<M
       const notif = await runNotificationPipeline();
       notifications = notif.acquired ? notif.value : "locked";
       if (notif.acquired && notif.value.deliveriesFailed > 0) status = "partial";
+      // Last, with whatever time is left: ticket pages for shows whose source gave no link.
+      try {
+        ticketLinks = await findMissingTicketLinks({ deadline: startedAt + 270_000 });
+      } catch (err) {
+        log.warn("monitoring", "ticket-link search failed", { error: errorMessage(err) });
+      }
     } catch (err) {
       status = "failed";
       errorCategory = /connect|ECONN|terminat/i.test(errorMessage(err)) ? "database_unavailable" : "internal";
@@ -52,9 +62,9 @@ export async function runMonitoringJob(trigger: "schedule" | "admin"): Promise<M
     }
     await sql`
       update radar.job_runs set finished_at = now(), status = ${status}, error_category = ${errorCategory ?? null},
-        summary = ${sql.json({ discovery, notifications } as never)}
+        summary = ${sql.json({ discovery, notifications, ticketLinks } as never)}
       where id = ${runId}`;
-    return { status, runId, discovery, notifications, errorCategory };
+    return { status, runId, discovery, notifications, ticketLinks, errorCategory };
   });
   if (!locked.acquired) {
     await sql`insert into radar.job_runs (job, trigger, status, finished_at) values ('monitoring', ${trigger}, 'locked', now())`;

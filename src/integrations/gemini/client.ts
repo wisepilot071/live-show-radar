@@ -1,4 +1,4 @@
-import { ApiError, GoogleGenAI } from "@google/genai";
+import { ApiError, GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { getServerEnv } from "@/config/server-env";
 import { log } from "@/server/log";
 
@@ -69,18 +69,66 @@ type GenerateOpts = {
   maxOutputTokens?: number;
 };
 
+/** One Gemini request: what to send, and how to read the answer. */
+type Call<T> = { userText: string; config: Record<string, unknown>; read: (res: GenerateContentResponse) => T };
+
 /**
  * Calls Gemini and returns parsed JSON (not yet schema-validated).
  * If the primary model stays unavailable after retries, tries
  * GEMINI_FALLBACK_MODEL once (when set). Never falls back to another provider.
  */
 export async function generateJson(opts: GenerateOpts): Promise<{ json: unknown; model: string }> {
+  const { value, model } = await run({
+    userText: opts.userText,
+    config: {
+      systemInstruction: opts.systemInstruction,
+      responseMimeType: "application/json",
+      responseJsonSchema: opts.jsonSchema,
+      temperature: 0,
+      // Extraction needs no hidden "thinking": with it on, thinking tokens could use up the
+      // whole budget and truncate the JSON (seen live: finishReason MAX_TOKENS).
+      maxOutputTokens: opts.maxOutputTokens ?? 8192,
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+    read: (res) => {
+      const text = res.text;
+      if (!text) throw new GeminiError("Empty response", "ai_invalid_output");
+      try {
+        return JSON.parse(text) as unknown;
+      } catch {
+        throw new GeminiError("Response was not valid JSON", "ai_invalid_output");
+      }
+    },
+  });
+  return { json: value, model };
+}
+
+/**
+ * A Google Search run through Gemini's search grounding. Returns the result
+ * pages Google actually returned (grounding chunks), in order — NOT anything
+ * the model wrote, which can be a plausible-looking but wrong URL. The URIs
+ * are Google redirect links; callers resolve them (see ticket-search.ts).
+ */
+export async function searchWeb(query: string): Promise<{ results: Array<{ uri: string; title?: string }>; model: string }> {
+  const { value, model } = await run({
+    userText: `Search the web for: ${query}
+List the pages you found.`,
+    config: { tools: [{ googleSearch: {} }], temperature: 0, thinkingConfig: { thinkingBudget: 0 } },
+    read: (res) =>
+      (res.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [])
+        .map((c) => ({ uri: c.web?.uri ?? "", title: c.web?.title }))
+        .filter((c) => c.uri.startsWith("https://")),
+  });
+  return { results: value, model };
+}
+
+async function run<T>(call: Call<T>): Promise<{ value: T; model: string }> {
   const { apiKeys } = getServerEnv().gemini;
   if (apiKeys.length === 0) throw new GeminiError("GEMINI_API_KEY is not set", "not_configured");
   const keys = usableKeys();
   for (const key of keys) {
     try {
-      return await generateWithModels(key, opts);
+      return await generateWithModels(key, call);
     } catch (err) {
       if (!(err instanceof KeyRejectedError)) throw err;
       rejectedUntil.set(key, Date.now() + KEY_COOLDOWN_MS);
@@ -90,46 +138,30 @@ export async function generateJson(opts: GenerateOpts): Promise<{ json: unknown;
   throw new GeminiError("Every configured Gemini API key was rejected (invalid, expired or revoked)", "ai_unavailable");
 }
 
-async function generateWithModels(key: string, opts: GenerateOpts): Promise<{ json: unknown; model: string }> {
+async function generateWithModels<T>(key: string, call: Call<T>): Promise<{ value: T; model: string }> {
   const { model, fallbackModel } = getServerEnv().gemini;
   try {
-    return await generateWith(key, model, opts);
+    return await generateWith(key, model, call);
   } catch (err) {
     const fallbackable =
       err instanceof GeminiError && (err.category === "ai_unavailable" || err.category === "timeout" || err.category === "ai_rate_limited");
     if (!fallbackable || !fallbackModel || fallbackModel === model) throw err;
     log.warn("gemini", "falling back", { from: model, to: fallbackModel, category: (err as GeminiError).category });
-    return generateWith(key, fallbackModel, opts);
+    return generateWith(key, fallbackModel, call);
   }
 }
 
-async function generateWith(key: string, model: string, opts: GenerateOpts): Promise<{ json: unknown; model: string }> {
+async function generateWith<T>(key: string, model: string, call: Call<T>): Promise<{ value: T; model: string }> {
   const ai = clientFor(key);
 
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await ai.models.generateContent({
         model,
-        contents: [{ role: "user", parts: [{ text: opts.userText }] }],
-        config: {
-          systemInstruction: opts.systemInstruction,
-          responseMimeType: "application/json",
-          responseJsonSchema: opts.jsonSchema,
-          temperature: 0,
-          // Extraction needs no hidden "thinking": with it on, thinking tokens could use up the
-          // whole budget and truncate the JSON (seen live: finishReason MAX_TOKENS).
-          maxOutputTokens: opts.maxOutputTokens ?? 8192,
-          thinkingConfig: { thinkingBudget: 0 },
-          abortSignal: AbortSignal.timeout(TIMEOUT_MS),
-        },
+        contents: [{ role: "user", parts: [{ text: call.userText }] }],
+        config: { ...call.config, abortSignal: AbortSignal.timeout(TIMEOUT_MS) },
       });
-      const text = res.text;
-      if (!text) throw new GeminiError("Empty response", "ai_invalid_output");
-      try {
-        return { json: JSON.parse(text) as unknown, model };
-      } catch {
-        throw new GeminiError("Response was not valid JSON", "ai_invalid_output");
-      }
+      return { value: call.read(res), model };
     } catch (err) {
       if (err instanceof GeminiError) throw err;
       const status = err instanceof ApiError ? err.status : undefined;

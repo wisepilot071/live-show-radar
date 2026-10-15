@@ -188,6 +188,7 @@ export function EventCard({
         <footer className="mt-auto space-y-3 border-t border-line pt-3">
           <p className="text-xs text-fg-muted">
             Source: <span className="font-medium text-fg-secondary">{event.source.name}</span>
+            {canBook && ticket.bookingUrlFoundBySearch && <> · Ticket page found by web search — check the date and city before you buy.</>}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             {canBook && ticket.bookingUrl && (

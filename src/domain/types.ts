@@ -193,6 +193,8 @@ export interface TicketStatus {
   earlyBirdEndsAt?: IsoTimestamp;
   /** Real booking URL from the source. Absent ⇒ no ticket action is offered. */
   bookingUrl?: string;
+  /** True when bookingUrl came from a web search (official ticketing site, artist + city in the URL), not from the source itself. */
+  bookingUrlFoundBySearch?: boolean;
   /** Price range exactly as the source states it (never estimated). */
   price?: { min: number; max: number; currency: string };
 }

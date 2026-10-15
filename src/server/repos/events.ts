@@ -25,6 +25,7 @@ interface EventRow {
   country_code: string | null;
   location_confidence: NonNullable<LiveEvent["locationConfidence"]>;
   ticket_url: string | null;
+  found_ticket_url: string | null;
   ticket_status: string;
   sale_opens_at: Date | null;
   early_bird_ends_at: Date | null;
@@ -129,7 +130,8 @@ function mapEvent(e: EventRow, sources: SourceRow[], now: Date): LiveEvent {
       },
       saleOpensAt: iso(e.sale_opens_at),
       earlyBirdEndsAt: iso(e.early_bird_ends_at),
-      bookingUrl: safeTicketUrl(e.ticket_url) ?? undefined,
+      bookingUrl: safeTicketUrl(e.ticket_url) ?? safeTicketUrl(e.found_ticket_url) ?? undefined,
+      bookingUrlFoundBySearch: !safeTicketUrl(e.ticket_url) && Boolean(safeTicketUrl(e.found_ticket_url)),
       price:
         e.price_currency && e.price_min !== null
           ? { min: Number(e.price_min), max: Number(e.price_max ?? e.price_min), currency: e.price_currency }
@@ -188,6 +190,7 @@ export function publicSourceName(sourceId: string, storedName: string, url: stri
 const EVENT_COLUMNS = (sql: ReturnType<typeof getSql>) => sql`
   e.id, e.title, e.kind, e.starts_at, e.local_date, e.time_zone, e.venue_name, e.city_name, e.city_id,
   e.country_code, e.location_confidence, e.ticket_url, e.ticket_status, e.sale_opens_at, e.early_bird_ends_at,
+  (select tl.url from radar.event_ticket_links tl where tl.event_id = e.id) as found_ticket_url,
   e.image_url, e.price_min, e.price_max, e.price_currency,
   e.event_status, e.announced_at, e.needs_review,
   coalesce(array_agg(a.catalogue_key order by ea.billing_order) filter (where a.id is not null), '{}') as artist_keys,

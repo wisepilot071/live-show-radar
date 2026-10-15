@@ -160,7 +160,9 @@ export function normalizeRecord(
     countryCode: r.countryCode ?? null,
     locationConfidence,
     eventStatus: r.eventStatus,
-    ticketStatus: r.ticket.sourceExposesAvailability ? r.ticket.status : "unknown",
+    // A status a non-ticketing source STATED (e.g. a grounded news quote) is kept; mergeEvidence lets
+    // any availability-exposing source override it, and the read side labels it "reported".
+    ticketStatus: r.ticket.status,
     ticketExposed: r.ticket.sourceExposesAvailability,
     // Ticket links: https only, no credentials, no tracking/redirect hops (src/lib/ticket-url.ts).
     ticketUrl: safeTicketUrl(r.ticket.url) ?? null,

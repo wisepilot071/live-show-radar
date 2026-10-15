@@ -179,6 +179,11 @@ export function EventDetail({ id }: { id: string }) {
             </a>
           )}
         </div>
+        {canBook && ticket.bookingUrlFoundBySearch && (
+          <p className="text-sm text-fg-muted">
+            We found this official ticket page by web search, not in the source report. Check the date and city on it before you buy.
+          </p>
+        )}
       </header>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">

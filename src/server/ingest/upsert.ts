@@ -85,11 +85,13 @@ export function mergeEvidence(rows: EvidenceRow[]): { fields: CanonicalFields; c
   );
   const base = { ...ordered[0]!.record.fields };
   const keys = Object.keys(base) as Array<keyof CanonicalFields>;
+  const exposing = ordered.filter((r) => r.record.fields.ticketExposed);
   for (const key of keys) {
-    // Ticket facts only come from sources that actually expose availability.
-    const pool = key.startsWith("ticket") || key === "saleOpensAt" || key.startsWith("earlyBird")
-      ? ordered.filter((r) => r.record.fields.ticketExposed || key === "ticketUrl")
-      : ordered;
+    // Ticket facts come from sources that actually expose availability. When none of
+    // them has a value, a fact a news report or announcement STATED (verbatim-grounded)
+    // is used instead — the read side labels it "reported, not verified".
+    const isTicketFact = key !== "ticketUrl" && (key.startsWith("ticket") || key === "saleOpensAt" || key.startsWith("earlyBird"));
+    const pool = isTicketFact && exposing.some((r) => !isEmpty(key, r.record.fields[key])) ? exposing : ordered;
     const winner = pool.find((r) => !isEmpty(key, r.record.fields[key]));
     (base as Record<string, unknown>)[key] = winner ? winner.record.fields[key] : key === "ticketStatus" ? "unknown" : base[key];
   }

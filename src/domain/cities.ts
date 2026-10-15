@@ -48,6 +48,12 @@ const CITY_ALIASES: Record<string, string[]> = {
   kochi: ["cochin", "ernakulam"],
 };
 
+/** Every spelling of a city we know (name, id, aliases), lower-cased — e.g. for matching URL slugs. */
+export function cityNameVariants(cityId: string): string[] {
+  const city = findCity(cityId);
+  return [...new Set([city?.name, cityId, ...(CITY_ALIASES[cityId] ?? [])].filter((v): v is string => Boolean(v)).map((v) => norm(v)))];
+}
+
 function norm(s: string): string {
   return s.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]+/g, " ").replace(/\s+/g, " ").trim();
 }

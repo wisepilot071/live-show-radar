@@ -58,9 +58,10 @@ describe("normalizeRecord", () => {
     expect(r.record.submittedBy).toBeNull();
   });
 
-  it("keeps a source's 'unknown' ticket status when it doesn't expose availability", () => {
+  it("keeps a status a non-ticketing source stated, marked as not exposed (shown as reported, not verified)", () => {
     const r = normalizeRecord(fixtureRecord({ ticket: { status: "on_sale", sourceExposesAvailability: false } }), MB, [TEST_ARTIST]);
-    expect(r.ok && r.record.fields.ticketStatus).toBe("unknown");
+    expect(r.ok && r.record.fields.ticketStatus).toBe("on_sale");
+    expect(r.ok && r.record.fields.ticketExposed).toBe(false);
   });
 
   it("matches performers by exact alias but never ambiguously", () => {
@@ -134,5 +135,29 @@ describe("change comparison (regression: strings containing T were parsed as dat
     expect(comparable("startsAt", new Date("2027-02-13T14:00:00Z"))).toBe(comparable("startsAt", "2027-02-13T19:30:00+05:30"));
     expect(comparable("localDate", new Date("2027-02-13T00:00:00Z"))).toBe("2027-02-13");
     expect(comparable("ticketUrl", null)).toBeNull();
+  });
+});
+
+describe("mergeEvidence: stated ticket facts", () => {
+  const norm = (rec = fixtureRecord(), src: typeof MB | typeof TM = MB) => {
+    const r = normalizeRecord(rec, src, [TEST_ARTIST]);
+    if (!r.ok) throw new Error(r.reason);
+    return r.record;
+  };
+  const row = (rec: ReturnType<typeof norm>, at: string) => ({
+    source_id: rec.sourceId,
+    record: { fields: rec.fields, sourceClass: rec.sourceClass },
+    last_success_at: new Date(at),
+  });
+
+  it("keeps a status a report stated when no ticketing source has one", () => {
+    const reported = norm(fixtureRecord({ ticket: { status: "early_bird", sourceExposesAvailability: false } }));
+    expect(mergeEvidence([row(reported, "2026-10-10T00:00:00Z")]).fields.ticketStatus).toBe("early_bird");
+  });
+
+  it("a ticketing source's own status still wins over a reported one", () => {
+    const reported = norm(fixtureRecord({ ticket: { status: "early_bird", sourceExposesAvailability: false } }));
+    const ticketing = norm(fixtureRecord({ sourceEventId: "TEST-EVT-9", ticket: { status: "sold_out", sourceExposesAvailability: true } }), TM);
+    expect(mergeEvidence([row(reported, "2026-10-10T00:00:00Z"), row(ticketing, "2026-10-01T00:00:00Z")]).fields.ticketStatus).toBe("sold_out");
   });
 });
