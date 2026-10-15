@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { browserDraftStore, type OnboardingDraftStore } from "@/persistence/onboarding-draft-store";
-import { fetchServerProfile, importDraftToServer, syncAction, type SyncResult } from "./server-sync";
+import { fetchServerProfile, importDraftToServer, pushMissingSelections, syncAction, type SyncResult } from "./server-sync";
 import { initialOnboardingState, onboardingReducer, type OnboardingAction, type OnboardingState } from "./state";
 
 /**
@@ -94,7 +94,14 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const server = await fetchServerProfile();
+      // A single failed request (cold start, flaky network) mustn't strand the person in
+      // browser-only mode: retry briefly before falling back.
+      let server = await fetchServerProfile();
+      for (const wait of [1_500, 4_000]) {
+        if (cancelled || server.kind !== "error") break;
+        await new Promise((r) => setTimeout(r, wait));
+        if (!cancelled) server = await fetchServerProfile();
+      }
       if (cancelled) return;
       if (server.kind === "not_configured") return loadBrowser("browser");
       if (server.kind === "error") {
@@ -112,6 +119,17 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
           store.clear();
           setMigrated(true);
         }
+      } else if (local.ok && local.draft && local.draft.selections.length > 0) {
+        // Back from offline: artists added in this browser meanwhile join the server profile.
+        const allSaved = await pushMissingSelections(local.draft, profile);
+        if (cancelled) return;
+        const fresh = await fetchServerProfile();
+        if (cancelled) return;
+        if (fresh.kind === "server") profile = fresh.profile;
+        if (allSaved) {
+          store.clear();
+          setMigrated(true);
+        }
       }
       replaceState(profile);
       modeRef.current = "server";
@@ -122,6 +140,24 @@ export function OnboardingProvider({ children, store = browserDraftStore }: { ch
       cancelled = true;
     };
   }, [loadNonce, loadBrowser, replaceState, store]);
+
+  // Offline (server unreachable, not unconfigured): keep trying to reconnect in the
+  // background, and right away when the tab regains focus or the network returns.
+  // On success the load above switches to the server and uploads the browser draft.
+  useEffect(() => {
+    if (mode !== "offline") return;
+    const retry = () => {
+      if (document.visibilityState === "visible") setLoadNonce((n) => n + 1);
+    };
+    const timer = window.setInterval(retry, 20_000);
+    window.addEventListener("online", retry);
+    window.addEventListener("focus", retry);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("online", retry);
+      window.removeEventListener("focus", retry);
+    };
+  }, [mode]);
 
   const run = useCallback(
     (action: OnboardingAction): Promise<SyncResult> => {

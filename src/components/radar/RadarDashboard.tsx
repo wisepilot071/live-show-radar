@@ -43,7 +43,7 @@ import { AnnouncementIntake } from "./AnnouncementIntake";
 import { EventGridSkeleton } from "@/components/ui/Skeletons";
 
 export function RadarDashboard() {
-  const { state, hydrated, persistence, mode } = useOnboarding();
+  const { state, hydrated, persistence, mode, reload } = useOnboarding();
   const { discovery, retry, check, checkNow } = useDiscovery(mode, state.selections.length);
   const now = useNow();
   const situation: DashboardSituation =
@@ -162,11 +162,22 @@ export function RadarDashboard() {
           icon={Plug}
           tone="neutral"
           title="Your radar is saved in this browser. Live discovery needs server storage."
-          body={`Your ${pluralize(state.selections.length, "artist")} and cities are saved here, but this server's database isn't configured or reachable, so discovered shows can't be stored or shown. Nothing has been checked — this is empty for that reason, not because your artists have no shows.`}
+          body={
+            mode === "offline"
+              ? `Your ${pluralize(state.selections.length, "artist")} and cities are saved here. We couldn't reach the server just now, so shows can't load yet — we'll keep reconnecting automatically, and your artists will sync as soon as it's back.`
+              : `Your ${pluralize(state.selections.length, "artist")} and cities are saved here, but this server's database isn't configured or reachable, so discovered shows can't be stored or shown. Nothing has been checked — this is empty for that reason, not because your artists have no shows.`
+          }
           action={
-            <ButtonLink href="/explore" variant="ghost">
-              See how shows will look
-            </ButtonLink>
+            <div className="flex flex-wrap justify-center gap-2">
+              {mode === "offline" && (
+                <Button onClick={reload} leadingIcon={<RotateCw aria-hidden className="size-4" />}>
+                  Try again
+                </Button>
+              )}
+              <ButtonLink href="/explore" variant="ghost">
+                See how shows will look
+              </ButtonLink>
+            </div>
           }
         />
       )}

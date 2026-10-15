@@ -130,3 +130,32 @@ export async function importDraftToServer(draft: OnboardingState): Promise<Onboa
     return null;
   }
 }
+
+/**
+ * Artists followed in this browser while the server was unreachable, but not yet on
+ * the server profile: follow them there (idempotent, 6 at a time). True only when
+ * every one was saved, so the browser copy can be dropped safely.
+ */
+export async function pushMissingSelections(local: OnboardingState, server: OnboardingState): Promise<boolean> {
+  const have = new Set(server.selections.map((s) => artistIdentityKey(s.artist)));
+  const missing = local.selections.filter((s) => !have.has(artistIdentityKey(s.artist)));
+  let allOk = true;
+  for (let i = 0; i < missing.length; i += 6) {
+    const results = await Promise.all(
+      missing.slice(i, i + 6).map(async (s) => {
+        try {
+          const res = await clientFetch("/api/me/artists", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ artist: s.artist, addedVia: s.addedVia, selectedAt: s.selectedAt }),
+          });
+          return res.ok;
+        } catch {
+          return false;
+        }
+      }),
+    );
+    if (results.includes(false)) allOk = false;
+  }
+  return allOk;
+}
