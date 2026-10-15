@@ -111,9 +111,13 @@ export function SettingsPage() {
           <ul className="divide-y divide-line/60 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
             <ConnectionRow
               name="Spotify"
-              tone="unavailable"
-              label="Coming soon"
-              detail="Importing the artists you follow on Spotify is planned for a future update. Nothing connects to Spotify today — your artist list works without it."
+              tone={report.spotify.available ? "confirmed" : "unavailable"}
+              label={report.spotify.available ? "Available" : "Coming soon"}
+              detail={
+                report.spotify.available
+                  ? "Import the artists you follow on Spotify from the Artists page. It's a one-time read; no Spotify login is kept."
+                  : "Spotify import isn't switched on for this server. Nothing connects to Spotify — your artist list works without it."
+              }
             />
             {report.unavailableSources.map((s) => (
               <ConnectionRow key={s.id} name={`Event source · ${s.name}`} tone="unavailable" label="Not integrated" detail={s.reason} />

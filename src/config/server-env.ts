@@ -49,6 +49,8 @@ export interface ServerEnv {
   telegram: { botToken?: string; botUsername?: string; webhookSecret?: string };
   /** Google Calendar OAuth client (scope: calendar.events). */
   google: { clientId?: string; clientSecret?: string };
+  /** Spotify OAuth client (one-time import of followed + top artists). */
+  spotify: { clientId?: string; clientSecret?: string };
   /** 32-byte key (base64url) for OAuth tokens at rest; derived from SESSION_SECRET when unset. */
   tokenEncryptionKey?: string;
 }
@@ -107,6 +109,7 @@ export function getServerEnv(): ServerEnv {
       webhookSecret: read("TELEGRAM_WEBHOOK_SECRET"),
     },
     google: { clientId: read("GOOGLE_CLIENT_ID"), clientSecret: read("GOOGLE_CLIENT_SECRET") },
+    spotify: { clientId: read("SPOTIFY_CLIENT_ID"), clientSecret: read("SPOTIFY_CLIENT_SECRET") },
     tokenEncryptionKey: read("TOKEN_ENCRYPTION_KEY"),
   };
 }

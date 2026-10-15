@@ -1,7 +1,8 @@
 import type { Artist } from "@/domain/types";
 
 /**
- * Spotify integration contract (planned — not implemented).
+ * Spotify integration contract. Implemented as a one-time import
+ * (src/integrations/spotify/client.ts, src/server/spotify-import.ts).
  *
  * Verified against Spotify's Web API docs on 2026-10-11:
  * - GET /v1/me/following?type=artist  — requires `user-follow-read`; cursor
@@ -11,7 +12,7 @@ import type { Artist } from "@/domain/types";
  * - GET /v1/me/top/artists            — requires `user-top-read`.
  * - Development Mode apps: owner needs Spotify Premium; new apps are limited
  *   to 5 users; artist `followers`/`popularity` fields were removed.
- * Re-verify both endpoints before implementing (see docs/ARCHITECTURE.md).
+ * Re-verified 2026-10-15 when the import was built.
  *
  * The permission copy shown in the UI is generated from SPOTIFY_PLANNED_SCOPES,
  * so it can never drift from the scopes actually requested.
@@ -20,12 +21,12 @@ export const SPOTIFY_PLANNED_SCOPES = [
   {
     scope: "user-follow-read",
     title: "Artists you follow",
-    usage: "To suggest the artists you already follow on Spotify.",
+    usage: "To add the artists you already follow on Spotify to your radar.",
   },
   {
     scope: "user-top-read",
     title: "Your top artists",
-    usage: "To suggest artists you listen to most, even if you don't follow them.",
+    usage: "To add the artists you listen to most, even if you don't follow them.",
   },
 ] as const;
 

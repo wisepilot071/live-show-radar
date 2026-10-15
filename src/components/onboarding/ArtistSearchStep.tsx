@@ -14,7 +14,7 @@ import { previousStep, STEPS } from "@/features/onboarding/steps";
 import { useOnboardingSubmit } from "@/features/onboarding/useOnboardingSubmit";
 import { pluralize } from "@/lib/format";
 import { SelectedArtistChips } from "./SelectedArtistList";
-import { SpotifyComingSoonCard } from "./SpotifyComingSoonCard";
+import { SpotifyImportCard } from "./SpotifyImportCard";
 import { StepLayout, StepNav } from "./StepLayout";
 
 /** Mirror the query into the URL so refresh and back/forward keep it. */
@@ -84,7 +84,7 @@ export function ArtistSearchStep() {
         </InlineAlert>
       )}
 
-      <SpotifyComingSoonCard />
+      <SpotifyImportCard from="onboarding" />
 
       <div className="mt-8 space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">

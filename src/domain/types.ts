@@ -27,7 +27,7 @@ export type DataOrigin =
   | "illustrative" // fictional event examples used only in previews
   | "user_entered" // typed by the user, not matched to any catalogue
   | "musicbrainz" // MusicBrainz open music database (artist search, events)
-  | "spotify" // planned
+  | "spotify"
   | "event_source" // a supported ticketing / listing source
   | "user_submitted" // announcement text pasted by the user, extracted by Gemini
   | "curated"; // curated catalogue artist with no external id (never invented)

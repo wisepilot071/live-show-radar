@@ -32,6 +32,7 @@ import { LiveOnStage } from "@/components/media/LiveOnStage";
 import { cn } from "@/lib/cn";
 import { ArtistPhotoCredits } from "./ArtistPhotoCredits";
 import { ArtistTile } from "./ArtistTile";
+import { SpotifyImportCard } from "@/components/onboarding/SpotifyImportCard";
 
 function subscribeHash(onChange: () => void) {
   window.addEventListener("hashchange", onChange);
@@ -235,6 +236,7 @@ export function ArtistsManager() {
             Any artist in the world — searched on MusicBrainz, or added by name.
           </p>
         </div>
+        <SpotifyImportCard from="artists" />
         <Card tone="raised" className="p-4 sm:p-5">
           <ArtistSearchPanel
             key={addQuery.nonce}
